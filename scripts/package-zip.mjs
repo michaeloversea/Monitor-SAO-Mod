@@ -72,7 +72,7 @@ const cdEntries = [];
 for (const entry of entries) {
   const data = readFileSync(entry.full);
   const deflated = zlib.deflateRawSync(data, { level: 9 });
-  const nameBuf = Buffer.from(entry.path.replace(/\\/g, "/"), "utf8");
+  const nameBuf = Buffer.from(`${packageName}/${entry.path.replace(/\\/g, "/")}`, "utf8");
   const crc = crc32(data);
 
   const local = Buffer.alloc(30);

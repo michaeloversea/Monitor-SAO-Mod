@@ -14,7 +14,7 @@ import {
   saveThemeSettings,
   THEME_SHORT,
 } from "@/services/api";
-import { getLocalThemeSettings, saveLocalThemeSettings } from "@/services/themeSettingsStore";
+import { getLocalThemeSettings, saveLocalThemeSettings, resetLocalThemeSettings } from "@/services/themeSettingsStore";
 
 const storageMap = new Map<string, string>();
 const localStorageMock = {
@@ -158,6 +158,49 @@ describe("Monitor API Service", () => {
       expect(pub.theme_settings.adminNickname).toBe("");
       // Local storage must also be pruned to prevent zombie setting
       expect(getLocalThemeSettings().adminNickname).toBeUndefined();
+    });
+  });
+
+  describe("逐服务器配置持久化", () => {
+    it("序列化字段满足 manifest 文本类型，保留未知配置，跨设备读取一致", async () => {
+      resetLocalThemeSettings();
+      let saved: Record<string, unknown> = { futureSetting: "keep" };
+      global.fetch = vi.fn(async (url, init) => {
+        if (String(url).endsWith("/config")) {
+          if (init?.method === "PUT") saved = JSON.parse(String(init.body));
+          return new Response(JSON.stringify(saved), { headers: { "content-type": "application/json" } });
+        }
+        return new Response(JSON.stringify({ site_name: "Test", public_page: true }), { headers: { "content-type": "application/json" } });
+      });
+      await saveThemeSettings({ enableHomepageMultiPing: true, homepageMultiPingTaskIds: [],
+        homepageNodePingSettings: { "po0-id": { mode: "custom", taskIds: [5, 4] }, auto: { mode: "auto" } },
+        homepagePingBindings: { "1": ["auto"] } });
+      expect(saved.futureSetting).toBe("keep");
+      expect(saved.homepageMultiPingTaskIds).toBe("[]");
+      expect(typeof saved.homepageNodePingSettings).toBe("string");
+      // 模拟换设备：清空本地与服务端内存缓存，再从接口读取。
+      resetLocalThemeSettings(); clearServerThemeSettingsCache();
+      const result = await getPublic();
+      expect(result.theme_settings.homepageMultiPingTaskIds).toEqual([]);
+      expect(result.theme_settings.homepageNodePingSettings).toEqual({ "po0-id": { mode: "custom", taskIds: [5, 4] }, auto: { mode: "auto" } });
+    });
+    it("保存失败不会更新本地，也不会被报告为成功；读取失败不发 PUT", async () => {
+      resetLocalThemeSettings(); saveLocalThemeSettings({ homepageMultiPingTaskIds: [1] });
+      global.fetch = vi.fn(async (_url, init) => init?.method === "PUT"
+        ? new Response("需要登录", { status: 401 }) : new Response("{}"));
+      await expect(saveThemeSettings({ homepageMultiPingTaskIds: [] })).rejects.toMatchObject({ status: 401 });
+      expect(getLocalThemeSettings().homepageMultiPingTaskIds).toEqual([1]);
+      global.fetch = vi.fn(async () => new Response("bad", { status: 502 }));
+      await expect(saveThemeSettings({ homepageMultiPingTaskIds: [] })).rejects.toMatchObject({ status: 502 });
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+    });
+    it("新配置删除字段时不复活旧本地节点设置或全局槽位", async () => {
+      resetLocalThemeSettings(); saveLocalThemeSettings({ homepageMultiPingTaskIds: [1, 2, 3], homepageNodePingSettings: { stale: { mode: "auto" } } });
+      global.fetch = vi.fn(async (url) => new Response(JSON.stringify(String(url).endsWith("/config")
+        ? { homepageNodePingSettings: "{}" } : { site_name: "Test", public_page: true }), { headers: { "content-type": "application/json" } }));
+      const result = await getPublic();
+      expect(result.theme_settings.homepageMultiPingTaskIds).toEqual([]);
+      expect(result.theme_settings.homepageNodePingSettings).toEqual({});
     });
   });
 

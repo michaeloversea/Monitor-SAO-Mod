@@ -1,3 +1,25 @@
+# Monitor-SAO · JKSR Modded
+
+本 Fork 在 Monitor-SAO 基础上增加逐服务器多线路和独立丢包色带，版本为 `1.1.5-jksr.1`。保持主题短名 `sao`，沿用原站点配置。
+
+- **逐服务器线路**：在“主题设置 → 延迟”选择跟随全局、自动或自定义；按节点 ID/UUID 保存，自定义支持 1–8 个任务及排序。例如普通节点跟随 CT/CU/CM，Po0 单独显示 PL、CT-53。
+- **全局空槽位**：允许删除最后一个槽位或全部清空，保存后仍为空；开启全局多线路时，空列表表示按各节点关联任务自动展示。
+- **明确的覆盖规则**：逐节点自动/自定义优先于全局和旧单线路绑定；跟随全局保留旧行为，提供旧绑定迁移按钮。
+- **独立丢包色带**：关闭色带后延迟图表向上补位；色带和线路开关保留图表实例与横轴缩放，线路显隐按需要更新纵轴。
+- **统一卡片与样式**：大卡、小卡、迷你卡、列表共用选线规则；修复下拉箭头内距，页脚署名为 `JKSR Modded`。
+
+完整的配置兼容说明、验证结果和截图见 [审查说明](docs/jksr-review/README.md)。服务器部署仍需先审查成品。
+
+## 获取本 Fork 安装包
+
+1. 在 [本仓库 Actions](https://github.com/michaeloversea/Monitor-SAO-Mod/actions/workflows/build-package.yml) 中打开所需提交的成功构建，下载 `sao-theme-package` 构建产物。
+2. 解压构建产物的外层 ZIP，取出 `theme.tar.gz`，在极简探针后台主题管理中上传并启用。
+3. 打开“主题设置 → 延迟”，为全局和 Po0 选择实际任务并保存。检测任务的创建与关联仍由探针后台负责。
+
+也可以本地构建：`npm ci` 后运行 `npm run lint`、`npm run typecheck`、`npm test` 和 `npm run package`，安装包输出在仓库根目录。每次推送 main 自动构建；只有推送版本标签才会发布 Release。
+
+以下保留上游 SAO 系列功能说明与致谢。
+
 <p align="center">
   <strong>面向多种探针服务端的 SAO 系列探针主题</strong>
 </p>
@@ -113,7 +135,7 @@
 2. 在 Komari 后台主题管理中上传并启用。
 
 ### Monitor-Probe（极简探针）
-1. 前往 [Monitor-SAO Releases](https://github.com/WAOR/Monitor-SAO/releases) 下载最新版本的打包产物 `theme.tar.gz`；
+1. 使用本 Fork 时，按上方“获取本 Fork 安装包”下载构建产物；使用上游原版时，前往 [Monitor-SAO Releases](https://github.com/WAOR/Monitor-SAO/releases) 下载 `theme.tar.gz`；
 2. 在极简探针后台主题设置页面上传并启用。
 
 ### CF-Server-Monitor (CFSM)

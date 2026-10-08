@@ -1,3 +1,34 @@
+export type HomepageNodePingSetting =
+  | { mode: "inherit" | "auto" }
+  | { mode: "custom"; taskIds: number[] };
+export type HomepageNodePingSettings = Record<string, HomepageNodePingSetting>;
+export interface HomepagePingSelectionOptions {
+  nodeSettings: HomepageNodePingSettings;
+  globalAuto: boolean;
+}
+
+export function parsePingConfig(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+  try { return JSON.parse(value); } catch { return undefined; }
+}
+
+export function normalizeHomepageNodePingSettings(value: unknown): HomepageNodePingSettings {
+  const parsed = parsePingConfig(value);
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+  const entries: [string, HomepageNodePingSetting][] = [];
+  for (const [uuid, raw] of Object.entries(parsed)) {
+    if (!uuid.trim() || !raw || typeof raw !== "object" || Array.isArray(raw)) continue;
+    const setting = raw as Record<string, unknown>;
+    if (setting.mode === "inherit" || setting.mode === "auto") {
+      entries.push([uuid, { mode: setting.mode }]);
+    } else if (setting.mode === "custom") {
+      // 空自定义保留为空，不静默切换成全局或旧单线路。
+      entries.push([uuid, { mode: "custom", taskIds: normalizeHomepageMultiPingTaskIds(setting.taskIds) }]);
+    }
+  }
+  return Object.fromEntries(entries);
+}
+
 export type HomepagePingTaskBindings = Record<string, string[]>;
 
 /** 多线路模式最多同时展示几条线路，默认上限为 8 条 */
@@ -26,6 +57,7 @@ function parseTaskId(taskId: string) {
 }
 
 export function normalizeHomepageMultiPingTaskIds(value: unknown): number[] {
+  value = parsePingConfig(value);
   if (!Array.isArray(value)) return [];
 
   const normalized: number[] = [];
@@ -63,6 +95,7 @@ export function assignHomepageMultiPingTask(
 export function normalizeHomepagePingTaskBindings(
   value: unknown,
 ): HomepagePingTaskBindings {
+  value = parsePingConfig(value);
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return {};
   }
@@ -151,6 +184,7 @@ export function resolveHomepagePingSelections(
   clientUuids: string[],
   bindings: HomepagePingTaskBindings,
   multiTaskIds: number[] = [],
+  options?: HomepagePingSelectionOptions,
 ) {
   const normalizedMultiTaskIds =
     normalizeHomepageMultiPingTaskIds(multiTaskIds);
@@ -166,11 +200,29 @@ export function resolveHomepagePingSelections(
       )
     : new Map<string, number[]>();
 
-  return {
-    singleTaskIdsByClient,
-    multiTaskIdsByClient,
-    requestedTaskIdsByClient: useMultiPing
-      ? multiTaskIdsByClient
-      : singleTaskIdsByClient,
-  };
+  if (!options) {
+    return { singleTaskIdsByClient, multiTaskIdsByClient,
+      requestedTaskIdsByClient: useMultiPing ? multiTaskIdsByClient : singleTaskIdsByClient };
+  }
+  const singles = new Map<string, number[]>();
+  const multiples = new Map<string, number[]>();
+  const automaticClients: string[] = [];
+  for (const uuid of clientUuids) {
+    const setting = options.nodeSettings[uuid];
+    if (setting?.mode === "auto" ||
+        ((!setting || setting.mode === "inherit") && options.globalAuto)) {
+      automaticClients.push(uuid);
+    } else if (setting?.mode === "custom") {
+      multiples.set(uuid, setting.taskIds);
+    } else {
+      const multi = multiTaskIdsByClient.get(uuid);
+      const single = singleTaskIdsByClient.get(uuid);
+      if (multi) multiples.set(uuid, multi);
+      else if (single) singles.set(uuid, single);
+      else automaticClients.push(uuid);
+    }
+  }
+  return { singleTaskIdsByClient: singles, multiTaskIdsByClient: multiples,
+    requestedTaskIdsByClient: new Map([...singles, ...multiples]), automaticClients };
+
 }

@@ -1,0 +1,16 @@
+{
+  "version": "1.1.5-jksr.1",
+  "lint": "passed",
+  "typecheck": "passed",
+  "test_files": 47,
+  "tests_passed": 348,
+  "gzip": "passed (package script gzip -t)",
+  "tar_members": 328,
+  "archive_bytes": 1590919,
+  "unpacked_bytes": 2555403,
+  "manifest": "passed",
+  "archive_limits": "passed",
+  "zip_crc": "passed",
+  "browser": "local mock",
+  "production_deployment": "not performed"
+}

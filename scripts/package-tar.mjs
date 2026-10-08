@@ -1,62 +1,29 @@
-import { execSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { execFileSync } from "node:child_process";
+import { cpSync, existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const root = resolve(__dirname, "..");
-const manifest = JSON.parse(readFileSync(resolve(root, "theme.json"), "utf8"));
-const shortName = manifest.short || "sao";
-const version = manifest.version || "1.0.0";
-
-const distDir = resolve(root, "dist");
-const previewPath = resolve(root, "preview.png");
-const themeJsonPath = resolve(root, "theme.json");
-
-if (!existsSync(distDir)) {
-  console.error("package-tar: dist/ 目录不存在，请先运行 `npm run build`。");
-  process.exit(1);
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const manifest = JSON.parse(readFileSync(join(root, "theme.json"), "utf8"));
+for (const key of ["name", "short", "description", "version", "author", "url"]) {
+  if (typeof manifest[key] !== "string") throw new Error(`theme.json 缺少字符串字段 ${key}`);
 }
-
-if (!existsSync(themeJsonPath)) {
-  console.error("package-tar: theme.json 不存在。");
-  process.exit(1);
-}
-
-const tarGzName = "theme.tar.gz";
-const namedTarGzName = `${shortName}-theme-v${version}.tar.gz`;
-
-console.log(`正在打包 Monitor 主题: ${manifest.name} (${shortName})...`);
-
-// 按照 Monitor 规范打包：顶层包含 theme.json, preview.png, dist/
-const filesToPack = ["theme.json", "dist"];
-if (existsSync(previewPath)) {
-  filesToPack.push("preview.png");
-}
-
+if (!/^[a-zA-Z0-9_-]+$/.test(manifest.short)) throw new Error("主题 short 非法");
+if (!existsSync(join(root, "dist/index.html"))) throw new Error("请先构建 dist/index.html");
+const stage = mkdtempSync(join(tmpdir(), "sao-package-"));
 try {
-  // 生成标准 theme.tar.gz (支持直接拖拽进 Monitor 面板，排除 macOS 隐藏文件)
-  execSync(`tar --exclude='.DS_Store' -czf "${tarGzName}" ${filesToPack.map((f) => `"${f}"`).join(" ")}`, {
-    cwd: root,
-    stdio: "inherit",
+  const themeDir = join(stage, manifest.short);
+  mkdirSync(themeDir);
+  for (const file of ["theme.json", "dist", "preview.png"]) {
+    if (existsSync(join(root, file))) cpSync(join(root, file), join(themeDir, file), { recursive: true });
+  }
+  // 官方格式：解压后为 <short>/theme.json 和 <short>/dist/index.html。
+  const archive = join(root, "theme.tar.gz");
+  execFileSync("tar", ["--exclude=.DS_Store", "-czf", archive, "-C", stage, manifest.short], {
+    env: { ...process.env, COPYFILE_DISABLE: "1" }, stdio: "inherit",
   });
-
-  // Monitor 1.3.0+ 校验：发布前用 gzip -t 检查压缩流是否写完整
-  execSync(`gzip -t "${tarGzName}"`, {
-    cwd: root,
-    stdio: "inherit",
-  });
-
-  // 同时也保留一份带版本号命名的归档
-  execSync(`cp "${tarGzName}" "${namedTarGzName}"`, {
-    cwd: root,
-    stdio: "inherit",
-  });
-
-  console.log(`✅ 打包成功并通过 gzip -t 完整性校验:`);
-  console.log(`   - ${tarGzName} (可直接拖拽上传至 Monitor 面板或用于 GitHub Release)`);
-  console.log(`   - ${namedTarGzName}`);
-} catch (err) {
-  console.error("打包或校验失败:", err);
-  process.exit(1);
-}
+  execFileSync("gzip", ["-t", archive], { stdio: "inherit" });
+  cpSync(archive, join(root, `${manifest.short}-theme-v${manifest.version}.tar.gz`));
+  console.log(`已生成并校验 theme.tar.gz（根目录 ${manifest.short}/）`);
+} finally { rmSync(stage, { recursive: true, force: true }); }

@@ -1,3 +1,4 @@
+import manifest from "../../../theme.json";
 import { GitBranch, ExternalLink } from "lucide-react";
 
 export function HomeFooter() {
@@ -7,22 +8,22 @@ export function HomeFooter() {
         {/* 左侧呼吸点与主题标识 */}
         <div className="home-footer-brand">
           <span className="home-footer-pulse" aria-hidden="true" />
-          <span className="home-footer-title">SAO</span>
+          <span className="home-footer-title">JKSR Modded</span>
         </div>
 
         <span className="home-footer-divider" aria-hidden="true" />
 
         {/* 版本芯片 */}
-        <span className="home-footer-version" title="主题版本 v1.1.4">
+        <span className="home-footer-version" title={`主题版本 v${manifest.version}`}>
           <GitBranch size={10} className="home-footer-branch-icon" aria-hidden="true" />
-          <span>v1.1.4</span>
+          <span>v{manifest.version}</span>
         </span>
 
         <span className="home-footer-divider" aria-hidden="true" />
 
         {/* GitHub 交互链接 */}
         <a
-          href="https://github.com/WAOR/Monitor-SAO"
+          href={manifest.url}
           target="_blank"
           rel="noopener noreferrer"
           className="home-footer-github"

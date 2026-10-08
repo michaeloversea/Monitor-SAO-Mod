@@ -23,6 +23,7 @@ import {
   isHomepageMultiPingConfigured,
   resolveHomepagePingSelections,
   type HomepagePingTaskBindings,
+  type HomepagePingSelectionOptions,
 } from "@/utils/pingTasks";
 import type { NodeViewMode } from "@/utils/themeSettings";
 
@@ -45,7 +46,6 @@ const EMPTY_PING: PingOverviewItem = {
 const EMPTY_PING_LINES: HomepagePingLine[] = [];
 const EMPTY_PING_BUCKETS: PingOverviewBucket[] = [];
 const EMPTY_TASK_IDS: number[] = [];
-const EMPTY_BINDINGS: HomepagePingTaskBindings = {};
 
 type HomepagePingRequestMode = "single" | "multi";
 
@@ -254,8 +254,13 @@ function resolvePingAssignmentKey(
   clientUuids: string[],
   bindings: HomepagePingTaskBindings,
   multiTaskIds: number[],
+  options?: HomepagePingSelectionOptions,
 ) {
   const normalizedUuids = normalizeVisibleUuids(clientUuids);
+  if (options) {
+    return normalizedUuids.length ? `nodes-v2:${JSON.stringify(normalizedUuids.map((uuid) =>
+      [uuid, options.nodeSettings[uuid] ?? { mode: "inherit" }]))}|global:${multiTaskIds.join(",")}|auto:${options.globalAuto}|legacy:${stringifyBindings(bindings)}` : "";
+  }
   const {
     singleTaskIdsByClient,
     multiTaskIdsByClient,
@@ -348,7 +353,66 @@ function mergePingOverviewStats(
   return [...merged.values()];
 }
 
+/** 逐节点规则先解析再分组取数，同一组沿用原来的渐进加载与失败兜底。 */
 export async function buildPingOverviewMap(
+  hours: number, clientUuids: string[], bindings: HomepagePingTaskBindings,
+  multiTaskIds: number[], signal?: AbortSignal, previous?: PreviousPingOverview,
+  loadOverview: typeof getPingOverview = getPingOverview,
+  loadStats?: typeof getPingOverviewStats,
+  onProgress?: (result: PingOverviewMapResult) => void,
+  options?: HomepagePingSelectionOptions,
+): Promise<PingOverviewMapResult> {
+  if (!options) return buildLegacyPingOverviewMap(hours, clientUuids, bindings, multiTaskIds,
+    signal, previous, loadOverview, loadStats, onProgress);
+  const uuids = normalizeVisibleUuids(clientUuids);
+  const selection = resolveHomepagePingSelections(uuids, bindings, multiTaskIds, options);
+  const assignmentKey = resolvePingAssignmentKey(uuids, bindings, multiTaskIds, options);
+  const groups = new Map<string, { uuids: string[]; ids: number[]; single: boolean }>();
+  const automatic = new Set(selection.automaticClients);
+  for (const uuid of uuids) {
+    const single = selection.singleTaskIdsByClient.has(uuid);
+    const ids = selection.requestedTaskIdsByClient.get(uuid) ?? [];
+    if (!automatic.has(uuid) && !ids.length) continue; // 空自定义不回退
+    const key = automatic.has(uuid) ? "auto" : `${single ? "single" : "multi"}:${ids.join(",")}`;
+    const group = groups.get(key) ?? { uuids: [], ids, single };
+    group.uuids.push(uuid);
+    groups.set(key, group);
+  }
+  const results = new Map<string, PingOverviewMapResult>();
+  const combined = (): PingOverviewMapResult => ({
+    assignmentKey,
+    intervalMs: Math.min(DEFAULT_PING_REFRESH_INTERVAL, ...[...results.values()].map((r) => r.intervalMs)),
+    singleItems: new Map([...results.values()].flatMap((r) => [...r.singleItems])),
+    multiLines: new Map([...results.values()].flatMap((r) => [...r.multiLines])),
+    successfulTaskIds: [...new Set([...results.values()].flatMap((r) => r.successfulTaskIds))],
+    failedTaskIds: [...new Set([...results.values()].flatMap((r) => r.failedTaskIds))],
+    pendingTaskIds: [...new Set([...results.values()].flatMap((r) => r.pendingTaskIds))],
+  });
+  // 先放入上次同规则结果；任务失败时保留已显示的数据并标记失败。
+  for (const [key, group] of groups) {
+    const old = previous?.assignmentKey === assignmentKey ? previous : undefined;
+    results.set(key, { assignmentKey, intervalMs: DEFAULT_PING_REFRESH_INTERVAL,
+      singleItems: new Map(group.uuids.flatMap((id) => old?.singleItems.has(id) ? [[id, old.singleItems.get(id)!] as const] : [])),
+      multiLines: new Map(group.uuids.flatMap((id) => old?.multiLines.has(id) ? [[id, old.multiLines.get(id)!] as const] : [])),
+      successfulTaskIds: [], failedTaskIds: [], pendingTaskIds: group.ids });
+  }
+  await Promise.all([...groups].map(async ([key, group]) => {
+    const groupBindings = group.single ? { [String(group.ids[0])]: group.uuids } : {};
+    const groupMulti = group.single ? [] : group.ids;
+    const old = results.get(key)!;
+    const legacyKey = resolvePingAssignmentKey(group.uuids, groupBindings, groupMulti);
+    const result = await buildLegacyPingOverviewMap(hours, group.uuids, groupBindings, groupMulti,
+      signal, { ...old, assignmentKey: legacyKey }, loadOverview, loadStats, (progress) => {
+        results.set(key, progress);
+        onProgress?.(combined());
+      });
+    results.set(key, result);
+    onProgress?.(combined());
+  }));
+  return combined();
+}
+
+async function buildLegacyPingOverviewMap(
   hours: number,
   clientUuids: string[],
   bindings: HomepagePingTaskBindings,
@@ -409,14 +473,16 @@ export async function buildPingOverviewMap(
 
       for (const uuid of normalizedUuids) {
         const clientRecords = overview.records.filter((r) => r.client === uuid);
-        if (clientRecords.length === 0) continue;
-
+        const associatedTasks = overview.tasks.filter((task) => task.clients.includes(uuid));
         const countByTask = new Map<number, number>();
         for (const rec of clientRecords) {
           countByTask.set(rec.task_id, (countByTask.get(rec.task_id) ?? 0) + 1);
         }
 
-        const sortedTaskIds = Array.from(countByTask.keys()).sort((a, b) => a - b);
+        const sortedTaskIds = [...new Set([
+          ...countByTask.keys(),
+          ...associatedTasks.map((task) => task.id),
+        ])];
         const nodeLines: HomepagePingLine[] = [];
 
         for (const tId of sortedTaskIds) {
@@ -427,7 +493,7 @@ export async function buildPingOverviewMap(
             overview.stats,
             overview.intervalSeconds,
           );
-          const item = taskItems.get(uuid);
+          const item = taskItems.get(uuid) ?? assignedEmptyPing(uuid, "ready");
           if (item) {
             const taskObj = overview.tasks.find((t) => t.id === tId);
             const taskName = taskObj?.name || `线路 #${tId}`;
@@ -466,10 +532,10 @@ export async function buildPingOverviewMap(
       return {
         assignmentKey: `auto:${normalizedUuids.join(",")}`,
         intervalMs: DEFAULT_PING_REFRESH_INTERVAL,
-        singleItems: new Map<string, PingOverviewItem>(),
-        multiLines: new Map<string, HomepagePingLine[]>(),
+        singleItems: new Map([...previous?.singleItems ?? []].map(([id, item]) => [id, { ...item, loadState: "error" }])),
+        multiLines: new Map([...previous?.multiLines ?? []].map(([id, lines]) => [id, lines.map((line) => ({ ...line, loadState: "error" }))])),
         successfulTaskIds: [],
-        failedTaskIds: [],
+        failedTaskIds: [...new Set([...previous?.multiLines.values() ?? []].flatMap((lines) => lines.map((line) => line.taskId)))],
         pendingTaskIds: [],
       };
     }
@@ -632,6 +698,7 @@ export async function buildPingOverviewMap(
       tasks.find((task) => task.id === taskId)?.name ||
       effectiveStats.find((stat) => stat.taskId === taskId)?.name;
     if (taskName) taskNames.set(taskId, taskName);
+    else taskNames.set(taskId, `任务 #${taskId}（已删除或未关联）`);
     itemsByTask.set(
       taskId,
       buildPingOverviewItems(taskId, records, effectiveStats, intervalSeconds),
@@ -730,6 +797,7 @@ let scheduledVisibleUuids: string[] = [];
 let scheduledVisibleKey = "";
 let scheduledBindings: HomepagePingTaskBindings = {};
 let scheduledMultiTaskIds: number[] = [];
+let scheduledOptions: HomepagePingSelectionOptions = { nodeSettings: {}, globalAuto: false };
 let scheduledSelectionKey = `${stringifyBindings({})}|multi:`;
 let pingRefreshInFlight = false;
 let pingRefreshTimer: number | null = null;
@@ -1131,6 +1199,7 @@ async function refreshPingOverview() {
           },
         );
       },
+      scheduledOptions,
     );
     if (isCurrent()) {
       const hasRequestedTasks = next.assignmentKey.length > 0;
@@ -1185,10 +1254,11 @@ function ensurePingOverviewStarted(
   visibleUuids: string[],
   bindings: HomepagePingTaskBindings,
   multiTaskIds: number[],
+  options: HomepagePingSelectionOptions,
 ) {
   const normalizedVisibleUuids = normalizeVisibleUuids(visibleUuids);
   const visibleKey = normalizedVisibleUuids.join("|");
-  const selectionKey = `${stringifyBindings(bindings)}|multi:${multiTaskIds.join(",")}`;
+  const selectionKey = `${stringifyBindings(bindings)}|multi:${multiTaskIds.join(",")}|nodes:${JSON.stringify(options)}`;
 
   if (
     scheduledVisibleKey !== visibleKey ||
@@ -1198,6 +1268,7 @@ function ensurePingOverviewStarted(
     scheduledVisibleKey = visibleKey;
     scheduledBindings = bindings;
     scheduledMultiTaskIds = multiTaskIds;
+    scheduledOptions = options;
     scheduledSelectionKey = selectionKey;
 
     pingAbortController?.abort();
@@ -1210,6 +1281,7 @@ function ensurePingOverviewStarted(
       normalizedVisibleUuids,
       bindings,
       multiTaskIds,
+      options,
     );
     const cached = readPingOverviewCache(assignmentKey);
     commitPingOverview(
@@ -1261,7 +1333,7 @@ function getPingLinesSnapshot(uuid: string) {
   return pingOverviewState.multiLines.get(uuid) ?? EMPTY_PING_LINES;
 }
 
-export function useHomepagePingOverview(viewMode: NodeViewMode) {
+export function useHomepagePingOverview(_viewMode: NodeViewMode) {
   const { data: me } = useAuth();
   const visibleUuids = useVisibleNodeUuids(me?.logged_in === true);
   const themeSettings = useThemeSettings();
@@ -1276,24 +1348,19 @@ export function useHomepagePingOverview(viewMode: NodeViewMode) {
         : visibleUuids,
     [visibleUuids, hiddenUuids],
   );
-  const requestMode = resolveHomepagePingRequestMode(
-    viewMode,
-    themeSettings.enableHomepageMultiPing,
-    themeSettings.homepageMultiPingTaskIds,
-  );
-  const requestedBindings =
-    requestMode === "single"
-      ? themeSettings.homepagePingBindings
-      : EMPTY_BINDINGS;
-  const requestedMultiTaskIds =
-    requestMode === "multi"
-      ? themeSettings.homepageMultiPingTaskIds
-      : EMPTY_TASK_IDS;
+  const requestedBindings = themeSettings.homepagePingBindings;
+  const requestedMultiTaskIds = themeSettings.enableHomepageMultiPing
+    ? themeSettings.homepageMultiPingTaskIds : EMPTY_TASK_IDS;
+  const selectionOptions = useMemo<HomepagePingSelectionOptions>(() => ({
+    nodeSettings: themeSettings.homepageNodePingSettings,
+    globalAuto: themeSettings.enableHomepageMultiPing && requestedMultiTaskIds.length === 0,
+  }), [themeSettings.homepageNodePingSettings, themeSettings.enableHomepageMultiPing, requestedMultiTaskIds]);
   const hasRequestedVisiblePing =
     resolvePingAssignmentKey(
       effectiveUuids,
       requestedBindings,
       requestedMultiTaskIds,
+      selectionOptions,
     ).length > 0;
 
   useLayoutEffect(() => {
@@ -1307,6 +1374,7 @@ export function useHomepagePingOverview(viewMode: NodeViewMode) {
       effectiveUuids,
       requestedBindings,
       requestedMultiTaskIds,
+      selectionOptions,
     );
     return () => {
       activeConsumers -= 1;
@@ -1317,7 +1385,7 @@ export function useHomepagePingOverview(viewMode: NodeViewMode) {
     };
   }, [
     effectiveUuids,
-    requestMode,
+    selectionOptions,
     requestedBindings,
     requestedMultiTaskIds,
     hasRequestedVisiblePing,

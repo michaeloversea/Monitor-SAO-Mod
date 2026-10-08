@@ -2105,3 +2105,10 @@
     text-overflow: ellipsis;
   }
 }
+
+.theme-manage-input { min-width: 0; max-width: 100%; padding: 8px 10px; border: 1px solid var(--hairline); border-radius: 10px; background: var(--surface-elev); color: var(--text-primary); font-size: 12px; }
+.theme-manage-input:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.node-ping-node-button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; text-align: left; justify-content: flex-start; }
+
+.node-ping-mode-select { max-width: 100%; width: 260px; }
+.setting-select > .theme-manage-input { padding-right: 38px; }

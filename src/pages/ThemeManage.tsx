@@ -1,4 +1,5 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState, type ComponentPropsWithoutRef } from "react";
+import { SettingSelect } from "@/components/ui/SettingSelect";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, Navigate, useLocation, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -25,6 +26,7 @@ import {
 } from "lucide-react";
 import { clsx } from "clsx";
 import { InstancePanel } from "@/components/instance/InstancePanel";
+import { HomepageNodePingEditor } from "@/components/node/HomepageNodePingEditor";
 import { Spinner } from "@/components/ui/Spinner";
 import { Flag } from "@/components/ui/Flag";
 import { MatrixPatternEditor } from "@/components/matrix/MatrixPatternEditor";
@@ -62,7 +64,6 @@ import {
   assignHomepageMultiPingTask,
   HOMEPAGE_MULTI_PING_MAX_COUNT,
   HOMEPAGE_MULTI_PING_MIN_COUNT,
-  isHomepageMultiPingConfigured,
   normalizeHomepageMultiPingTaskIds,
   normalizeHomepagePingTaskBindings,
   type HomepagePingTaskBindings,
@@ -284,6 +285,7 @@ function pickManagedThemeSettings(settings: ResolvedThemeSettings) {
     homepagePingBindings: settings.homepagePingBindings,
     enableHomepageMultiPing: settings.enableHomepageMultiPing,
     homepageMultiPingTaskIds: settings.homepageMultiPingTaskIds,
+    homepageNodePingSettings: settings.homepageNodePingSettings,
     fakePingForUnbound: settings.fakePingForUnbound,
     showHomeOverview: settings.showHomeOverview,
     showGroupTabs: settings.showGroupTabs,
@@ -400,28 +402,6 @@ const ToggleRow = memo(function ToggleRow({
     </label>
   );
 });
-
-function SettingSelect({
-  wrapperClassName,
-  className,
-  children,
-  ...props
-}: ComponentPropsWithoutRef<"select"> & { wrapperClassName?: string }) {
-  return (
-    <div className={clsx("setting-select", wrapperClassName)}>
-      <select
-        {...props}
-        className={clsx(
-          "surface-inset text-[13px] text-(--text-primary) outline-none",
-          className,
-        )}
-      >
-        {children}
-      </select>
-      <ChevronDown size={14} className="setting-select-icon" aria-hidden />
-    </div>
-  );
-}
 
 type ThemeTabId = "home" | "card" | "cost" | "ping";
 
@@ -984,7 +964,6 @@ export function ThemeManage() {
   const removeMultiPingTask = useCallback(
     (slot: number) => {
       commitMultiPingTaskIds((current) => {
-        if (current.length <= HOMEPAGE_MULTI_PING_MIN_COUNT) return current;
         const next = [...current];
         next.splice(slot, 1);
         return next;
@@ -1146,9 +1125,9 @@ export function ThemeManage() {
   );
   const draftCostRateApiUrlInvalid =
     draft.costRateApiUrl.trim() !== "" && !isCostRateApiUrlValid(draft.costRateApiUrl.trim());
-  const draftMultiPingInvalid =
-    draft.enableHomepageMultiPing &&
-    !isHomepageMultiPingConfigured(draft.homepageMultiPingTaskIds);
+  const draftNodePingInvalid = Object.values(draft.homepageNodePingSettings).some(
+    (setting) => setting.mode === "custom" && setting.taskIds.length === 0,
+  );
 
   // 由当前草稿拼出的设置 payload,保存请求和 dirty 判断都用它。草稿字段与设置同名,这里只做
   // 「编辑态 → 存储态」的换形与归一化;文本域(hiddenNodesText/costIgnoredText)和 ratingLabels
@@ -1223,7 +1202,7 @@ function draftToThemeSettings(targetDraft: ThemeDraft): ThemeSettings {
       !config?.theme ||
       savingDraftRef.current ||
       draftCostRateApiUrlInvalid ||
-      draftMultiPingInvalid
+      draftNodePingInvalid
     ) {
       return;
     }
@@ -1369,7 +1348,7 @@ function draftToThemeSettings(targetDraft: ThemeDraft): ThemeSettings {
       )}
 
       <header className="theme-topbar">
-        <Link to={toHome} className="instance-page-back theme-topbar-back">
+        <Link to={toHome} aria-label="返回首页" className="instance-page-back theme-topbar-back">
           <ArrowLeft size={14} />
           <span>返回首页</span>
         </Link>
@@ -1390,7 +1369,7 @@ function draftToThemeSettings(targetDraft: ThemeDraft): ThemeSettings {
             disabled={
               saving ||
               draftCostRateApiUrlInvalid ||
-              draftMultiPingInvalid
+              draftNodePingInvalid
             }
             className="theme-manage-button is-compact is-primary min-w-23 justify-center"
           >
@@ -2160,9 +2139,20 @@ function draftToThemeSettings(targetDraft: ThemeDraft): ThemeSettings {
 
           {activeTab === "ping" && (
             <>
+              <InstancePanel kicker="逐服务器" title="逐服务器线路设置" aside={<Activity size={16} />}>
+                <HomepageNodePingEditor nodes={sortedClients} tasks={sortedTasks}
+                  settings={draft.homepageNodePingSettings} bindings={draft.homepagePingBindings}
+                  nodesReady={!clientsLoading && !clientsError}
+                  onChange={(next) => patch("homepageNodePingSettings", next)} />
+                {clientsLoading && <p className="setting-hint">正在读取服务器…</p>}
+                {clientsError && <p className="setting-hint" role="alert">服务器列表读取失败，请刷新重试；已保存设置仍保留。</p>}
+                {tasksLoading && <p className="setting-hint">正在读取检测任务…</p>}
+                {tasksError && <p className="setting-hint" role="alert">任务列表读取失败，请刷新重试。</p>}
+                {draftNodePingInvalid && <p className="setting-hint text-(--status-error)" role="alert">自定义模式请至少选择一条线路；需要自动展示时请选择“自动”。</p>}
+              </InstancePanel>
               <InstancePanel
                 kicker="线路"
-                title="延迟探测模式"
+                title="全局延迟展示设置"
                 aside={<Activity size={16} />}
               >
                 <div className="flex flex-col gap-4">
@@ -2192,9 +2182,10 @@ function draftToThemeSettings(targetDraft: ThemeDraft): ThemeSettings {
                         <div>
                           <span className="setting-subhead-title">多线路槽位展示列表</span>
                           <p className="setting-hint mt-1">
-                            卡片将依序渲染这些线路的实时延迟柱条或色块。
+                            跟随全局的卡片依序展示。清空并保存后，按各节点实际关联任务自动展示，忽略旧单线路绑定。
                           </p>
                         </div>
+                        <button type="button" className="theme-manage-button is-compact is-danger" disabled={draft.homepageMultiPingTaskIds.length === 0} onClick={() => commitMultiPingTaskIds(() => [])}>清空槽位</button>
                         {draft.homepageMultiPingTaskIds.length < multiPingSlotLimit && (
                           <button
                             type="button"
@@ -2206,6 +2197,7 @@ function draftToThemeSettings(targetDraft: ThemeDraft): ThemeSettings {
                         )}
                       </div>
 
+                      {draft.homepageMultiPingTaskIds.length === 0 && <p className="setting-hint">当前为空：自动展示每台服务器关联的检测任务。可以直接保存。</p>}
                       <div className="grid gap-3 md:grid-cols-2">
                         {draft.homepageMultiPingTaskIds.map((taskId, slot) => (
                           <div
@@ -2220,13 +2212,13 @@ function draftToThemeSettings(targetDraft: ThemeDraft): ThemeSettings {
                               onChange={(event) => patchMultiPingTask(slot, event.target.value)}
                               wrapperClassName="flex-1 min-w-0"
                             >
+                              {!sortedTasks.some((task) => task.id === taskId) && <option value={taskId}>任务 #{taskId}（已删除或不可用）</option>}
                               {sortedTasks.map((task) => (
                                 <option key={task.id} value={task.id}>
                                   {task.name || `线路 #${task.id}`}
                                 </option>
                               ))}
                             </SettingSelect>
-                            {draft.homepageMultiPingTaskIds.length > HOMEPAGE_MULTI_PING_MIN_COUNT && (
                               <button
                                 type="button"
                                 onClick={() => removeMultiPingTask(slot)}
@@ -2234,15 +2226,10 @@ function draftToThemeSettings(targetDraft: ThemeDraft): ThemeSettings {
                               >
                                 删除
                               </button>
-                            )}
                           </div>
                         ))}
                       </div>
-                      {draftMultiPingInvalid && (
-                        <p className="mt-1 text-[11px] leading-relaxed text-(--status-error)" role="alert">
-                          请至少选择 {HOMEPAGE_MULTI_PING_MIN_COUNT} 条有效的展示线路。
-                        </p>
-                      )}
+
                     </div>
                   ) : (
                     <div className="flex flex-col gap-4">

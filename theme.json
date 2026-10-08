@@ -1,10 +1,10 @@
 {
-  "name": "SAO",
+  "name": "SAO · JKSR Modded",
   "short": "sao",
   "description": "极简立体仪表盘主题 · 适配 Monitor 探针 (v1.4.0+)",
-  "version": "1.1.4",
-  "author": "WAOR",
-  "url": "https://github.com/WAOR/Monitor-SAO",
+  "version": "1.1.5-jksr.1",
+  "author": "JKSR / WAOR",
+  "url": "https://github.com/michaeloversea/Monitor-SAO-Mod",
   "config": [
     {
       "type": "title",
@@ -218,6 +218,27 @@
       "label": "首页展示多线路 Ping 矩阵",
       "help": "在节点卡片上直接呈现多个探测点的实时连通性网格",
       "default": false
+    },
+    {
+      "key": "homepageMultiPingTaskIds",
+      "type": "text",
+      "label": "全局线路任务 ID（JSON）",
+      "default": "[]",
+      "help": "例如 [1,2,3]；空数组 [] 表示多线路模式下按各节点自动展示。建议在主题设置的线路页编辑。"
+    },
+    {
+      "key": "homepageNodePingSettings",
+      "type": "text",
+      "label": "逐服务器线路设置（JSON）",
+      "default": "{}",
+      "help": "按稳定节点 ID/UUID 保存。建议在主题设置的线路页选择跟随全局、自动或自定义。"
+    },
+    {
+      "key": "homepagePingBindings",
+      "type": "text",
+      "label": "旧单线路绑定（JSON）",
+      "default": "{}",
+      "help": "保留历史单线路显示；逐服务器自动/自定义模式优先。建议在主题设置的线路页编辑。"
     },
     {
       "key": "showTodayTrafficPopover",

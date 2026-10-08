@@ -232,6 +232,8 @@ function getMockNodes(): NodeInfo[] {
 }
 
 const nodes: NodeInfo[] = getMockNodes();
+const pingScenario = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("pingScenario") === "1";
+if (pingScenario && nodes[1]) nodes[1] = { ...nodes[1], name: "Po0" };
 
 function wave(seed: number, period: number, amplitude: number, offset: number) {
   return offset + Math.sin((Date.now() / period) * (1 + seed * 0.17)) * amplitude;
@@ -500,11 +502,12 @@ const pingTasks = [
   { id: 1, name: "中国电信", target: "电信探针" },
   { id: 2, name: "中国联通", target: "联通探针" },
   { id: 3, name: "中国移动", target: "移动探针" },
+  ...(pingScenario ? [{ id: 5, name: "PL", target: "Po0 PL" }, { id: 4, name: "CT-53", target: "Po0 CT-53" }] : []),
 ].map((task, index) => ({
   ...task,
   interval: 60,
   loss: 0,
-  clients: nodes.map((node) => node.uuid),
+  clients: nodes.filter((node) => !pingScenario || (task.id > 3 ? node.uuid === nodes[1]?.uuid : node.uuid !== nodes[1]?.uuid)).map((node) => node.uuid),
   type: "icmp",
   weight: index + 1,
 }));
@@ -618,8 +621,9 @@ export function installDevMockApi() {
     // 单任务刻意和三网首项不同，便于回归验证列表没有误读全局三网数据。
     homepagePingBindings: { "2": nodes.map((node) => node.uuid) },
     enableHomepageMultiPing:
-      new URLSearchParams(window.location.search).get("multiPing") === "1",
+      pingScenario || new URLSearchParams(window.location.search).get("multiPing") === "1",
     homepageMultiPingTaskIds: [1, 2, 3],
+    ...(pingScenario ? { homepageNodePingSettings: { [nodes[1].uuid]: { mode: "custom", taskIds: [5, 4] } } } : {}),
   };
 
   const savedThemeSettings: Record<string, Record<string, unknown>> = {};
@@ -779,6 +783,27 @@ export function installDevMockApi() {
       });
     }
 
+    if (url.pathname === "/api/ping-tasks") {
+      if (!adminMode) return json({ message: "unauthorized" }, { status: 401 });
+      return json(pingTasks);
+    }
+    const historyMatch = url.pathname.match(/^\/api\/nodes\/([^/]+)\/metrics$/);
+    if (historyMatch) {
+      const uuid = decodeURIComponent(historyMatch[1]);
+      const associated = pingTasks.filter((task) => task.clients.includes(uuid));
+      const hours = Number(url.searchParams.get("hours")) || 1;
+      const points = 60;
+      const step = Math.max(60, hours * 3600 / points);
+      const now = Math.floor(Date.now() / 1000);
+      return json({ metrics: [], step,
+        probes: Object.fromEntries(associated.map((task) => [task.id, task.name])),
+        ping: associated.flatMap((task) => Array.from({ length: points }, (_, i) => ({
+          task_id: task.id, ts: now - (points - i) * step,
+          latency: i === 12 && task.id === 3 ? null : 55 + task.id * 16 + Math.sin(i / 4) * 8,
+          loss: i === 12 && task.id === 3 ? 100 : task.id === 3 && i > 48 && i < 54 ? 12 : 0,
+        }))),
+      });
+    }
     if (url.pathname === "/api/nodes") {
       const nowSec = Math.floor(Date.now() / 1000);
       return json(

@@ -1,3 +1,4 @@
+import { MultiPingStatus } from "./MultiPingStatus";
 import { memo, useState, type CSSProperties, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -402,6 +403,7 @@ export const MiniNodeCard = memo(function MiniNodeCard({
 }) {
   const model = useNodeCardModel(uuid, {
     pingBucketCount: HEALTH_BAR_COUNT,
+    includeMultiPing: true,
   });
 
   if (!model.node) {
@@ -412,6 +414,7 @@ export const MiniNodeCard = memo(function MiniNodeCard({
     node,
     ping,
     pingBuckets,
+    homepagePingLines,
     footerTags,
     renewalPrice,
     latencyColor,
@@ -439,7 +442,7 @@ export const MiniNodeCard = memo(function MiniNodeCard({
       <MiniChips tags={footerTags} renewalPrice={renewalPrice} ipv4={node.ipv4} ipv6={node.ipv6} />
       <MiniVitals node={node} loadFraction={loadFraction} />
       <MiniFlow node={node} upRate={upRate} downRate={downRate} />
-      <MiniHealth
+      {homepagePingLines.length > 0 ? <MultiPingStatus lines={homepagePingLines} density="compact" /> : <MiniHealth
         ping={ping}
         pingBuckets={pingBuckets}
         latencyColor={latencyColor}
@@ -447,7 +450,7 @@ export const MiniNodeCard = memo(function MiniNodeCard({
         hasRealHomepagePingBinding={hasRealHomepagePingBinding}
         pingLoading={pingLoading}
         pingError={pingError}
-      />
+      />}
     </article>
   );
 });

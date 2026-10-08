@@ -130,6 +130,7 @@ export interface ThemeSettings {
   homepagePingBindings?: Record<string, string[]>;
   enableHomepageMultiPing?: boolean;
   homepageMultiPingTaskIds?: number[];
+  homepageNodePingSettings?: import("@/utils/pingTasks").HomepageNodePingSettings;
   fakePingForUnbound?: boolean;
   showHomeOverview?: boolean;
   overviewFollowGroup?: boolean;

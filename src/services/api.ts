@@ -332,8 +332,10 @@ export async function getPublic(options?: RequestOptions): Promise<PublicConfig>
     // 3. 官方 schema 字段一律以服务端为准；若服务端未返回或已清空（如 adminNickname），绝不允许本地旧缓存死灰复燃！
     mergedSettings = { ...serverSettings };
 
+    const legacyPingKeys = new Set(["homepagePingBindings", "homepageMultiPingTaskIds"]);
+    const isLegacyPingConfig = !("homepageNodePingSettings" in serverSettings);
     for (const [key, val] of Object.entries(localSettings)) {
-      if (!THEME_CONFIG_KEYS_SET.has(key) && !(key in mergedSettings)) {
+      if ((!THEME_CONFIG_KEYS_SET.has(key) || (isLegacyPingConfig && legacyPingKeys.has(key))) && !(key in mergedSettings)) {
         mergedSettings[key] = val;
       }
     }
@@ -350,7 +352,7 @@ export async function getPublic(options?: RequestOptions): Promise<PublicConfig>
               nextLocal[key] = serverSettings[key];
               localDirty = true;
             }
-          } else if (key in nextLocal) {
+          } else if (key in nextLocal && !(isLegacyPingConfig && legacyPingKeys.has(key))) {
             delete nextLocal[key];
             localDirty = true;
           }
@@ -481,12 +483,15 @@ export async function getPingRecords(
     const records: PingRecord[] = (data.ping ?? []).map((p) => ({
       task_id: p.task_id,
       time: p.ts * 1000,
-      value: p.latency ?? 0,
+      value: p.latency ?? -1,
       client: uuid,
       loss: p.loss != null ? p.loss : p.latency === null ? 100 : 0,
     }));
 
-    const tasks: PingTask[] = Object.entries(data.probes ?? {}).map(([idStr, name]) => {
+    const orderedProbeIds = [...new Set((data.ping ?? []).map((p) => String(p.task_id)))];
+    for (const id of Object.keys(data.probes ?? {})) if (!orderedProbeIds.includes(id)) orderedProbeIds.push(id);
+    const tasks: PingTask[] = orderedProbeIds.map((idStr) => {
+      const name = data.probes?.[idStr] ?? `任务 #${idStr}`;
       const id = Number(idStr);
       const loss = data.loss?.[idStr] ?? 0;
       return {
@@ -505,6 +510,7 @@ export async function getPingRecords(
       count: records.length,
       records,
       tasks,
+      intervalSeconds: data.step || 60,
     };
   } catch (_error) {
     return {
@@ -575,11 +581,14 @@ export async function getPingOverview(
   const allRecords: PingRecord[] = [];
   const taskMap = new Map<number, PingTask>();
   const statsList: PingTaskStats[] = [];
+  let failedNodes = 0;
+  let intervalSeconds = 60;
 
   await Promise.all(
     nodeUuids.map(async (uuid) => {
       try {
         const data = await fetchNodePingMetricsShared(uuid, queryHours, options);
+        intervalSeconds = data.step || intervalSeconds;
         if (data.probes) {
           for (const [idStr, name] of Object.entries(data.probes)) {
             const id = Number(idStr);
@@ -607,23 +616,26 @@ export async function getPingOverview(
           allRecords.push({
             task_id: p.task_id,
             time: p.ts * 1000,
-            value: p.latency ?? 0,
+            value: p.latency ?? -1,
             client: uuid,
             loss: p.loss != null ? p.loss : p.latency === null ? 100 : 0,
           });
         }
       } catch {
-        // 忽略节点错误
+        failedNodes += 1;
       }
     }),
   );
+  if (nodeUuids.length > 0 && failedNodes === nodeUuids.length) {
+    throw new Error("延迟历史读取失败，请稍后重试");
+  }
 
   return {
     count: allRecords.length,
     records: allRecords,
     tasks: Array.from(taskMap.values()),
     stats: statsList,
-    intervalSeconds: 60,
+    intervalSeconds,
   };
 }
 
@@ -891,8 +903,7 @@ export async function saveThemeSettings(
 
   if (!settings) return;
 
-  // 1. 同步保存至本地存储，保证本地离线或断网时的高容错与即时反馈
-  saveLocalThemeSettings(settings);
+  // 本地缓存仅在服务端确认保存后更新，避免失败被误报为跨设备保存成功。
 
   if (typeof window === "undefined" || typeof fetch === "undefined") {
     return;
@@ -902,44 +913,42 @@ export async function saveThemeSettings(
   const url = `/api/themes/${THEME_SHORT}/config`;
   let original: Record<string, unknown> = {};
 
-  try {
-    const read = await fetch(url);
-    if (read.ok) {
-      const contentType = read.headers.get("content-type") ?? "";
-      if (contentType.includes("application/json") || !contentType.includes("text/html")) {
-        const text = await read.text();
-        if (text.trim().startsWith("{")) {
-          original = JSON.parse(text);
-        }
-      }
-    }
-  } catch {}
+  const read = await fetch(url);
+  if (!read.ok) throw new ApiRequestError("读取主题配置失败，请重试", read.status, url);
+  const raw: unknown = JSON.parse(await read.text());
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    throw new Error("主题配置响应无效，请重试");
+  }
+  original = raw as Record<string, unknown>;
 
   const next: Record<string, unknown> = { ...original };
   for (const [key, value] of Object.entries(settings)) {
     if (value === undefined) {
       delete next[key];
     } else {
-      next[key] = value;
+      next[key] = ["homepageMultiPingTaskIds", "homepagePingBindings", "homepageNodePingSettings"].includes(key)
+        && typeof value !== "string" ? JSON.stringify(value) : value;
     }
   }
 
-  try {
+  const body = JSON.stringify(next);
+  if (new TextEncoder().encode(body).length > 64 * 1024) {
+    throw new Error("主题配置超过 64 KiB，请减少设置或清理已删除节点的配置");
+  }
+  {
     const res = await fetch(url, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(next),
+      body,
     });
 
     if (!res.ok) {
       const errText = await res.text().catch(() => "");
-      throw new Error(errText || `保存主题配置至服务端失败 (HTTP ${res.status})`);
+      throw new ApiRequestError(errText || `保存主题配置至服务端失败 (HTTP ${res.status})`, res.status, url);
     }
 
     serverThemeSettingsCache = next;
-  } catch (err) {
-    // 若服务端不支持 PUT（例如旧版 Hub 404），已有本地存储兜底，向控制台记录调试信息
-    console.warn("保存到服务端主题配置接口未成功，已使用本地存储兜底:", err);
+    saveLocalThemeSettings(next);
   }
 }
 
@@ -992,12 +1001,12 @@ export async function getAdminPingTasks(_options?: RequestOptions): Promise<Ping
     const nodes = await getNodes(_options);
     if (nodes.length > 0) {
       const probeMap = new Map<number, { id: number; name: string; clients: Set<string> }>();
-      const sampleNodes = nodes.slice(0, 15);
+      const sampleNodes = nodes;
       await Promise.all(
         sampleNodes.map(async (node) => {
           try {
             const data = await apiFetch<MonitorMetricsHistoryResponse>(
-              `/api/nodes/${encodeURIComponent(node.uuid)}/metrics?hours=1&points=30&series=ping`,
+              `/api/nodes/${encodeURIComponent(node.uuid)}/metrics?hours=1&points=60&series=ping`,
               _options,
             );
             if (data?.probes) {

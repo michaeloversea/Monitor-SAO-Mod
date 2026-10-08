@@ -16,6 +16,8 @@ import {
   type HomeSortField,
 } from "@/utils/homeSort";
 import {
+  normalizeHomepageNodePingSettings,
+  type HomepageNodePingSettings,
   normalizeHomepageMultiPingTaskIds,
   normalizeHomepagePingTaskBindings,
   type HomepagePingTaskBindings,
@@ -40,6 +42,7 @@ export interface ResolvedThemeSettings {
   homepagePingBindings: HomepagePingTaskBindings;
   enableHomepageMultiPing: boolean;
   homepageMultiPingTaskIds: number[];
+  homepageNodePingSettings: HomepageNodePingSettings;
   fakePingForUnbound: boolean;
   showHomeOverview: boolean;
   overviewFollowGroup: boolean;
@@ -75,7 +78,7 @@ export interface ResolvedThemeSettings {
   adminNickname: string;
 }
 
-/** 后端 theme.json 中声明的官方配置字段清单 (共 33 项) */
+/** 后端 theme.json 中声明的官方配置字段清单 */
 export const THEME_CONFIG_KEYS = [
   "defaultAppearance",
   "desktopNodeViewMode",
@@ -92,6 +95,9 @@ export const THEME_CONFIG_KEYS = [
   "showHomeOverview",
   "overviewFollowGroup",
   "enableHomepageMultiPing",
+  "homepageMultiPingTaskIds",
+  "homepagePingBindings",
+  "homepageNodePingSettings",
   "showTodayTrafficPopover",
   "showConnections",
   "compactShowTrafficTotal",
@@ -129,6 +135,7 @@ export const DEFAULT_THEME_SETTINGS: ResolvedThemeSettings = {
   homepagePingBindings: {},
   enableHomepageMultiPing: false,
   homepageMultiPingTaskIds: [],
+  homepageNodePingSettings: {},
   fakePingForUnbound: false,
   showHomeOverview: true,
   overviewFollowGroup: false,
@@ -314,9 +321,10 @@ export function normalizeThemeSettings(
     matrixUserPresets: normalizeMatrixUserPresets(settings?.matrixUserPresets),
     enableAdminButton: enabledUnlessFalse(settings?.enableAdminButton),
     homepagePingBindings: normalizeHomepagePingTaskBindings(settings?.homepagePingBindings),
-    // 保留开关原值，让管理页能呈现并修复不完整配置；首页消费方仅在任务恰好为三项时启用。
+    // 开关开启且槽位为空时自动展示该节点全部关联线路。
     enableHomepageMultiPing: settings?.enableHomepageMultiPing === true,
     homepageMultiPingTaskIds,
+    homepageNodePingSettings: normalizeHomepageNodePingSettings(settings?.homepageNodePingSettings),
     // 默认关闭(需手动开启):给访客展示的是模拟数据,必须由站长显式决定。
     fakePingForUnbound: settings?.fakePingForUnbound === true,
     showHomeOverview: enabledUnlessFalse(settings?.showHomeOverview),

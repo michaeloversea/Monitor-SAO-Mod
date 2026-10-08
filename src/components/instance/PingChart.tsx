@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { resolvePingYRange } from "./pingChartScale";
+import { PingLossBands, type PingPlotGeometry } from "./PingLossBands";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import UplotReact from "uplot-react";
 import type uPlot from "uplot";
 import { Eye, EyeOff, RefreshCw } from "lucide-react";
@@ -121,9 +123,26 @@ export function PingChart({
   const { resolvedAppearance } = usePreferences();
   const { w, h, ref: chartSizeRef } = useResponsiveChartSize("wide");
   const [hiddenTasks, setHiddenTasks] = useState<Set<number>>(new Set());
+  const hiddenTasksRef = useRef(hiddenTasks);
+  const plotRef = useRef<uPlot | null>(null);
   const [connectNulls, setConnectNulls] = useState(false);
   const [cutPeak, setCutPeak] = useState(false);
+  const [showLossBands, setShowLossBands] = useState(() => {
+    try { return localStorage.getItem("monitor-sao:show-loss-bands") !== "false"; } catch { return true; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem("monitor-sao:show-loss-bands", String(showLossBands)); } catch { /* 访客偏好兜底 */ }
+  }, [showLossBands]);
   const chartRef = useRef<uPlot.AlignedData>([[]]);
+  const [plotGeometry, setPlotGeometry] = useState<PingPlotGeometry | null>(null);
+  const syncPlotGeometry = useCallback((plot: uPlot) => {
+    const ratio = plot.bbox.width / Math.max(1, plot.over.clientWidth);
+    const start = plot.scales.x.min;
+    const end = plot.scales.x.max;
+    if (start == null || end == null || end <= start || !Number.isFinite(ratio) || ratio <= 0) return;
+    const next = { left: plot.bbox.left / ratio, width: plot.bbox.width / ratio, start, end };
+    setPlotGeometry((prev) => prev && prev.left === next.left && prev.width === next.width && prev.start === start && prev.end === end ? prev : next);
+  }, []);
   const [tooltip, setTooltip] = useState<ChartTooltipState>({
     show: false,
     left: 0,
@@ -162,10 +181,34 @@ export function PingChart({
     () => tasks.filter((task) => !hiddenTasks.has(task.id)),
     [hiddenTasks, tasks],
   );
-  const visibleTaskIds = useMemo(
-    () => new Set(visibleTasks.map((task) => task.id)),
-    [visibleTasks],
-  );
+  const visibleTasksRef = useRef(visibleTasks);
+  useLayoutEffect(() => {
+    hiddenTasksRef.current = hiddenTasks;
+    visibleTasksRef.current = visibleTasks;
+  }, [hiddenTasks, visibleTasks]);
+  const onPlotCreate = useCallback((plot: uPlot) => {
+    plotRef.current = plot;
+    plot.batch(() => {
+      tasks.forEach((task, index) => plot.setSeries(index + 1, { show: !hiddenTasksRef.current.has(task.id) }));
+      const [min, max] = resolvePingYRange(chartRef.current, tasks.map((task) => task.id), hiddenTasksRef.current);
+      plot.setScale("y", { min, max });
+    });
+  }, [tasks]);
+  const onPlotDelete = useCallback((plot: uPlot) => {
+    if (plotRef.current === plot) plotRef.current = null;
+  }, []);
+  useEffect(() => {
+    const plot = plotRef.current;
+    if (!plot) return;
+    plot.batch(() => {
+      tasks.forEach((task, index) => {
+        const show = !hiddenTasks.has(task.id);
+        if (plot.series[index + 1]?.show !== show) plot.setSeries(index + 1, { show });
+      });
+      const [min, max] = resolvePingYRange(chartRef.current, tasks.map((task) => task.id), hiddenTasks);
+      if (plot.scales.y.min !== min || plot.scales.y.max !== max) plot.setScale("y", { min, max });
+    });
+  }, [hiddenTasks, tasks]);
 
   useEffect(() => {
     setHiddenTasks(new Set());
@@ -250,7 +293,7 @@ export function PingChart({
     return [reduced.times, ...smoothed] as uPlot.AlignedData;
   }, [cutPeak, data, sortedRecords, taskKeySet, taskKeys, tasks]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (chart) chartRef.current = chart;
   }, [chart]);
 
@@ -274,29 +317,8 @@ export function PingChart({
     return historyCoverageLabel(coverageMeta, times[0], times[times.length - 1]);
   }, [chart, coverageMeta]);
 
-  const yRange = useMemo<[number | null, number | null]>(() => {
-    if (!chart) return [null, null];
-    let min = Number.POSITIVE_INFINITY;
-    let max = Number.NEGATIVE_INFINITY;
-    for (let index = 0; index < tasks.length; index += 1) {
-      if (!visibleTaskIds.has(tasks[index].id)) continue;
-      const series = chart[index + 1] as Array<number | null | undefined> | undefined;
-      if (!series) continue;
-      for (const value of series) {
-        if (typeof value === "number" && Number.isFinite(value) && value >= 0) {
-          if (value < min) min = value;
-          if (value > max) max = value;
-        }
-      }
-    }
-    if (min === Number.POSITIVE_INFINITY) return [0, 100];
-    if (min === max) {
-      const pad = Math.max(5, min * 0.1);
-      return [Math.max(0, min - pad), max + pad];
-    }
-    const pad = Math.max(5, (max - min) * 0.12);
-    return [Math.max(0, min - pad), max + pad];
-  }, [chart, tasks, visibleTaskIds]);
+  const yRange = useMemo<[number, number]>(() => chart
+    ? resolvePingYRange(chart, tasks.map((task) => task.id), new Set()) : [0, 100], [chart, tasks]);
 
   const baseOptions = useMemo<Omit<uPlot.Options, "width" | "height"> | null>(() => {
     if (!chart) return null;
@@ -307,7 +329,7 @@ export function PingChart({
       estimatedWidth: 196,
       setTooltip,
       buildRows: (idx) =>
-        visibleTasks
+        visibleTasksRef.current
           .map((task) => {
             const taskIndex = taskIndexById.get(task.id) ?? 0;
             const raw = chartRef.current[taskIndex + 1]?.[idx] as number | null | undefined;
@@ -361,11 +383,14 @@ export function PingChart({
           stroke: taskColors.get(task.id) ?? colorForSeries(index, tasks.length),
           width: 1.7,
           spanGaps: connectNulls,
-          show: !hiddenTasks.has(task.id),
+          show: true,
           points: { show: false },
         })),
       ],
       hooks: {
+        ready: [syncPlotGeometry],
+        setSize: [syncPlotGeometry],
+        setScale: [syncPlotGeometry],
         init: [
           (u) => {
             u.root.setAttribute("role", "img");
@@ -377,7 +402,7 @@ export function PingChart({
         setCursor: [tooltipHooks.onSetCursor],
       },
     };
-  }, [chart, connectNulls, hiddenTasks, hours, isDark, requestedXRange, taskColors, taskIndexById, taskLabels, tasks, visibleTasks, yRange]);
+  }, [chart, connectNulls, hours, isDark, syncPlotGeometry, requestedXRange, taskColors, taskIndexById, taskLabels, tasks, yRange]);
 
   const options = useMemo<uPlot.Options | null>(
     () => (baseOptions ? { ...baseOptions, width: w, height: h } : null),
@@ -491,6 +516,8 @@ export function PingChart({
   return (
     <InstancePanel title="Ping 图表" description={coverageLabel ?? undefined}>
       <div className="instance-ping-toolbar">
+        <SwitchToggle label="丢包色带" active={showLossBands} onToggle={() => setShowLossBands((value) => !value)}
+          title="按各线路原始返回桶显示丢包率：绿 0%、黄绿 <5%、黄 <20%、橙 <50%、红 <100%、深红 100%；灰色表示未采样。色带与时间轴对齐，不受削峰平滑或断点连线影响。" />
         <SwitchToggle
           label="削峰平滑"
           active={cutPeak}
@@ -562,15 +589,20 @@ export function PingChart({
         })}
       </div>
 
+      <PingLossBands visible={showLossBands} records={data.records} tasks={visibleTasks}
+        labels={taskLabels} intervalSeconds={data.intervalSeconds} geometry={plotGeometry} />
       <div ref={chartSizeRef} className="instance-uplot-wrap is-large">
-        {chart && options && visibleTasks.length > 0 ? (
+        {chart && options ? (
           <>
             <UplotReact
               key={`${uuid}-${hours}-${cutPeak ? "smooth" : "raw"}-${connectNulls ? "span" : "gap"}`}
               options={options}
               data={chart}
+              onCreate={onPlotCreate}
+              onDelete={onPlotDelete}
             />
-            <ChartTooltip tooltip={tooltip} />
+            <ChartTooltip tooltip={visibleTasks.length ? tooltip : { ...tooltip, show: false }} />
+            {visibleTasks.length === 0 && <div className="instance-ping-all-hidden">当前已隐藏全部线路，点击上方按钮可恢复显示</div>}
           </>
         ) : (
           <div className="instance-empty">当前已隐藏全部线路，点击上方按钮可恢复显示</div>

@@ -1,3 +1,4 @@
+import { MultiPingStatus } from "./MultiPingStatus";
 import { memo, useCallback, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowDown, ArrowUp, CircleDollarSign } from "lucide-react";
@@ -230,6 +231,7 @@ const NodeRow = memo(function NodeRow({ uuid }: { uuid: string }) {
   const redrawKey = `${resolvedAppearance}:${colorsVersion}`;
   const model = useNodeCardModel(uuid, {
     pingBucketCount: LIST_PING_BUCKETS,
+    includeMultiPing: true,
   });
 
   if (!model.node) {
@@ -241,6 +243,7 @@ const NodeRow = memo(function NodeRow({ uuid }: { uuid: string }) {
     traffic,
     ping,
     pingBuckets,
+    homepagePingLines,
     footerTags,
     expire,
     expireColor,
@@ -374,7 +377,7 @@ const NodeRow = memo(function NodeRow({ uuid }: { uuid: string }) {
       </div>
 
       <div className="node-list-cell col-net">
-        <ListLatency
+        {homepagePingLines.length > 0 ? <MultiPingStatus lines={homepagePingLines} density="compact" /> : <ListLatency
           latency={ping.lastValue}
           loadState={ping.loadState}
           hasRealHomepagePingBinding={hasRealHomepagePingBinding}
@@ -382,7 +385,7 @@ const NodeRow = memo(function NodeRow({ uuid }: { uuid: string }) {
           latencyColor={latencyColor}
           buckets={pingBuckets}
           redrawKey={redrawKey}
-        />
+        />}
       </div>
 
       <div className="node-list-cell col-life node-list-stack">

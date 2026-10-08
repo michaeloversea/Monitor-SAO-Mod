@@ -29,7 +29,7 @@ import { resolveTrafficUsage, trafficTypeLabel, type TrafficDisplay } from "@/ut
 import { resolveOsInfo } from "@/components/ui/OsLogo";
 import {
   hasHomepagePingTaskBinding,
-  isHomepageMultiPingConfigured,
+  resolveHomepagePingSelections,
 } from "@/utils/pingTasks";
 
 interface NodeCardModelOptions {
@@ -58,23 +58,21 @@ export function useNodeCardModel(
     homepagePingBindings,
     enableHomepageMultiPing,
     homepageMultiPingTaskIds,
+    homepageNodePingSettings,
   } = useThemeSettings();
   const { isPriceVisible } = usePriceVisibility();
-  const multiPingConfigured =
-    enableHomepageMultiPing &&
-    isHomepageMultiPingConfigured(homepageMultiPingTaskIds);
+  const selection = useMemo(() => resolveHomepagePingSelections([uuid], homepagePingBindings,
+    enableHomepageMultiPing ? homepageMultiPingTaskIds : [], {
+      nodeSettings: homepageNodePingSettings,
+      globalAuto: enableHomepageMultiPing && homepageMultiPingTaskIds.length === 0,
+    }), [uuid, homepagePingBindings, enableHomepageMultiPing, homepageMultiPingTaskIds, homepageNodePingSettings]);
+  const configuredTaskIds = selection.multiTaskIdsByClient.get(uuid);
+  const multiPingConfigured = configuredTaskIds != null && configuredTaskIds.length > 0;
   const realPingLines = useNodePingOverviewLines(uuid, true);
-  const hasAutoMultiPing = !multiPingConfigured && realPingLines.length >= 2;
+  const hasAutoMultiPing = selection.automaticClients?.includes(uuid) === true && realPingLines.length > 0;
   const multiPingActive = includeMultiPing && (multiPingConfigured || hasAutoMultiPing);
   const singlePingOverview = useNodePingOverview(uuid, !multiPingActive);
-  const primaryMultiPingLine = useMemo(() => {
-    if (!multiPingActive) return undefined;
-    if (multiPingConfigured) {
-      const primaryTaskId = homepageMultiPingTaskIds[0];
-      return realPingLines.find((line) => line.taskId === primaryTaskId);
-    }
-    return realPingLines[0];
-  }, [homepageMultiPingTaskIds, multiPingActive, multiPingConfigured, realPingLines]);
+  const primaryMultiPingLine = multiPingActive ? realPingLines[0] : undefined;
 
   const realPing = primaryMultiPingLine ?? singlePingOverview;
 
@@ -82,16 +80,17 @@ export function useNodeCardModel(
     () =>
       multiPingConfigured ||
       hasAutoMultiPing ||
-      hasHomepagePingTaskBinding(uuid, homepagePingBindings) ||
+      (!homepageNodePingSettings[uuid] || homepageNodePingSettings[uuid].mode === "inherit") &&
+        !enableHomepageMultiPing && hasHomepagePingTaskBinding(uuid, homepagePingBindings) ||
       Boolean(realPing?.isAssigned),
-    [homepagePingBindings, multiPingConfigured, hasAutoMultiPing, realPing?.isAssigned, uuid],
+    [homepagePingBindings, homepageNodePingSettings, enableHomepageMultiPing, multiPingConfigured, hasAutoMultiPing, realPing?.isAssigned, uuid],
   );
   const now = useHourlyClock();
   const ping = useFakePingFallback(
     uuid,
     realPing,
     metrics?.online === true,
-    fakePingForUnbound && !multiPingActive,
+    fakePingForUnbound && !multiPingActive && !homepageNodePingSettings[uuid] && !enableHomepageMultiPing,
     homepagePingBindings,
   );
   // 状态跟随每条任务数据进入 Store,不再订阅全局 isRefreshing。这样后台轮询开始/结束
@@ -116,7 +115,7 @@ export function useNodeCardModel(
       return [];
     }
     const sourceLines = multiPingConfigured
-      ? homepageMultiPingTaskIds.map((taskId) => {
+      ? configuredTaskIds!.map((taskId) => {
           const loaded = realPingLines.find((line) => line.taskId === taskId);
           const line: HomepagePingLine =
             loaded ?? {
@@ -140,7 +139,7 @@ export function useNodeCardModel(
     }));
   }, [
     bucketNow,
-    homepageMultiPingTaskIds,
+    configuredTaskIds,
     multiPingActive,
     multiPingConfigured,
     pingBucketCount,
