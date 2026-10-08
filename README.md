@@ -12,11 +12,11 @@
 
 ## 获取本 Fork 安装包
 
-1. 在 [本仓库 Actions](https://github.com/michaeloversea/Monitor-SAO-Mod/actions/workflows/build-package.yml) 中打开所需提交的成功构建，下载 `sao-theme-package` 构建产物。
-2. 解压构建产物的外层 ZIP，取出 `theme.tar.gz`，在极简探针后台主题管理中上传并启用。
+1. 在 [本 Fork Releases](https://github.com/michaeloversea/Monitor-SAO-Mod/releases) 下载对应版本的 `theme.tar.gz`。
+2. 在极简探针后台主题管理中直接上传 `theme.tar.gz` 并启用，无需解压。
 3. 打开“主题设置 → 延迟”，为全局和 Po0 选择实际任务并保存。检测任务的创建与关联仍由探针后台负责。
 
-也可以本地构建：`npm ci` 后运行 `npm run lint`、`npm run typecheck`、`npm test` 和 `npm run package`，安装包输出在仓库根目录。每次推送 main 自动构建；只有推送版本标签才会发布 Release。
+也可以本地构建：`npm ci` 后运行 `npm run lint`、`npm run typecheck`、`npm test` 和 `npm run package`，安装包输出在仓库根目录。未发布版本的构建产物可在 [Actions](https://github.com/michaeloversea/Monitor-SAO-Mod/actions/workflows/build-package.yml) 下载 `sao-theme-package`，解压外层 ZIP 后取出 `theme.tar.gz`。
 
 以下保留上游 SAO 系列功能说明与致谢。
 

@@ -49,7 +49,7 @@ Monitor 清单支持的设置类型为基础类型，所以三个复杂线路字
 ## 安装方法
 
 1. 审查当前源码差异、本目录截图与主题安装包。安装前可保存一份当前 `GET /api/themes/sao/config` 响应作为配置备份。
-2. 从 [本 Fork 的 Actions](https://github.com/michaeloversea/Monitor-SAO-Mod/actions/workflows/build-package.yml) 下载对应提交成功构建的 `sao-theme-package`，解压外层 ZIP 后得到 `theme.tar.gz`；也可在本地运行 `npm ci`、`npm run package` 生成。审查通过后，在 Monitor 管理后台的主题管理页面上传 `theme.tar.gz`，然后启用 `SAO · JKSR Modded`。
+2. 从 [本版本 Release](https://github.com/michaeloversea/Monitor-SAO-Mod/releases/tag/v1.1.5-jksr.1) 直接下载 `theme.tar.gz`；也可在本地运行 `npm ci`、`npm run package` 生成。审查通过后，在 Monitor 管理后台的主题管理页面直接上传 `theme.tar.gz`，无需解压，然后启用 `SAO · JKSR Modded`。
 3. 如果直接管理 themes 目录，解压包后应得到 `sao/` 目录，放入 hub 使用的 themes 路径；按你的 hub 部署方式刷新/重载主题。
 4. 打开前台主题设置 → 延迟，选择实际节点及任务，然后保存。生产节点的关联任务需要已在后台建立。
 5. 强制刷新浏览器以替换旧静态资源。保持主题短名 `sao`，不要将配置写进 dist 文件。
@@ -71,6 +71,6 @@ ZIP 是辅助归档；正式上传安装使用 `theme.tar.gz`。
 
 参考：[Monitor 主题开发规范](https://monitor-document.pages.dev/dev/theme)、[LuminaPlus](https://github.com/guboysky/LuminaPlus)。LuminaPlus 仓库当前仅提供构建产物，本次核对了其中独立色带容器及图表显隐实现，并使用本主题自己的组件和计算逻辑实现。
 
-成品校验数据见 [verification.json](verification.json)，SHA-256 见 [SHA256SUMS.txt](SHA256SUMS.txt)。
+本地审查包校验数据见 [verification.json](verification.json)，本地包 SHA-256 见 [SHA256SUMS.txt](SHA256SUMS.txt)。Release 使用同一源码提交通过 GitHub 检查后的构建产物；构建时间和环境可能改变归档哈希，Release 文件请使用其附件 `SHA256SUMS.txt` 校验。
 
 ![下拉箭头修复](arrow-control.jpg)
