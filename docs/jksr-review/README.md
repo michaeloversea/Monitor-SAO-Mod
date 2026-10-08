@@ -1,6 +1,6 @@
 # SAO · JKSR Modded 审查版
 
-版本：`1.1.5-jksr.1`。主题短名保持 `sao`，继续读取 `/api/themes/sao/config`，升级后沿用既有站点配置。本目录随源码一同提交，用于部署前审查；尚未部署到服务器。
+版本：`1.1.5-jksr.2`。主题短名保持 `sao`，继续读取 `/api/themes/sao/config`，升级后沿用既有站点配置。本目录随源码一同提交，用于部署前审查；尚未部署到服务器。
 
 ## 修改内容
 
@@ -16,7 +16,7 @@
 - 色带开关只折叠独立区域，曲线向上补位。线路图例用现有 uPlot 实例的 `setSeries` / `setScale` 更新显隐和纵轴：必要的画布重绘仍发生，但不重建实例、不重置横轴缩放。“隐藏全部”也保留图表实例。
 - 页脚署名改为 `JKSR Modded`，版本和仓库链接从主题清单读取；保留上游许可证。
 - 修复保存失败被吞掉的问题：服务端确认成功才更新本地快照；读取原配置失败时不覆盖服务端内容，未知字段保留，超过 64 KiB 明确报错。
-- 修正主题 tar 的目录结构，解压后为 `sao/theme.json`、`sao/dist/index.html`、`sao/preview.png`。
+- 修正 v1.1.5-jksr.1 的打包错误：上传包根目录直接包含 `theme.json`、`dist/index.html`、`preview.png`，不套 `sao/`。安装器验证成功后自行命名为 `<themes-dir>/sao/`。新增实际 tar 布局回归测试，打包脚本自动拒绝多套目录的包。
 
 ## 配置格式与兼容
 
@@ -49,8 +49,8 @@ Monitor 清单支持的设置类型为基础类型，所以三个复杂线路字
 ## 安装方法
 
 1. 审查当前源码差异、本目录截图与主题安装包。安装前可保存一份当前 `GET /api/themes/sao/config` 响应作为配置备份。
-2. 从 [本版本 Release](https://github.com/michaeloversea/Monitor-SAO-Mod/releases/tag/v1.1.5-jksr.1) 直接下载 `theme.tar.gz`；也可在本地运行 `npm ci`、`npm run package` 生成。审查通过后，在 Monitor 管理后台的主题管理页面直接上传 `theme.tar.gz`，无需解压，然后启用 `SAO · JKSR Modded`。
-3. 如果直接管理 themes 目录，解压包后应得到 `sao/` 目录，放入 hub 使用的 themes 路径；按你的 hub 部署方式刷新/重载主题。
+2. 从 [本版本 Release](https://github.com/michaeloversea/Monitor-SAO-Mod/releases/tag/v1.1.5-jksr.2) 直接下载 `theme.tar.gz`；也可在本地运行 `npm ci`、`npm run package` 生成。审查通过后，在 Monitor 管理后台的主题管理页面直接上传 `theme.tar.gz`，无需解压，然后启用 `SAO · JKSR Modded`。
+3. 如果直接管理 themes 目录，先建立 `<themes-dir>/sao/`，再将包内容解压到该目录；不要直接解压到 themes 根目录。按你的 hub 部署方式刷新/重载主题。
 4. 打开前台主题设置 → 延迟，选择实际节点及任务，然后保存。生产节点的关联任务需要已在后台建立。
 5. 强制刷新浏览器以替换旧静态资源。保持主题短名 `sao`，不要将配置写进 dist 文件。
 
@@ -59,15 +59,17 @@ ZIP 是辅助归档；正式上传安装使用 `theme.tar.gz`。
 ## 验证范围与结果
 
 - 静态检查：ESLint、TypeScript、`git diff --check` 全部通过。
-- 全量自动测试：47 个测试文件、348 项测试全部通过；生产构建、tar 和 ZIP 打包全部通过。
+- 全量自动测试：48 个测试文件、351 项测试全部通过；生产构建、tar 和 ZIP 打包全部通过。
 - 自动回归：包含优先级、不同节点的任务数量与顺序、旧绑定兼容、空全局槽位、删除任务、关联变化、离线/无记录、取数失败、JSON 配置往返、清空本地后模拟跨设备读取、服务端失败不误报、色带计算以及图表开关实例生命周期。
 - 实际浏览器模拟：普通服务器三线、Po0 两线；四种卡片视图；手机设置页无水平溢出；空槽位保存并刷新仍为空；Po0 切换自动时忽略旧单绑定；色带关闭后图表上移且尺寸不变。
-- 安装包验证：gzip 完整性、tar 根目录、清单字段、普通文件/目录类型及官方大小上限；ZIP 完整性。
+- 安装包验证：gzip 完整性、根目录清单和页面、清单字段、普通文件/目录类型及官方大小上限；ZIP 完整性。按官方安装器的 staging 解压与 publish 路径检查模拟安装，错误的旧包缺少根目录清单，修正版通过。另有真实 tar 回归测试覆盖根目录正确、多套 sao/、缺少页面三种情况。
 - 截图与接口使用本地模拟数据。真实服务器的安装、数据库写入和实际检测任务关联尚未验证，等待你审查后再进行。
 
 截图：[卡片](cards.jpg)、[逐服务器设置](settings.jpg)、[手机设置](settings-mobile.jpg)、[大卡](large.jpg)、[迷你卡](mini.jpg)、[宽屏列表](list.jpg)、[色带开启](ping-loss-bands.jpg)、[色带关闭](ping-loss-bands-off.jpg)。
 
 本地复查：`npm ci` 后执行 `npm run dev`，打开 `http://127.0.0.1:5173/?mock=1&pingScenario=1`。模拟配置存储在本地模拟专用键中；它不会进入生产主题包。
+
+安装器依据：[monitor src/frontend.rs（a755438）](https://github.com/monitor-probe/monitor/blob/a7554388b05d369936cec6d88549a4caee4c405a/src/frontend.rs#L505)。`publish` 直接读取 staging 根目录清单和页面，再重命名到主题短名目录；本次以源码规则校验归档，未运行真实 hub。此前把文档中的安装目录误当成归档根目录，v1.1.5-jksr.1 的包因此不可安装，请使用 v1.1.5-jksr.2。
 
 参考：[Monitor 主题开发规范](https://monitor-document.pages.dev/dev/theme)、[LuminaPlus](https://github.com/guboysky/LuminaPlus)。LuminaPlus 仓库当前仅提供构建产物，本次核对了其中独立色带容器及图表显隐实现，并使用本主题自己的组件和计算逻辑实现。
 
