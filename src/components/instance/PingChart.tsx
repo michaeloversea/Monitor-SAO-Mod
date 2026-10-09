@@ -226,6 +226,7 @@ export function PingChart({
   }, [hiddenTasks, visibleTasks, showLossBands, lossRows, syncCursorExtension]);
   const leaveBand = useCallback(() => {
     setBandTooltip(null);
+    setTooltip((prev) => prev.show ? { ...prev, show: false } : prev);
     plotRef.current?.setCursor({ left: -10, top: -10 });
   }, []);
   const hoverBand = useCallback(({ row, bucket, fraction, clientY }: PingLossBandHover) => {

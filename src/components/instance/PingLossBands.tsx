@@ -64,6 +64,7 @@ export const PingLossBands = memo(function PingLossBands({ visible, rows, geomet
       <svg viewBox={`0 0 ${row.buckets.length} 6`} preserveAspectRatio="none" role="img" tabIndex={0}
         aria-label={`${row.label} 丢包色带，左右方向键查看，Escape 关闭提示`}
         onPointerMove={(event) => pointer(event, row)} onPointerDown={(event) => pointer(event, row)} onKeyDown={(event) => keyboard(event, row)}
+        onPointerLeave={(event) => { clearCell(event.currentTarget); onLeave(); }}
         onFocus={(event) => {
           const fraction = (Number(event.currentTarget.dataset.hoverIndex ?? 0) + 0.5) / Math.max(1, row.buckets.length);
           highlightCell(event.currentTarget, row, fraction);

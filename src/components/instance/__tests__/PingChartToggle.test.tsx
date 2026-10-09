@@ -113,6 +113,10 @@ describe("丢包色带独立显隐", () => {
     expect(svg.querySelector(".instance-loss-cell-hover")?.getAttribute("fill")).toBe("#facc15");
     expect(container.querySelector(".instance-chart-tooltip")?.textContent).toContain("10.0% 丢包");
     expect(container.querySelector(".instance-chart-tooltip")?.textContent).not.toContain("50.0 ms");
+    await act(async () => { svg.dispatchEvent(new MouseEvent("pointerout", { bubbles: true, relatedTarget: container })); });
+    expect(svg.dataset.activeCell).toBeUndefined();
+    expect(container.querySelector(".instance-chart-tooltip")).toBeNull();
+    await act(async () => { svg.dispatchEvent(new MouseEvent("pointermove", { bubbles: true, clientX: 900, clientY: 103 })); });
     const toggle = [...container.querySelectorAll("button")].find((button) => button.textContent?.includes("丢包色带"))!;
     await act(async () => toggle.click());
     expect(svg.dataset.activeCell).toBeUndefined();
