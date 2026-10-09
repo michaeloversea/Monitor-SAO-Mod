@@ -8,17 +8,13 @@
 - **独立丢包色带**：关闭色带后延迟图表向上补位；色带和线路开关保留图表实例与横轴缩放，线路显隐按需要更新纵轴。
 - **统一卡片与样式**：大卡、小卡、迷你卡、列表共用选线规则；修复下拉箭头内距，页脚署名为 `JKSR Modded`。
 
-完整的配置兼容说明、验证结果和截图见 [审查说明](docs/jksr-review/README.md)。服务器部署仍需先审查成品。
 
 ## 获取本 Fork 安装包
 
 1. 在 [本 Fork Releases](https://github.com/michaeloversea/Monitor-SAO-Mod/releases) 下载对应版本的 `theme.tar.gz`。
 2. 在极简探针后台主题管理中直接上传 `theme.tar.gz` 并启用，无需解压。
-3. 打开“主题设置 → 延迟”，为全局和 Po0 选择实际任务并保存。检测任务的创建与关联仍由探针后台负责。
 
-也可以本地构建：`npm ci` 后运行 `npm run lint`、`npm run typecheck`、`npm test` 和 `npm run package`，安装包输出在仓库根目录。未发布版本的构建产物可在 [Actions](https://github.com/michaeloversea/Monitor-SAO-Mod/actions/workflows/build-package.yml) 下载 `sao-theme-package`，解压外层 ZIP 后取出 `theme.tar.gz`。
-
-以下保留上游 SAO 系列功能说明与致谢。
+也可以本地构建：`npm ci` 后运行 `npm run lint`、`npm run typecheck`、`npm test` 和 `npm run package`。(https://github.com/michaeloversea/Monitor-SAO-Mod/actions/workflows/build-package.yml) 下载 `sao-theme-package`，解压外层 ZIP 后取出 `theme.tar.gz`。
 
 <p align="center">
   <strong>面向多种探针服务端的 SAO 系列探针主题</strong>
