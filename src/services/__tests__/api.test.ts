@@ -173,7 +173,7 @@ describe("Monitor API Service", () => {
         return new Response(JSON.stringify({ site_name: "Test", public_page: true }), { headers: { "content-type": "application/json" } });
       });
       await saveThemeSettings({ enableHomepageMultiPing: true, homepageMultiPingTaskIds: [],
-        homepageNodePingSettings: { "po0-id": { mode: "custom", taskIds: [5, 4] }, auto: { mode: "auto" } },
+        homepageNodePingSettings: { "example-node-id": { mode: "custom", taskIds: [5, 4] }, auto: { mode: "auto" } },
         homepagePingBindings: { "1": ["auto"] } });
       expect(saved.futureSetting).toBe("keep");
       expect(saved.homepageMultiPingTaskIds).toBe("[]");
@@ -182,7 +182,7 @@ describe("Monitor API Service", () => {
       resetLocalThemeSettings(); clearServerThemeSettingsCache();
       const result = await getPublic();
       expect(result.theme_settings.homepageMultiPingTaskIds).toEqual([]);
-      expect(result.theme_settings.homepageNodePingSettings).toEqual({ "po0-id": { mode: "custom", taskIds: [5, 4] }, auto: { mode: "auto" } });
+      expect(result.theme_settings.homepageNodePingSettings).toEqual({ "example-node-id": { mode: "custom", taskIds: [5, 4] }, auto: { mode: "auto" } });
     });
     it("保存失败不会更新本地，也不会被报告为成功；读取失败不发 PUT", async () => {
       resetLocalThemeSettings(); saveLocalThemeSettings({ homepageMultiPingTaskIds: [1] });

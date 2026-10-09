@@ -233,7 +233,7 @@ function getMockNodes(): NodeInfo[] {
 
 const nodes: NodeInfo[] = getMockNodes();
 const pingScenario = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("pingScenario") === "1";
-if (pingScenario && nodes[1]) nodes[1] = { ...nodes[1], name: "Po0" };
+if (pingScenario && nodes[1]) nodes[1] = { ...nodes[1], name: "Example Server" };
 
 function wave(seed: number, period: number, amplitude: number, offset: number) {
   return offset + Math.sin((Date.now() / period) * (1 + seed * 0.17)) * amplitude;
@@ -502,7 +502,7 @@ const pingTasks = [
   { id: 1, name: "中国电信", target: "电信探针" },
   { id: 2, name: "中国联通", target: "联通探针" },
   { id: 3, name: "中国移动", target: "移动探针" },
-  ...(pingScenario ? [{ id: 5, name: "PL", target: "Po0 PL" }, { id: 4, name: "CT-53", target: "Po0 CT-53" }] : []),
+  ...(pingScenario ? [{ id: 5, name: "Example_Trace1", target: "example.invalid" }, { id: 4, name: "Example_Trace2", target: "example.invalid" }] : []),
 ].map((task, index) => ({
   ...task,
   interval: 60,

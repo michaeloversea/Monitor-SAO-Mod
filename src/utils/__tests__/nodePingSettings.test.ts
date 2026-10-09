@@ -3,12 +3,12 @@ import { normalizeHomepageNodePingSettings, resolveHomepagePingSelections } from
 import { normalizeThemeSettings } from "@/utils/themeSettings";
 
 describe("逐服务器线路优先级与兼容", () => {
-  it("普通节点跟随三网，Po0 按稳定 ID 指定 PL、CT-53 顺序", () => {
-    const result = resolveHomepagePingSelections(["node-ct", "po0-id"], { "1": ["po0-id"] }, [1, 2, 3], {
-      globalAuto: false, nodeSettings: { "po0-id": { mode: "custom", taskIds: [5, 4] } },
+  it("普通节点跟随三网，Example Server 按稳定 ID 指定 Example_Trace1、Example_Trace2 顺序", () => {
+    const result = resolveHomepagePingSelections(["node-ct", "example-node-id"], { "1": ["example-node-id"] }, [1, 2, 3], {
+      globalAuto: false, nodeSettings: { "example-node-id": { mode: "custom", taskIds: [5, 4] } },
     });
     expect(result.multiTaskIdsByClient.get("node-ct")).toEqual([1, 2, 3]);
-    expect(result.multiTaskIdsByClient.get("po0-id")).toEqual([5, 4]);
+    expect(result.multiTaskIdsByClient.get("example-node-id")).toEqual([5, 4]);
   });
   it("显式自动不受旧绑定或全局槽位限制，跟随全局仍保留单线路", () => {
     const result = resolveHomepagePingSelections(["auto", "old"], { "7": ["auto", "old"] }, [], {
