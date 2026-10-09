@@ -118,7 +118,19 @@ html.theme-flip *::after {
 .instance-ping-loss-bands[hidden] { display: none; }
 .instance-ping-loss-bands { padding: 2px 0 4px; }
 .instance-ping-loss-band-row { position: relative; height: 6px; margin-top: 8px; }
-.instance-ping-loss-band-row svg { display: block; width: 100%; height: 6px; border-radius: 3px; overflow: hidden; }
+.instance-ping-loss-band-row svg { display: block; width: 100%; height: 6px; overflow: visible; }
+.instance-ping-loss-band-row svg { cursor: crosshair; touch-action: pan-y; }
+.instance-ping-loss-band-row svg:focus,
+.instance-ping-loss-band-row svg:focus-visible { outline: none; box-shadow: none; }
+.instance-loss-cell-hover { pointer-events: none; opacity: 0; transform-box: fill-box; transform-origin: center; transform: translateY(0) scale(1); transition: transform 160ms cubic-bezier(.2,.8,.2,1), opacity 120ms ease; }
+.instance-ping-loss-band-row svg[data-active-cell="true"] .instance-loss-cell-hover { opacity: 1; transform: translateY(-1px) scale(1.35,1.5); }
+@media (prefers-reduced-motion: reduce) { .instance-loss-cell-hover { transition: none; } }
+.instance-ping-hover-area { position: relative; }
+.instance-ping-cursor-extension { position: absolute; z-index: 3; width: 0; border-right: 1px dashed #607d8b; pointer-events: none; }
+.instance-ping-cursor-extension[hidden] { display: none; }
+.instance-ping-hover-area .instance-chart-tooltip { max-width: min(300px, calc(100% - 20px)); }
+.instance-ping-hover-area[data-band-hover="true"] .u-cursor-y { display: none; }
+.instance-chart-tooltip-detail { color: var(--text-secondary); font-weight: 500; }
 .instance-ping-loss-band-label { position: absolute; right: calc(100% + 5px); top: -3px; max-width: 49px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-secondary); font-size: 9px; }
 
 .instance-ping-all-hidden { position: absolute; top: 50%; left: 56px; right: 14px; color: var(--text-tertiary); font-size: 13px; text-align: center; pointer-events: none; }

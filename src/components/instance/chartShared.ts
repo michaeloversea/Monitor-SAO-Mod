@@ -63,8 +63,9 @@ export interface ChartTooltipState {
   show: boolean;
   left: number;
   top: number;
-  rows: Array<{ label: string; value: string; color: string }>;
+  rows: Array<{ label: string; value: string; color: string; taskId?: number; detail?: string }>;
   time: string;
+  timestamp?: number;
 }
 
 export interface TimeRangeOption {
@@ -162,7 +163,7 @@ export function createTimeAxisFormatter(rangeHours: number) {
     splits.map((value) => formatAxisTime(value, rangeHours));
 }
 
-function formatTooltipTime(timestampSeconds: number, rangeHours = 0): string {
+export function formatTooltipTime(timestampSeconds: number, rangeHours = 0): string {
   const parts = getDateParts(timestampSeconds);
   if (rangeHours >= 24) {
     return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}:${parts.second}`;
@@ -273,6 +274,7 @@ export function buildChartTooltipHooks({
       top: position.top,
       rows,
       time: formatTooltipTime(timestamp, rangeHours),
+      timestamp,
     });
   };
   return {

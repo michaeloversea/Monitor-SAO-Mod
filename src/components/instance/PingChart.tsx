@@ -1,5 +1,6 @@
 import { resolvePingYRange } from "./pingChartScale";
-import { PingLossBands, type PingPlotGeometry } from "./PingLossBands";
+import { PingLossBands, type PingPlotGeometry, type PingLossBandHover, type PingLossBandRow } from "./PingLossBands";
+import { buildLossBandBuckets, indexPingLossSamples, pingLossAtTime, formatLossBandValue } from "./lossBandData";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import UplotReact from "uplot-react";
 import type uPlot from "uplot";
@@ -10,6 +11,7 @@ import {
   buildChartTooltipHooks,
   colorForSeries,
   createTimeAxisFormatter,
+  formatTooltipTime,
   getAxisColors,
   toChartSeconds,
   useResponsiveChartSize,
@@ -134,6 +136,25 @@ export function PingChart({
     try { localStorage.setItem("monitor-sao:show-loss-bands", String(showLossBands)); } catch { /* 访客偏好兜底 */ }
   }, [showLossBands]);
   const chartRef = useRef<uPlot.AlignedData>([[]]);
+  const hoverAreaRef = useRef<HTMLDivElement>(null);
+  const cursorExtensionRef = useRef<HTMLDivElement>(null);
+  const showLossBandsRef = useRef(showLossBands);
+  const [bandTooltip, setBandTooltip] = useState<ChartTooltipState | null>(null);
+  const syncCursorExtension = useCallback((plot: uPlot) => {
+    const line = cursorExtensionRef.current;
+    const area = hoverAreaRef.current;
+    const firstRow = area?.querySelector(".instance-ping-loss-band-row");
+    const left = plot.cursor.left;
+    if (!line || !area) return;
+    line.hidden = !showLossBandsRef.current || !firstRow || left == null || left < 0 || left > plot.over.clientWidth || plot.cursor.idx == null;
+    if (line.hidden || !firstRow || left == null) return;
+    const areaRect = area.getBoundingClientRect();
+    const rowRect = firstRow.getBoundingClientRect();
+    const plotRect = plot.over.getBoundingClientRect();
+    line.style.left = `${plotRect.left - areaRect.left + Math.round(left)}px`;
+    line.style.top = `${rowRect.top - areaRect.top}px`;
+    line.style.height = `${Math.max(0, plotRect.top - rowRect.top)}px`;
+  }, []);
   const [plotGeometry, setPlotGeometry] = useState<PingPlotGeometry | null>(null);
   const syncPlotGeometry = useCallback((plot: uPlot) => {
     const ratio = plot.bbox.width / Math.max(1, plot.over.clientWidth);
@@ -182,10 +203,51 @@ export function PingChart({
     [hiddenTasks, tasks],
   );
   const visibleTasksRef = useRef(visibleTasks);
+  const lossSamples = useMemo(() => indexPingLossSamples(data?.records ?? [], new Map(tasks.map((task) => [task.id,
+    resolvePingChartInterval(data?.intervalSeconds, task.interval)]))), [data, tasks]);
+  const lossRows = useMemo<PingLossBandRow[]>(() => {
+    if (!plotGeometry) return [];
+    const grouped = new Map<number, PingRecord[]>();
+    for (const record of data?.records ?? []) {
+      const group = grouped.get(record.task_id) ?? [];
+      group.push(record); grouped.set(record.task_id, group);
+    }
+    return visibleTasks.map((task) => ({ taskId: task.id, label: taskLabels.get(task.id) ?? `任务 #${task.id}`,
+      color: taskColors.get(task.id) ?? "var(--text-secondary)",
+      buckets: buildLossBandBuckets(grouped.get(task.id) ?? [], plotGeometry.start, plotGeometry.end,
+        resolvePingChartInterval(data?.intervalSeconds, task.interval), Math.max(60, Math.round(plotGeometry.width / 4))) }));
+  }, [data, plotGeometry, visibleTasks, taskLabels, taskColors]);
   useLayoutEffect(() => {
     hiddenTasksRef.current = hiddenTasks;
     visibleTasksRef.current = visibleTasks;
-  }, [hiddenTasks, visibleTasks]);
+    showLossBandsRef.current = showLossBands;
+    setBandTooltip(null);
+    if (plotRef.current) syncCursorExtension(plotRef.current);
+  }, [hiddenTasks, visibleTasks, showLossBands, lossRows, syncCursorExtension]);
+  const leaveBand = useCallback(() => {
+    setBandTooltip(null);
+    plotRef.current?.setCursor({ left: -10, top: -10 });
+  }, []);
+  const hoverBand = useCallback(({ row, bucket, fraction, clientY }: PingLossBandHover) => {
+    const area = hoverAreaRef.current;
+    const plot = plotRef.current;
+    if (!area || !plot) return;
+    const bounds = area.getBoundingClientRect();
+    const plotBounds = plot.over.getBoundingClientRect();
+    const left = fraction * plot.over.clientWidth;
+    // 只移动 DOM 游标/提示；不更新 data、options、series 或 scale。
+    plot.setCursor({ left, top: plot.cursor.top != null && plot.cursor.top >= 0 ? plot.cursor.top : plot.over.clientHeight / 2 });
+    const x = plotBounds.left - bounds.left + left;
+    const width = Math.min(300, bounds.width - 20);
+    setBandTooltip({ show: true, left: Math.max(10, Math.min(bounds.width - width - 10, x + 18)),
+      top: Math.max(0, clientY - bounds.top + 12),
+      time: `${formatTooltipTime(bucket.start, hours)} — ${formatTooltipTime(bucket.end, hours)}`,
+      rows: [{ label: row.label, value: formatLossBandValue(bucket.loss), color: row.color }] });
+  }, [hours]);
+  const displayedTooltip = useMemo(() => ({ ...tooltip, rows: tooltip.rows.map((row) => ({ ...row,
+    detail: showLossBands && row.taskId != null && tooltip.timestamp != null
+      ? formatLossBandValue(pingLossAtTime(lossSamples.get(row.taskId) ?? [], tooltip.timestamp)) : undefined,
+  })) }), [tooltip, showLossBands, lossSamples]);
   const onPlotCreate = useCallback((plot: uPlot) => {
     plotRef.current = plot;
     plot.batch(() => {
@@ -195,7 +257,10 @@ export function PingChart({
     });
   }, [tasks]);
   const onPlotDelete = useCallback((plot: uPlot) => {
-    if (plotRef.current === plot) plotRef.current = null;
+    if (plotRef.current === plot) {
+      plotRef.current = null;
+      if (cursorExtensionRef.current) cursorExtensionRef.current.hidden = true;
+    }
   }, []);
   useEffect(() => {
     const plot = plotRef.current;
@@ -326,7 +391,7 @@ export function PingChart({
     const tooltipHooks = buildChartTooltipHooks({
       dataRef: chartRef,
       rangeHours: hours,
-      estimatedWidth: 196,
+      estimatedWidth: 300,
       setTooltip,
       buildRows: (idx) =>
         visibleTasksRef.current
@@ -334,6 +399,7 @@ export function PingChart({
             const taskIndex = taskIndexById.get(task.id) ?? 0;
             const raw = chartRef.current[taskIndex + 1]?.[idx] as number | null | undefined;
             return {
+              taskId: task.id,
               label: taskLabels.get(task.id) ?? `任务 #${task.id}`,
               raw: typeof raw === "number" && Number.isFinite(raw) ? raw : null,
               color: taskColors.get(task.id) ?? colorForSeries(taskIndex, tasks.length),
@@ -344,7 +410,8 @@ export function PingChart({
             if (b.raw == null) return -1;
             return b.raw - a.raw;
           })
-          .map(({ label, raw, color }) => ({
+          .map(({ label, raw, color, taskId }) => ({
+            taskId,
             label,
             value: raw == null ? "—" : `${raw.toFixed(1)} ms`,
             color,
@@ -399,10 +466,10 @@ export function PingChart({
           tooltipHooks.onInit,
         ],
         destroy: [tooltipHooks.onDestroy],
-        setCursor: [tooltipHooks.onSetCursor],
+        setCursor: [tooltipHooks.onSetCursor, syncCursorExtension],
       },
     };
-  }, [chart, connectNulls, hours, isDark, syncPlotGeometry, requestedXRange, taskColors, taskIndexById, taskLabels, tasks, yRange]);
+  }, [chart, connectNulls, hours, isDark, syncPlotGeometry, syncCursorExtension, requestedXRange, taskColors, taskIndexById, taskLabels, tasks, yRange]);
 
   const options = useMemo<uPlot.Options | null>(
     () => (baseOptions ? { ...baseOptions, width: w, height: h } : null),
@@ -589,24 +656,27 @@ export function PingChart({
         })}
       </div>
 
-      <PingLossBands visible={showLossBands} records={data.records} tasks={visibleTasks}
-        labels={taskLabels} intervalSeconds={data.intervalSeconds} geometry={plotGeometry} />
-      <div ref={chartSizeRef} className="instance-uplot-wrap is-large">
-        {chart && options ? (
-          <>
-            <UplotReact
-              key={`${uuid}-${hours}-${cutPeak ? "smooth" : "raw"}-${connectNulls ? "span" : "gap"}`}
-              options={options}
-              data={chart}
-              onCreate={onPlotCreate}
-              onDelete={onPlotDelete}
-            />
-            <ChartTooltip tooltip={visibleTasks.length ? tooltip : { ...tooltip, show: false }} />
-            {visibleTasks.length === 0 && <div className="instance-ping-all-hidden">当前已隐藏全部线路，点击上方按钮可恢复显示</div>}
-          </>
-        ) : (
-          <div className="instance-empty">当前已隐藏全部线路，点击上方按钮可恢复显示</div>
-        )}
+      <div ref={hoverAreaRef} className="instance-ping-hover-area" data-band-hover={bandTooltip ? "true" : "false"}>
+        <PingLossBands visible={showLossBands} rows={lossRows} geometry={plotGeometry} onHover={hoverBand} onLeave={leaveBand} />
+        <div ref={cursorExtensionRef} className="instance-ping-cursor-extension" hidden aria-hidden="true" />
+        {bandTooltip && <ChartTooltip tooltip={bandTooltip} />}
+        <div ref={chartSizeRef} className="instance-uplot-wrap is-large" onPointerMove={() => setBandTooltip(null)}>
+          {chart && options ? (
+            <>
+              <UplotReact
+                key={`${uuid}-${hours}-${cutPeak ? "smooth" : "raw"}-${connectNulls ? "span" : "gap"}`}
+                options={options}
+                data={chart}
+                onCreate={onPlotCreate}
+                onDelete={onPlotDelete}
+              />
+              <ChartTooltip tooltip={visibleTasks.length && !bandTooltip ? displayedTooltip : { ...displayedTooltip, show: false }} />
+              {visibleTasks.length === 0 && <div className="instance-ping-all-hidden">当前已隐藏全部线路，点击上方按钮可恢复显示</div>}
+            </>
+          ) : (
+            <div className="instance-empty">当前已隐藏全部线路，点击上方按钮可恢复显示</div>
+          )}
+        </div>
       </div>
     </InstancePanel>
   );

@@ -17,7 +17,7 @@ export function ChartTooltip({ tooltip }: { tooltip: ChartTooltipState }) {
             style={{ background: row.color }}
           />
           <span>{row.label}</span>
-          <strong>{row.value}</strong>
+          <strong>{row.value}{row.detail && <span className="instance-chart-tooltip-detail"> ({row.detail})</span>}</strong>
         </div>
       ))}
     </div>
