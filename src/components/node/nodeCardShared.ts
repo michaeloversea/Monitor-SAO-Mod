@@ -61,8 +61,10 @@ export function pingEmptyLabels(
   hasHomepagePingBinding: boolean,
   pingLoading = false,
   pingError = false,
+  silentLoading = false,
 ): { title: string; text: string } {
   if (hasHomepagePingBinding && pingLoading) {
+    if (silentLoading) return { title: "", text: "—" };
     return { title: "正在加载首页 Ping", text: "加载中" };
   }
   if (hasHomepagePingBinding && pingError) {

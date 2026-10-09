@@ -69,7 +69,8 @@ export function useNodeCardModel(
   const configuredTaskIds = selection.multiTaskIdsByClient.get(uuid);
   const multiPingConfigured = configuredTaskIds != null && configuredTaskIds.length > 0;
   const realPingLines = useNodePingOverviewLines(uuid, true);
-  const hasAutoMultiPing = selection.automaticClients?.includes(uuid) === true && realPingLines.length > 0;
+  const autoPingSelected = selection.automaticClients?.includes(uuid) === true;
+  const hasAutoMultiPing = autoPingSelected && realPingLines.length > 0;
   const multiPingActive = includeMultiPing && (multiPingConfigured || hasAutoMultiPing);
   const singlePingOverview = useNodePingOverview(uuid, !multiPingActive);
   const primaryMultiPingLine = multiPingActive ? realPingLines[0] : undefined;
@@ -80,10 +81,12 @@ export function useNodeCardModel(
     () =>
       multiPingConfigured ||
       hasAutoMultiPing ||
+      // 自动任务尚未返回时，空线路只是加载状态，不能判为未配置。
+      autoPingSelected && (realPing?.loadState ?? "pending") !== "ready" ||
       (!homepageNodePingSettings[uuid] || homepageNodePingSettings[uuid].mode === "inherit") &&
         !enableHomepageMultiPing && hasHomepagePingTaskBinding(uuid, homepagePingBindings) ||
       Boolean(realPing?.isAssigned),
-    [homepagePingBindings, homepageNodePingSettings, enableHomepageMultiPing, multiPingConfigured, hasAutoMultiPing, realPing?.isAssigned, uuid],
+    [homepagePingBindings, homepageNodePingSettings, enableHomepageMultiPing, multiPingConfigured, autoPingSelected, hasAutoMultiPing, realPing?.isAssigned, realPing?.loadState, uuid],
   );
   const now = useHourlyClock();
   const ping = useFakePingFallback(
@@ -186,6 +189,7 @@ export function useNodeCardModel(
       hasHomepagePingBinding: hasRealHomepagePingBinding,
       shouldRenderPingBars,
       pingLoading,
+      pingLoadingSilently: autoPingSelected && pingLoading,
       pingError,
     }),
     [
@@ -193,6 +197,7 @@ export function useNodeCardModel(
       ping,
       pingError,
       pingLoading,
+      autoPingSelected,
       shouldRenderPingBars,
     ],
   );

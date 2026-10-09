@@ -31,4 +31,32 @@ describe("逐节点概览集成", () => {
     const result = await buildPingOverviewMap(1, ["example-node"], { "1": ["example-node"] }, [1, 2, 3], undefined, undefined, async () => { throw new Error("offline"); }, undefined, undefined, { globalAuto: false, nodeSettings: { "example-node": { mode: "custom", taskIds: [5, 4] } } });
     expect(result.multiLines.get("example-node")?.map((line) => [line.taskId, line.loadState])).toEqual([[5, "error"], [4, "error"]]);
   });
+  it("自动模式明确区分无任务和请求失败，避免空快照一直处于 pending", async () => {
+    const options = { globalAuto: true, nodeSettings: {} };
+    const empty = await buildPingOverviewMap(1, ["example-node"], {}, [], undefined, undefined,
+      async () => ({ count: 0, tasks: [], records: [] }), undefined, undefined, options);
+    expect(empty.singleItems.get("example-node")).toMatchObject({ isAssigned: false, loadState: "ready" });
+    expect(empty.multiLines.size).toBe(0);
+    const failed = await buildPingOverviewMap(1, ["example-node"], {}, [], undefined, undefined,
+      async () => { throw new Error("network"); }, undefined, undefined, options);
+    expect(failed.singleItems.get("example-node")).toMatchObject({ isAssigned: false, loadState: "error" });
+  });
+  it("自动请求较慢时保留上次线路，其他节点返回不会清空它，完成后静默更新", async () => {
+    const options = { globalAuto: true, nodeSettings: { "example-node": { mode: "custom" as const, taskIds: [5, 4] } } };
+    const previous = await buildPingOverviewMap(1, ["normal", "example-node"], {}, [], undefined, undefined,
+      async () => data, undefined, undefined, options);
+    let finishAuto!: (response: PingRecordsResponse) => void;
+    const delayed = new Promise<PingRecordsResponse>((resolve) => { finishAuto = resolve; });
+    const progress: Awaited<ReturnType<typeof buildPingOverviewMap>>[] = [];
+    const refresh = buildPingOverviewMap(1, ["normal", "example-node"], {}, [], undefined, previous,
+      async (_hours, taskId) => taskId == null ? delayed : data, undefined, (snapshot) => progress.push(snapshot), options);
+    await vi.waitFor(() => expect(progress.length).toBeGreaterThan(0));
+    for (const snapshot of progress) {
+      expect(snapshot.multiLines.get("normal")).toEqual(previous.multiLines.get("normal"));
+      expect(snapshot.singleItems.get("normal")?.loadState).toBe("ready");
+    }
+    finishAuto({ ...data, records: data.records.map((record) => ({ ...record, value: 75 })) });
+    const result = await refresh;
+    expect(result.multiLines.get("normal")?.map((line) => line.lastValue)).toEqual([75, 75, 75]);
+  });
 });

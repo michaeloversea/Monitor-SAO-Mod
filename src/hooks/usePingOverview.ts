@@ -512,6 +512,10 @@ async function buildLegacyPingOverviewMap(
           autoMultiLines.set(uuid, nodeLines);
           autoItems.set(uuid, nodeLines[0]);
           changedUuids.add(uuid);
+        } else {
+          // 明确记录“已查完且没有任务”，与首次取数的 pending 空快照区分。
+          autoItems.set(uuid, { ...assignedEmptyPing(uuid, "ready"), isAssigned: false });
+          changedUuids.add(uuid);
         }
       }
 
@@ -532,7 +536,10 @@ async function buildLegacyPingOverviewMap(
       return {
         assignmentKey: `auto:${normalizedUuids.join(",")}`,
         intervalMs: DEFAULT_PING_REFRESH_INTERVAL,
-        singleItems: new Map([...previous?.singleItems ?? []].map(([id, item]) => [id, { ...item, loadState: "error" }])),
+        singleItems: new Map(normalizedUuids.map((uuid) => [uuid, {
+          ...(previous?.singleItems.get(uuid) ?? { ...assignedEmptyPing(uuid), isAssigned: false }),
+          loadState: "error" as const,
+        }])),
         multiLines: new Map([...previous?.multiLines ?? []].map(([id, lines]) => [id, lines.map((line) => ({ ...line, loadState: "error" }))])),
         successfulTaskIds: [],
         failedTaskIds: [...new Set([...previous?.multiLines.values() ?? []].flatMap((lines) => lines.map((line) => line.taskId)))],

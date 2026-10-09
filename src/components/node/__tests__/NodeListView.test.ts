@@ -19,6 +19,13 @@ describe("node list ping status", () => {
     });
   });
 
+  it("waits silently for automatic discovery and preserves any existing value", () => {
+    expect(formatListPingStatus(null, "pending", true)).toEqual({
+      visibleText: "—", title: "", ariaText: "暂无延迟数据",
+    });
+    expect(formatListPingStatus(42.4, "pending", true).visibleText).toBe("42");
+  });
+
   it("keeps a stale value visible but announces a failed refresh", () => {
     expect(formatListPingStatus(42.4, "error")).toEqual({
       visibleText: "42",

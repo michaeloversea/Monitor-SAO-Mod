@@ -96,6 +96,7 @@ export const NodeCard = memo(function NodeCard({
     hasRealHomepagePingBinding,
     shouldRenderPingBars,
     pingLoading,
+    pingLoadingSilently,
     pingError,
     isOnline,
     isOffline,
@@ -170,6 +171,7 @@ export const NodeCard = memo(function NodeCard({
               hasRealHomepagePingBinding={hasRealHomepagePingBinding}
               shouldRenderPingBars={shouldRenderPingBars}
               pingLoading={pingLoading}
+              pingLoadingSilently={pingLoadingSilently}
               pingError={pingError}
               latencyColor={latencyColor}
               lossColor={lossColor}
@@ -420,6 +422,7 @@ const NodeHealthSection = memo(function NodeHealthSection({
   hasRealHomepagePingBinding,
   shouldRenderPingBars,
   pingLoading,
+  pingLoadingSilently,
   pingError,
   latencyColor,
   lossColor,
@@ -430,6 +433,7 @@ const NodeHealthSection = memo(function NodeHealthSection({
   hasRealHomepagePingBinding: boolean;
   shouldRenderPingBars: boolean;
   pingLoading: boolean;
+  pingLoadingSilently?: boolean;
   pingError: boolean;
   latencyColor: string;
   lossColor: string;
@@ -448,6 +452,7 @@ const NodeHealthSection = memo(function NodeHealthSection({
     hasRealHomepagePingBinding,
     pingLoading,
     pingError,
+    pingLoadingSilently,
   );
   const hoveredLatencyBucket =
     hoveredLatencyIndex == null ? null : (pingBuckets[hoveredLatencyIndex] ?? null);

@@ -44,6 +44,7 @@ export function resolveListPingState(
 export function formatListPingStatus(
   latency: number | null,
   state: ListPingState,
+  silentLoading = false,
 ) {
   const roundedLatency = latency == null ? null : Math.round(latency);
   const value = roundedLatency == null ? null : `${roundedLatency} 毫秒`;
@@ -77,6 +78,7 @@ export function formatListPingStatus(
         ariaText: "未配置首页 Ping",
       };
     case "pending":
+      if (silentLoading) return { visibleText: "—", title: "", ariaText: "暂无延迟数据" };
       return {
         visibleText: "加载中",
         title: "正在加载首页 Ping",
@@ -177,6 +179,7 @@ function ListLatency({
   latencyColor,
   buckets,
   redrawKey,
+  pingLoadingSilently,
 }: {
   latency: number | null;
   loadState: PingOverviewTaskLoadState | undefined;
@@ -185,6 +188,7 @@ function ListLatency({
   latencyColor: string;
   buckets: Parameters<typeof LatencyBars>[0]["buckets"];
   redrawKey: string;
+  pingLoadingSilently?: boolean;
 }) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const state = resolveListPingState(
@@ -192,7 +196,7 @@ function ListLatency({
     hasRealHomepagePingBinding,
     pingIsAssigned,
   );
-  const status = formatListPingStatus(latency, state);
+  const status = formatListPingStatus(latency, state, pingLoadingSilently);
   const hoveredBucket = hoveredIndex == null ? null : (buckets[hoveredIndex] ?? null);
   const tooltip = hoveredBucket
     ? formatHealthBucketTooltip(hoveredBucket, "latency")
@@ -251,6 +255,7 @@ const NodeRow = memo(function NodeRow({ uuid }: { uuid: string }) {
     renewalPrice,
     latencyColor,
     hasRealHomepagePingBinding,
+    pingLoadingSilently,
     loadFraction,
     upRate,
     downRate,
@@ -262,7 +267,7 @@ const NodeRow = memo(function NodeRow({ uuid }: { uuid: string }) {
     hasRealHomepagePingBinding,
     ping.isAssigned,
   );
-  const listPingStatus = formatListPingStatus(ping.lastValue, listPingState);
+  const listPingStatus = formatListPingStatus(ping.lastValue, listPingState, pingLoadingSilently);
   const detailLabels = nodeDetailLinkLabels(node.name, osName);
   const usedPct = `${Math.round(clamp01(traffic.fraction) * 100)}%`;
   const rowLabel = [
@@ -385,6 +390,7 @@ const NodeRow = memo(function NodeRow({ uuid }: { uuid: string }) {
           latencyColor={latencyColor}
           buckets={pingBuckets}
           redrawKey={redrawKey}
+          pingLoadingSilently={pingLoadingSilently}
         />}
       </div>
 

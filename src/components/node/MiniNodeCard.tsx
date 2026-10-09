@@ -327,6 +327,7 @@ const MiniHealth = memo(function MiniHealth({
   lossColor,
   hasRealHomepagePingBinding,
   pingLoading,
+  pingLoadingSilently,
   pingError,
 }: {
   ping: PingOverviewItem;
@@ -335,12 +336,14 @@ const MiniHealth = memo(function MiniHealth({
   lossColor: string;
   hasRealHomepagePingBinding: boolean;
   pingLoading: boolean;
+  pingLoadingSilently?: boolean;
   pingError: boolean;
 }) {
   const { text: emptyText } = pingEmptyLabels(
     hasRealHomepagePingBinding,
     pingLoading,
     pingError,
+    pingLoadingSilently,
   );
   return (
     <div
@@ -424,6 +427,7 @@ export const MiniNodeCard = memo(function MiniNodeCard({
     downRate,
     hasRealHomepagePingBinding,
     pingLoading,
+    pingLoadingSilently,
     pingError,
     isOffline,
     osName,
@@ -449,6 +453,7 @@ export const MiniNodeCard = memo(function MiniNodeCard({
         lossColor={lossColor}
         hasRealHomepagePingBinding={hasRealHomepagePingBinding}
         pingLoading={pingLoading}
+        pingLoadingSilently={pingLoadingSilently}
         pingError={pingError}
       />}
     </article>

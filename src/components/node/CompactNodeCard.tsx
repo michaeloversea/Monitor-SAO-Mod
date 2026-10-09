@@ -630,6 +630,7 @@ const CompactNodeHealth = memo(function CompactNodeHealth({
   lossColor,
   hasRealHomepagePingBinding,
   pingLoading,
+  pingLoadingSilently,
   pingError,
 }: {
   ping: PingOverviewItem;
@@ -638,6 +639,7 @@ const CompactNodeHealth = memo(function CompactNodeHealth({
   lossColor: string;
   hasRealHomepagePingBinding: boolean;
   pingLoading: boolean;
+  pingLoadingSilently?: boolean;
   pingError: boolean;
 }) {
   // 已绑定但无样本时显示"无样本",未绑定时显示"未配置" —— 见 pingEmptyLabels。
@@ -645,6 +647,7 @@ const CompactNodeHealth = memo(function CompactNodeHealth({
     hasRealHomepagePingBinding,
     pingLoading,
     pingError,
+    pingLoadingSilently,
   );
   return (
     <div
@@ -716,6 +719,7 @@ export const CompactNodeCard = memo(function CompactNodeCard({
     loadFraction,
     hasRealHomepagePingBinding,
     pingLoading,
+    pingLoadingSilently,
     pingError,
     osName,
   } = model;
@@ -773,6 +777,7 @@ export const CompactNodeCard = memo(function CompactNodeCard({
           lossColor={lossColor}
           hasRealHomepagePingBinding={hasRealHomepagePingBinding}
           pingLoading={pingLoading}
+          pingLoadingSilently={pingLoadingSilently}
           pingError={pingError}
         />
       )}
