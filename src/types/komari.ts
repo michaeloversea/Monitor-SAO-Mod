@@ -233,7 +233,7 @@ export const LoadRecordSchema = z
     gpu: z.number().default(0),
     ram: z.number().default(0),
     ram_total: z.number().default(0),
-    swap: z.number().default(0),
+    swap: z.number().finite().nonnegative().nullable().catch(null).default(null),
     swap_total: z.number().default(0),
     load: z.number().default(0),
     temp: z.number().default(0),
@@ -243,9 +243,9 @@ export const LoadRecordSchema = z
     net_out: z.number().default(0),
     net_total_up: z.number().default(0),
     net_total_down: z.number().default(0),
-    process: z.number().default(0),
-    connections: z.number().default(0),
-    connections_udp: z.number().default(0),
+    process: z.number().finite().nonnegative().nullable().catch(null).default(null),
+    connections: z.number().finite().nonnegative().nullable().catch(null).default(null),
+    connections_udp: z.number().finite().nonnegative().nullable().catch(null).default(null),
     time: z.union([z.string(), z.number()]),
     client: z.string().default(""),
     minutes: z.number().optional(),
@@ -301,6 +301,8 @@ export interface PingRecordsResponse {
   rangeEndMs?: number;
   /** 新 metric API 返回的服务端区间统计；旧后端回退时不存在。 */
   stats?: PingTaskStats[];
+  /** 批量概览中取数失败的节点；与成功但没有样本的节点区分。 */
+  failedClients?: string[];
 }
 
 export interface PingTaskStats {

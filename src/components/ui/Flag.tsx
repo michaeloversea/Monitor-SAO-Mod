@@ -8,23 +8,26 @@ interface FlagProps {
 
 export function Flag({ region, size = 14 }: FlagProps) {
   const value = region?.trim() ?? "";
-  const [failStage, setFailStage] = useState(0);
+  const flagCode = getDisplayRegionCode(value);
+  const [failure, setFailure] = useState({ code: flagCode, stage: 0 });
+  const failStage = failure.code === flagCode ? failure.stage : 0;
+  const width = size * 4 / 3;
 
   if (!value) {
     return (
       <span
         aria-hidden
-        className="inline-block rounded-full shrink-0"
+        className="inline-block shrink-0"
         style={{
-          width: size,
+          width,
           height: size,
+          borderRadius: 2,
           background: "var(--border-subtle)",
         }}
       />
     );
   }
 
-  const flagCode = getDisplayRegionCode(value);
   const alt = `地区旗帜: ${flagCode}`;
 
   if (failStage >= 2) {
@@ -32,18 +35,19 @@ export function Flag({ region, size = 14 }: FlagProps) {
       <span
         role="img"
         aria-label={alt}
-        className="inline-block rounded-full shrink-0"
+        className="inline-block shrink-0"
         title={alt}
         style={{
-          width: size,
+          width,
           height: size,
+          borderRadius: 2,
           background: "var(--border-subtle)",
         }}
       />
     );
   }
 
-  // 纯正圆旗帜：直接使用本地打包的 Circle Flags 圆形矢量图标集，失败时兜底至 xx.svg（未知地区圆形图标）
+  // 本地打包的完整矩形旗帜；未知地区或读取失败时使用同尺寸的 xx.svg。
   const src =
     failStage === 0
       ? `/assets/flags/${flagCode.toLowerCase()}.svg`
@@ -51,25 +55,27 @@ export function Flag({ region, size = 14 }: FlagProps) {
 
   return (
     <span
-      className="inline-flex items-center justify-center shrink-0 rounded-full overflow-hidden select-none"
+      className="inline-flex items-center justify-center shrink-0 overflow-hidden select-none"
       style={{
-        width: size,
+        width,
         height: size,
+        borderRadius: 2,
         lineHeight: 0,
+        boxShadow: "0 0 0 1px var(--hairline)",
       }}
     >
       <img
         src={src}
         alt={alt}
         loading="lazy"
-        className="w-full h-full rounded-full pointer-events-none"
+        className="w-full h-full pointer-events-none"
         style={{
           width: "100%",
           height: "100%",
-          objectFit: "cover",
+          objectFit: "contain",
           display: "block",
         }}
-        onError={() => setFailStage((prev) => prev + 1)}
+        onError={() => setFailure((prev) => ({ code: flagCode, stage: prev.code === flagCode ? prev.stage + 1 : 1 }))}
       />
     </span>
   );

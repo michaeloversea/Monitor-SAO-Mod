@@ -22,10 +22,10 @@ function createTimeoutSignal(
     }
   };
 
-  function onUpstreamAbort(event: Event) {
-    const upstream = event.currentTarget as AbortSignal;
+  function onUpstreamAbort() {
+    const reason = upstreams.find((upstream) => upstream.aborted)?.reason;
     cleanup();
-    if (!controller.signal.aborted) controller.abort(upstream.reason);
+    if (!controller.signal.aborted) controller.abort(reason);
   }
 
   const abortedSource = upstreams.find((upstream) => upstream.aborted);

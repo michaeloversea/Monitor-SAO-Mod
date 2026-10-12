@@ -9,7 +9,7 @@ let cache: Record<string, unknown> | null = null;
 
 function readStorage(): Record<string, unknown> {
   if (cache) return cache;
-  if (typeof window === "undefined" || !window.localStorage) {
+  if (typeof window === "undefined") {
     cache = {};
     return cache;
   }
@@ -40,7 +40,7 @@ export function saveLocalThemeSettings(
   settings: (ThemeSettings & Record<string, unknown>) | Record<string, unknown>,
 ): void {
   cache = { ...readStorage(), ...settings };
-  if (typeof window !== "undefined" && window.localStorage) {
+  if (typeof window !== "undefined") {
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(cache));
     } catch (error) {
@@ -55,7 +55,7 @@ export function replaceLocalThemeSettings(
   settings: (ThemeSettings & Record<string, unknown>) | Record<string, unknown>,
 ): void {
   cache = { ...settings };
-  if (typeof window !== "undefined" && window.localStorage) {
+  if (typeof window !== "undefined") {
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(cache));
     } catch (error) {
@@ -68,7 +68,7 @@ export function replaceLocalThemeSettings(
 /** 重置本地主题设置 */
 export function resetLocalThemeSettings(): void {
   cache = {};
-  if (typeof window !== "undefined" && window.localStorage) {
+  if (typeof window !== "undefined") {
     try {
       window.localStorage.removeItem(STORAGE_KEY);
     } catch {}

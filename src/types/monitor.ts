@@ -76,6 +76,11 @@ export interface MonitorHistoryPoint {
   cpu: number;
   cpu_max?: number;
   mem_used: number;
+  // Hub 1.4.1+；旧版 Hub 或没有采样的桶可能缺失。
+  swap_used?: number | null;
+  tcp?: number | null;
+  udp?: number | null;
+  procs?: number | null;
   disk_used: number;
   net_rx: number;
   net_tx: number;

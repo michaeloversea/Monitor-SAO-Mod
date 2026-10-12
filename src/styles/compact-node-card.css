@@ -11,7 +11,8 @@
   min-height: 0;
   flex-direction: column;
   gap: 10px;
-  padding: 14px;
+  /* 标题在 30px 操作区内垂直居中，顶部减去内部的 6px 留白，使可见内容边距对齐。 */
+  padding: 8px 14px 14px;
   color: var(--text-primary);
   transition:
     border-color 160ms ease,
@@ -630,7 +631,7 @@
 
 @media (max-width: 390px) {
   .compact-node-card {
-    padding: 12px;
+    padding: 6px 12px 12px;
   }
 
   .compact-node-vitals {

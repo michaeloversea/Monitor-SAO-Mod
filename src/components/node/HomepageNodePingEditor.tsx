@@ -51,12 +51,18 @@ export function HomepageNodePingEditor({ nodes, tasks, settings, bindings, onCha
             <option value="inherit">跟随全局</option><option value="auto">自动（该节点全部线路）</option><option value="custom">自定义（指定线路与顺序）</option>
           </SettingSelect>
         </div>
-        {setting.mode === "inherit" && oldBindings.has(node.uuid) && <p className="setting-hint">
-          旧单线路绑定：{tasks.find((task) => task.id === oldBindings.get(node.uuid))?.name ?? `任务 #${oldBindings.get(node.uuid)}`}。
-          <button type="button" className="theme-manage-button is-compact ml-2" onClick={() => { updateIds([oldBindings.get(node.uuid)!]); setExpanded(node.uuid); }}>迁移旧绑定为自定义</button>
-        </p>}
+        {setting.mode === "inherit" && oldBindings.has(node.uuid) && expanded === node.uuid &&
+          <div><button type="button" className="theme-manage-button is-compact" onClick={() => { updateIds([oldBindings.get(node.uuid)!]); setExpanded(node.uuid); }}>迁移旧绑定为自定义</button></div>}
         {setting.mode === "auto" && <p className="setting-hint">自动展示该节点关联的任务；忽略全局槽位和旧单线路绑定，暂无任务时显示空状态。</p>}
-        {setting.mode === "custom" && <p className="setting-hint">{ids.length ? ids.map((id) => tasks.find((task) => task.id === id)?.name ?? `任务 #${id}（已删除或不可用）`).join(" → ") : "请选择至少一条线路，或切换为自动。"}</p>}
+        {setting.mode === "custom" && (ids.length ? <ul className="node-ping-task-tags" aria-label="已选线路（按展示顺序）">
+          {ids.map((id) => {
+            const task = tasks.find((task) => task.id === id);
+            return <li key={id} className="node-ping-task-tag" title={task && !task.clients.includes(node.uuid) ? "未关联该节点" : undefined}>
+              <span className="node-ping-task-tag-dot" aria-hidden="true" />
+              {task?.name ?? `任务 #${id}（已删除或不可用）`}
+            </li>;
+          })}
+        </ul> : <p className="setting-hint">请选择至少一条线路，或切换为自动。</p>)}
         {setting.mode === "custom" && expanded === node.uuid && <>
           {ids.map((id, index) => {
             const task = tasks.find((task) => task.id === id);

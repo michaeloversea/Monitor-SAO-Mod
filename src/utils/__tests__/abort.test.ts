@@ -135,6 +135,14 @@ describe("fetchWithTimeout", () => {
 });
 
 describe("withTimeoutSignal", () => {
+  it("propagates cancellation of an in-flight operation without relying on event.currentTarget", async () => {
+    const upstream = new AbortController();
+    const operation = withTimeoutSignal((signal) => new Promise<string>((resolve) => {
+      signal.addEventListener("abort", () => resolve(signal.reason), { once: true });
+    }), 5_000, upstream.signal);
+    upstream.abort("changed selection");
+    await expect(operation).resolves.toBe("changed selection");
+  });
   it("cleans its timer as soon as the operation settles", async () => {
     vi.useFakeTimers();
 

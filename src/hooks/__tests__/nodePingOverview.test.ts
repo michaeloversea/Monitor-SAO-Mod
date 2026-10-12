@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { buildPingOverviewMap } from "@/hooks/usePingOverview";
+import { buildPingOverviewMap, selectPersistablePingOverview } from "@/hooks/usePingOverview";
 import type { PingRecordsResponse, PingTask } from "@/types/komari";
+import type { HomepagePingSelectionOptions } from "@/utils/pingTasks";
 const task = (id: number, name: string, clients: string[]): PingTask => ({ id, name, clients, interval: 60, loss: 0, type: "icmp", target: "", weight: id });
 const tasks = [task(1, "CT", ["normal"]), task(2, "CU", ["normal"]), task(3, "CM", ["normal"]), task(5, "Example_Trace1", ["example-node"]), task(4, "Example_Trace2", ["example-node"]), task(8, "无样本", ["offline"])];
 const data: PingRecordsResponse = { count: 5, tasks, intervalSeconds: 300, records: tasks.slice(0, 5).map((t) => ({ client: t.clients[0], task_id: t.id, time: 1_780_000_000_000, value: 60, loss: 0 })) };
@@ -41,6 +42,12 @@ describe("逐节点概览集成", () => {
       async () => { throw new Error("network"); }, undefined, undefined, options);
     expect(failed.singleItems.get("example-node")).toMatchObject({ isAssigned: false, loadState: "error" });
   });
+  it("自动无任务占位不会写入缓存并使有数据节点的缓存校验失败", async () => {
+    const result = await buildPingOverviewMap(1, ["normal", "empty"], {}, [], undefined, undefined,
+      async () => data, undefined, undefined, { globalAuto: true, nodeSettings: {} });
+    expect(result.singleItems.get("empty")?.isAssigned).toBe(false);
+    expect(selectPersistablePingOverview(result)?.singleItems.map(([uuid]) => uuid)).toEqual(["normal"]);
+  });
   it("自动请求较慢时保留上次线路，其他节点返回不会清空它，完成后静默更新", async () => {
     const options = { globalAuto: true, nodeSettings: { "example-node": { mode: "custom" as const, taskIds: [5, 4] } } };
     const previous = await buildPingOverviewMap(1, ["normal", "example-node"], {}, [], undefined, undefined,
@@ -58,5 +65,33 @@ describe("逐节点概览集成", () => {
     finishAuto({ ...data, records: data.records.map((record) => ({ ...record, value: 75 })) });
     const result = await refresh;
     expect(result.multiLines.get("normal")?.map((line) => line.lastValue)).toEqual([75, 75, 75]);
+  });
+  it.each(["auto", "custom"] as const)("%s 节点局部取数失败时保留上次值，恢复后更新", async (mode) => {
+    const options: HomepagePingSelectionOptions = { globalAuto: true, nodeSettings: mode === "custom" ? { "example-node": { mode, taskIds: [5, 4] }, normal: { mode, taskIds: [1, 2, 3] } } : {} };
+    const previous = await buildPingOverviewMap(1, ["normal", "example-node"], {}, [], undefined, undefined,
+      async () => data, undefined, undefined, options);
+    const failed = await buildPingOverviewMap(1, ["normal", "example-node"], {}, [], undefined, previous,
+      async () => ({ ...data, records: data.records.filter((record) => record.client !== "normal"), tasks: data.tasks.filter((task) => !task.clients.includes("normal")), failedClients: ["normal"] }), undefined, undefined, options);
+    expect(failed.multiLines.get("normal")?.map((line) => [line.taskId, line.lastValue, line.loadState])).toEqual([[1, 60, "error"], [2, 60, "error"], [3, 60, "error"]]);
+    expect(failed.multiLines.get("example-node")?.map((line) => line.loadState)).toEqual(["ready", "ready"]);
+    expect(failed.multiLines.get("normal")?.[0].samples).toEqual(previous.multiLines.get("normal")?.[0].samples);
+    const recovered = await buildPingOverviewMap(1, ["normal", "example-node"], {}, [], undefined, failed,
+      async () => ({ ...data, records: data.records.map((record) => ({ ...record, value: 72 })) }), undefined, undefined, options);
+    expect(recovered.multiLines.get("normal")?.map((line) => [line.lastValue, line.loadState])).toEqual([[72, "ready"], [72, "ready"], [72, "ready"]]);
+  });
+  it("修改另一台服务器设置或增加节点，保留未改动节点的全部线路", async () => {
+    const options = { globalAuto: true, nodeSettings: { "example-node": { mode: "custom" as const, taskIds: [5, 4] } } };
+    const previous = await buildPingOverviewMap(1, ["normal", "example-node"], {}, [], undefined, undefined,
+      async () => data, undefined, undefined, options);
+    const progress: Awaited<ReturnType<typeof buildPingOverviewMap>>[] = [];
+    let finish!: (response: PingRecordsResponse) => void;
+    const delayed = new Promise<PingRecordsResponse>((resolve) => { finish = resolve; });
+    const refresh = buildPingOverviewMap(1, ["normal", "example-node", "empty"], {}, [], undefined, previous,
+      async () => delayed, undefined, (snapshot) => progress.push(snapshot), { ...options, nodeSettings: { "example-node": { mode: "custom", taskIds: [4] } } });
+    await vi.waitFor(() => expect(progress.length).toBeGreaterThan(0));
+    expect(progress.every((snapshot) => snapshot.multiLines.get("normal")?.every((line) => line.lastValue === 60))).toBe(true);
+    expect(progress[0].multiLines.get("example-node")?.map((line) => line.taskId)).toEqual([4]);
+    finish(data);
+    await refresh;
   });
 });

@@ -2111,4 +2111,7 @@
 .node-ping-node-button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; text-align: left; justify-content: flex-start; }
 
 .node-ping-mode-select { max-width: 100%; width: 260px; }
+.node-ping-task-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.node-ping-task-tag { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 4px 9px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--surface-elev); color: var(--text-secondary); font-size: 12px; line-height: 1.4; overflow-wrap: anywhere; }
+.node-ping-task-tag-dot { width: 6px; height: 6px; flex: 0 0 6px; border-radius: 50%; background: var(--accent-500); }
 .setting-select > .theme-manage-input { padding-right: 38px; }

@@ -138,7 +138,7 @@ async function apiFetch<T>(path: string, options?: RequestOptions & RequestInit)
 
 /** 从 localStorage 读取管理员自定义昵称 */
 export function extractUsernameFromStorage(): string {
-  if (typeof window === "undefined" || !window.localStorage) return "";
+  if (typeof window === "undefined") return "";
   try {
     const val = window.localStorage.getItem(ADMIN_USERNAME_KEY);
     if (typeof val === "string") {
@@ -170,18 +170,18 @@ export function resolveAuthUsername(authed = true): string {
 /** 保存自定义昵称：本地即时响应 + 服务端官方接口持久化 */
 export function saveAdminUsername(nickname: string): Promise<void> {
   const sanitized = nickname.replace(/[\x00-\x1F\x7F]/g, "").trim().slice(0, 40);
-  if (typeof window !== "undefined" && window.localStorage) {
+  if (typeof window !== "undefined") {
     try {
       if (sanitized) {
         window.localStorage.setItem(ADMIN_USERNAME_KEY, sanitized);
-        saveLocalThemeSettings({ ...getLocalThemeSettings(), adminNickname: sanitized });
       } else {
         window.localStorage.removeItem(ADMIN_USERNAME_KEY);
-        const next = { ...getLocalThemeSettings() };
-        delete next.adminNickname;
-        saveLocalThemeSettings(next);
       }
     } catch {}
+    const next = { ...getLocalThemeSettings() };
+    if (sanitized) next.adminNickname = sanitized;
+    else delete next.adminNickname;
+    replaceLocalThemeSettings(next);
   }
   if (serverThemeSettingsCache) {
     serverThemeSettingsCache.adminNickname = sanitized;
@@ -341,7 +341,7 @@ export async function getPublic(options?: RequestOptions): Promise<PublicConfig>
     }
 
     // 同步刷新本地存储，清理掉已被服务端删除或修改的 schema 字段（如已清空的昵称等）
-    if (typeof window !== "undefined" && window.localStorage) {
+    if (typeof window !== "undefined") {
       try {
         let localDirty = false;
         const nextLocal = { ...localSettings };
@@ -419,6 +419,10 @@ export async function getNodesLatestStatus(options?: RequestOptions): Promise<Re
  * 获取节点历史负载记录
  * GET /api/nodes/{id}/metrics?hours={hours}&points=300&series=metrics
  */
+function optionalHistoryMetric(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : null;
+}
+
 export async function getLoadRecords(
   uuid: string,
   hours: number,
@@ -437,7 +441,7 @@ export async function getLoadRecords(
       gpu: 0,
       ram: m.mem_used,
       ram_total: 0,
-      swap: 0,
+      swap: optionalHistoryMetric(m.swap_used),
       swap_total: 0,
       load: 0,
       temp: 0,
@@ -447,9 +451,9 @@ export async function getLoadRecords(
       net_out: m.net_tx,
       net_total_up: 0,
       net_total_down: 0,
-      process: 0,
-      connections: 0,
-      connections_udp: 0,
+      process: optionalHistoryMetric(m.procs),
+      connections: optionalHistoryMetric(m.tcp),
+      connections_udp: optionalHistoryMetric(m.udp),
       time: m.ts * 1000,
       client: uuid,
     }));
@@ -581,7 +585,7 @@ export async function getPingOverview(
   const allRecords: PingRecord[] = [];
   const taskMap = new Map<number, PingTask>();
   const statsList: PingTaskStats[] = [];
-  let failedNodes = 0;
+  const failedClients: string[] = [];
   let intervalSeconds = 60;
 
   await Promise.all(
@@ -622,11 +626,11 @@ export async function getPingOverview(
           });
         }
       } catch {
-        failedNodes += 1;
+        failedClients.push(uuid);
       }
     }),
   );
-  if (nodeUuids.length > 0 && failedNodes === nodeUuids.length) {
+  if (nodeUuids.length > 0 && failedClients.length === nodeUuids.length) {
     throw new Error("延迟历史读取失败，请稍后重试");
   }
 
@@ -636,6 +640,7 @@ export async function getPingOverview(
     tasks: Array.from(taskMap.values()),
     stats: statsList,
     intervalSeconds,
+    failedClients,
   };
 }
 

@@ -1,5 +1,5 @@
 import type { NodeInfo } from "@/types/komari";
-import { normalizeBillingCycle } from "@/utils/billing";
+import { formatBillingCycle, normalizeBillingCycle } from "@/utils/billing";
 import { fetchWithTimeout } from "@/utils/abort";
 import { resolveExpireTimestamp } from "@/utils/format";
 import { buildNodeIdentitySet, nodeMatchesIdentitySet, normalizeNodeIdentityList } from "@/utils/nodeIdentity";
@@ -10,6 +10,7 @@ const RATE_CACHE_TTL_MS = 60 * 60 * 1000;
 // Legacy key retained so existing users keep their cached exchange rates after the rename.
 const RATE_CACHE_KEY_PREFIX = "komaritheme:cost-rates:";
 const RATE_REQUEST_TIMEOUT_MS = 10_000;
+const ORIGINAL_PRICE_FORMATTER = new Intl.NumberFormat("zh-CN", { maximumFractionDigits: 2 });
 
 const CURRENCY_ALIASES: Record<string, string> = {
   "$": "USD",
@@ -94,6 +95,7 @@ interface CostSummaryDetail {
   // 当前尚未摊销的溢价；用于实际剩余价值，固定期限到期后为 0。
   premiumRemainingCny: number;
   billingCycleDays: number;
+  originalRenewalPrice: string | null;
   counted: boolean;
   note: string;
 }
@@ -273,6 +275,14 @@ function currencyCode(value: unknown) {
 
   const key = raw.toUpperCase().replace(/\s+/g, "").replace("＄", "$");
   return CURRENCY_ALIASES[key] || (/^[A-Z]{3}$/.test(key) ? key : "");
+}
+
+function originalRenewalPrice(node: NodeInfo): string | null {
+  const price = Number(node.price);
+  const currency = currencyCode(node.currency);
+  if (!Number.isFinite(price) || price <= 0 || !currency || currency === COST_TARGET_CURRENCY ||
+      normalizeBillingCycle(node.billing_cycle).kind === "lifetime") return null;
+  return `${currency} ${ORIGINAL_PRICE_FORMATTER.format(price)}/${formatBillingCycle(node.billing_cycle)}`;
 }
 
 // 周期档位政策统一在 billing.normalizeBillingCycle;这里只取摊销天数(lifetime 为 -1)。
@@ -477,6 +487,7 @@ export function calculateCostSummary(
       premiumMonthlyCny: premiumMonthly,
       premiumRemainingCny: premiumRemaining,
       billingCycleDays: cycleDays,
+      originalRenewalPrice: originalRenewalPrice(node),
     };
 
     if (nodeMatchesIdentitySet(node, ignored)) {
@@ -489,6 +500,7 @@ export function calculateCostSummary(
         premiumRemainingCny: 0,
         counted: false,
         note: "已忽略",
+        originalRenewalPrice: null,
       });
       continue;
     }

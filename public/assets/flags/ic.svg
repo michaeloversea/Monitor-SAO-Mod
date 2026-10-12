@@ -1,1 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><mask id="a"><circle cx="256" cy="256" r="256" fill="#fff"/></mask><g mask="url(#a)"><path fill="#338af3" d="M167 0h178l32.3 257L345 512H167l-25.3-256z"/><path fill="#eee" d="M0 0h166.9v512H0z"/><path fill="#ffda44" d="M344.9 0H512v512H344.9z"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" id="flag-icons-ic" viewBox="0 0 640 480">
+  <g fill-rule="evenodd" stroke-width="1pt">
+    <path fill="#0768a9" d="M0 0h640v480H0z"/>
+    <path fill="#fff" d="M0 0h213.3v480H0z"/>
+    <path fill="#fc0" d="M426.7 0H640v480H426.7z"/>
+  </g>
+</svg>

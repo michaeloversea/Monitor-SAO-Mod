@@ -151,7 +151,7 @@ export const MAX_USER_PRESETS = 12;
  * 从浏览器 localStorage 加载用户保存的点阵预设列表
  */
 export function loadUserMatrixPresets(): UserMatrixPreset[] {
-  if (typeof window === "undefined" || !window.localStorage) return [];
+  if (typeof window === "undefined") return [];
   try {
     const raw =
       localStorage.getItem(USER_PRESETS_STORAGE_KEY) ||
@@ -177,7 +177,7 @@ export function loadUserMatrixPresets(): UserMatrixPreset[] {
  * 保存用户点阵预设列表到浏览器 localStorage
  */
 export function saveUserMatrixPresets(presets: UserMatrixPreset[]): void {
-  if (typeof window === "undefined" || !window.localStorage) return;
+  if (typeof window === "undefined") return;
   try {
     localStorage.setItem(
       USER_PRESETS_STORAGE_KEY,

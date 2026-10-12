@@ -101,6 +101,10 @@ function assetsRenewalLabel(daysRemaining: number) {
   return daysRemaining < 0 ? "已过期" : "即将到期";
 }
 
+function OriginalRenewalPriceChip({ price }: { price: string | null }) {
+  return price ? <span className="cost-summary-original-price-chip" title="原币续费价格">{price}</span> : null;
+}
+
 // "¥ 1,234.56" → 货币符号 / 整数位 / 小数位三段,按报表数字惯例分级排印。
 function HeroMoney({ value }: { value: number | null }) {
   if (value == null) {
@@ -392,11 +396,14 @@ export function Assets() {
                           </Link>
                         </td>
                         <td data-numeric>
+                          <div className="assets-price-labels">
                           {detail.counted ? (
-                            `${formatCnyMoney(detail.priceCny)}/${formatBillingCycle(detail.billingCycleDays)}`
+                            <span>{`${formatCnyMoney(detail.priceCny)}/${formatBillingCycle(detail.billingCycleDays)}`}</span>
                           ) : (
                             <span className="assets-note-chip">{detail.note}</span>
                           )}
+                          <OriginalRenewalPriceChip price={detail.originalRenewalPrice} />
+                          </div>
                         </td>
                         <td data-numeric data-strong>
                           {detail.counted ? formatCnyMoney(detail.remainingCny) : "—"}
@@ -476,6 +483,7 @@ export function Assets() {
                       </div>
                       <div className="cost-summary-detail-meta">
                         <span className="cost-summary-price-chip">{priceLabel}</span>
+                        <OriginalRenewalPriceChip price={detail.originalRenewalPrice} />
                         {detail.premiumCny !== 0 && (
                           <span
                             className="cost-summary-premium-chip"

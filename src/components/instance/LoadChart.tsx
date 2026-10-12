@@ -442,7 +442,7 @@ export function LoadChart({
         cpu: record.cpu,
         cpu_max: typeof record.cpu_max === "number" ? record.cpu_max : null,
         ram: totals.ramTotal > 0 ? (record.ram / totals.ramTotal) * 100 : null,
-        swap: totals.swapTotal > 0 ? (record.swap / totals.swapTotal) * 100 : null,
+        swap: record.swap != null && totals.swapTotal > 0 ? (record.swap / totals.swapTotal) * 100 : null,
         disk: totals.diskTotal > 0 ? (record.disk / totals.diskTotal) * 100 : null,
         netIn: record.net_in,
         netOut: record.net_out,
@@ -602,9 +602,11 @@ export function LoadChart({
               ? node.swapTotal
                 ? `Swap ${formatBytes(node.swapUsed)} / ${formatBytes(node.swapTotal)}`
                 : "Swap 无"
-              : latestHistoryRecord && latestHistoryTotals && latestHistoryTotals.swapTotal > 0
-                ? `Swap ${formatBytes(latestHistoryRecord.swap)} / ${formatBytes(latestHistoryTotals.swapTotal)}`
-                : "Swap 无"
+              : latestHistoryRecord?.swap == null
+                ? "Swap —"
+                : latestHistoryTotals && latestHistoryTotals.swapTotal > 0
+                  ? `Swap ${formatBytes(latestHistoryRecord.swap)} / ${formatBytes(latestHistoryTotals.swapTotal)}`
+                  : "Swap 无"
           }
           points={points}
           keys={MEMORY_KEYS}
@@ -673,7 +675,7 @@ export function LoadChart({
             isRealtime && node
               ? `TCP ${node.connectionsTcp} / UDP ${node.connectionsUdp}`
               : latestHistoryRecord
-                ? `TCP ${Math.round(latestHistoryRecord.connections ?? 0)} / UDP ${Math.round(latestHistoryRecord.connections_udp ?? 0)}`
+                ? `TCP ${latestHistoryRecord.connections == null ? "—" : Math.round(latestHistoryRecord.connections)} / UDP ${latestHistoryRecord.connections_udp == null ? "—" : Math.round(latestHistoryRecord.connections_udp)}`
                 : "—"
           }
           note="连接"
@@ -693,8 +695,8 @@ export function LoadChart({
           value={
             isRealtime && node
               ? node.process.toString()
-              : latestHistoryRecord
-                ? Math.round(latestHistoryRecord.process ?? 0).toString()
+              : latestHistoryRecord?.process != null
+                ? Math.round(latestHistoryRecord.process).toString()
                 : "—"
           }
           note={

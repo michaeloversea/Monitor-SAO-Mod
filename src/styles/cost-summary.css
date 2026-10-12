@@ -387,6 +387,28 @@
   white-space: nowrap;
 }
 
+.cost-summary-original-price-chip {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  border-radius: 6px;
+  background: var(--tag-purple-bg);
+  color: var(--tag-purple-fg);
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 680;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.assets-price-labels {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
 .cost-summary-detail-item strong {
   flex: 0 0 auto;
   color: color-mix(in srgb, var(--status-success) 88%, var(--text-primary));

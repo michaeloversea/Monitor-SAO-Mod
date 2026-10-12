@@ -48,6 +48,31 @@ function agoDays(days: number) {
 }
 
 describe("calculateCostSummary", () => {
+  it("keeps the original renewal amount and cycle alongside CNY conversion, even without a rate", () => {
+    const summary = calculateCostSummary([
+      node({ uuid: "usd", price: 36, currency: "$", billing_cycle: 30 }),
+      node({ uuid: "eur", price: 19.99, currency: "€", billing_cycle: 365 }),
+      node({ uuid: "hkd", price: 180, currency: "HK$", billing_cycle: 90 }),
+    ], [], RATES_X);
+    expect(summary.details.find((detail) => detail.uuid === "usd")).toMatchObject({
+      originalRenewalPrice: "USD 36/月", priceCny: 252,
+    });
+    expect(summary.details.find((detail) => detail.uuid === "eur")?.originalRenewalPrice).toBe("EUR 19.99/年");
+    expect(summary.details.find((detail) => detail.uuid === "hkd")).toMatchObject({
+      originalRenewalPrice: "HKD 180/季", counted: false, note: "汇率缺失",
+    });
+  });
+  it("omits duplicated CNY, free, invalid, ignored and one-time renewal labels", () => {
+    const summary = calculateCostSummary([
+      node({ uuid: "cny", price: 30, currency: "RMB" }),
+      node({ uuid: "default", price: 30, currency: "" }),
+      node({ uuid: "free", price: -1 }),
+      node({ uuid: "invalid", price: Number.NaN }),
+      node({ uuid: "skip", price: 10 }),
+      node({ uuid: "once", price: 99, billing_cycle: "once" }),
+    ], ["skip"], RATES);
+    expect(summary.details.every((detail) => detail.originalRenewalPrice === null)).toBe(true);
+  });
   it("scales remaining value by prepaid cycles (price is per-cycle)", () => {
     // 10 USD(=70 CNY)每 30 天一个周期,付到约 1 年后 → 还剩约 12 个周期的预付价值。
     // price 是每周期价格(后端 Client model + 自动续费逻辑已确认),所以剩余价值要按周期数放大

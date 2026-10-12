@@ -403,6 +403,11 @@ function fetchOnce() {
           .__EARLY_DATA__?.nodes
       : null;
 
+  // 预加载只供首次取数使用；断线轮询和回到前台必须请求新帧。
+  if (early) {
+    (window as unknown as { __EARLY_DATA__: { nodes: unknown } }).__EARLY_DATA__.nodes = null;
+  }
+
   const fetchPromise = early
     ? early
         .then((d) => {
@@ -457,6 +462,11 @@ function startWsConnection() {
     if (!pollTimer) pollTimer = setInterval(fetchOnce, 2000);
     return;
   }
+  if (wsSocket) return;
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer);
+    reconnectTimer = null;
+  }
 
   // 1.4.0+ 新特性：支持 gzip 压缩二进制帧（?gzip）。不支持 DecompressionStream 时回退到未压缩
   const canGzip = typeof DecompressionStream === "function";
@@ -464,25 +474,29 @@ function startWsConnection() {
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
   const wsUrl = `${protocol}//${window.location.host}/api/ws${gzipQuery}`;
 
+  let socket: WebSocket;
   try {
-    wsSocket = new WebSocket(wsUrl);
+    socket = new WebSocket(wsUrl);
+    wsSocket = socket;
   } catch {
-    if (!pollTimer) pollTimer = setInterval(fetchOnce, 2000);
+    startPollingAndRetry();
     return;
   }
 
   // 解压是异步的，后到的帧可能先解完，维护 Promise 链按序处理
   let decodeQueue = Promise.resolve();
 
-  wsSocket.onmessage = (event) => {
+  socket.onmessage = (event) => {
     decodeQueue = decodeQueue
       .then(async () => {
         const text = await frameText(event.data);
         // 连接关闭或重置后才解完的帧丢弃
-        if (!wsSocket || wsSocket.readyState !== WebSocket.OPEN) return;
+        if (wsSocket !== socket || socket.readyState !== WebSocket.OPEN) return;
         const data = JSON.parse(text);
-        if (data) {
+        if (Array.isArray(data) || Array.isArray(data?.nodes)) {
           applyMonitorNodes(data);
+          // 已恢复实时推送，丢弃仍在途的旧 HTTP 帧。
+          fetchSeq += 1;
           if (pollTimer) {
             clearInterval(pollTimer);
             pollTimer = null;
@@ -494,16 +508,24 @@ function startWsConnection() {
       });
   };
 
-  wsSocket.onerror = () => {
-    wsSocket?.close();
+  socket.onerror = () => {
+    if (wsSocket === socket) socket.close();
   };
 
-  wsSocket.onclose = () => {
-    if (!isStarted) return;
-    if (typeof document !== "undefined" && document.hidden) return;
-    if (!pollTimer) pollTimer = setInterval(fetchOnce, 2000);
-    reconnectTimer = setTimeout(startWsConnection, 3000);
+  socket.onclose = () => {
+    if (wsSocket !== socket) return;
+    wsSocket = null;
+    startPollingAndRetry();
   };
+}
+
+function startPollingAndRetry() {
+  if (!isStarted || (typeof document !== "undefined" && document.hidden)) return;
+  if (!pollTimer) {
+    fetchOnce();
+    pollTimer = setInterval(fetchOnce, 2000);
+  }
+  if (!reconnectTimer) reconnectTimer = setTimeout(startWsConnection, 3000);
 }
 
 function handleVisibilityChange() {

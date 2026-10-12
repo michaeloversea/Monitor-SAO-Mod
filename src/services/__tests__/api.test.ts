@@ -8,6 +8,7 @@ import {
   getMe,
   getNodes,
   getPingRecords,
+  getPingOverview,
   getPublic,
   resolveAuthUsername,
   saveAdminUsername,
@@ -316,6 +317,25 @@ describe("Monitor API Service", () => {
       expect(res.tasks.length).toBe(1);
       expect(res.tasks[0].id).toBe(101);
       expect(res.tasks[0].name).toBe("Tokyo Probe");
+    });
+
+    it("marks a partial node failure instead of reporting it as empty successful data", async () => {
+      global.fetch = vi.fn().mockImplementation(async (url: string) => {
+        if (url.includes("/api/nodes/failed-example/")) throw new Error("network");
+        return { ok: true, status: 200, json: async () => ({
+          ping: [{ task_id: 201, ts: 1700000000, latency: 45, loss: 0 }], probes: { "201": "Example Line" },
+        }) };
+      });
+      const result = await getPingOverview(1, 201, { entityIds: ["ready-example", "failed-example"] });
+      expect(result.failedClients).toEqual(["failed-example"]);
+      expect(result.records.map((record) => [record.client, record.value])).toEqual([["ready-example", 45]]);
+    });
+
+    it("still distinguishes successful empty history from failed requests", async () => {
+      global.fetch = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ ping: [], probes: {} }) });
+      const result = await getPingOverview(1, 201, { entityIds: ["empty-example"] });
+      expect(result.failedClients).toEqual([]);
+      expect(result.records).toEqual([]);
     });
   });
 

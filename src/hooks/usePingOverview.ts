@@ -69,6 +69,7 @@ export interface PingOverviewMapResult {
   pendingTaskIds: number[];
   /** 进度提交时仅包含本次被任务状态/数据更新影响的节点。 */
   changedUuids?: string[];
+  selectionKeys?: Map<string, string>;
 }
 
 export type PingOverviewLoadState = "idle" | "loading" | "ready" | "error";
@@ -281,7 +282,8 @@ function resolvePingAssignmentKey(
 // 限制 RPC 与兼容接口组成的整条回退链，避免一次刷新长期占住轮询。
 const PING_REQUEST_TIMEOUT_MS = 35_000;
 const PING_CACHE_STORAGE_KEY = "komari:lumina-plus:homepage-ping:v1";
-const PING_CACHE_TTL_MS = 5 * 60_000;
+// 缓存仅用于后台取数前保留上一帧；样本仍按实际时间绘制在一小时窗口内。
+const PING_CACHE_TTL_MS = 60 * 60_000;
 
 interface PingOverviewCachePayload {
   version: 1;
@@ -290,6 +292,7 @@ interface PingOverviewCachePayload {
   intervalMs: number;
   singleItems: Array<[string, PingOverviewItem]>;
   multiLines: Array<[string, HomepagePingLine[]]>;
+  selectionKeys?: Array<[string, string]>;
 }
 
 export interface PersistablePingOverviewData {
@@ -301,6 +304,32 @@ interface PreviousPingOverview {
   assignmentKey: string;
   singleItems: ReadonlyMap<string, PingOverviewItem>;
   multiLines: ReadonlyMap<string, HomepagePingLine[]>;
+  selectionKeys?: ReadonlyMap<string, string>;
+}
+
+function resolveNodePingSelectionKeys(
+  uuids: string[], bindings: HomepagePingTaskBindings, multiTaskIds: number[],
+  options: HomepagePingSelectionOptions,
+) {
+  const selection = resolveHomepagePingSelections(uuids, bindings, multiTaskIds, options);
+  const automatic = new Set(selection.automaticClients);
+  return new Map(uuids.map((uuid) => [uuid, automatic.has(uuid) ? "auto"
+    : selection.singleTaskIdsByClient.has(uuid) ? `single:${selection.singleTaskIdsByClient.get(uuid)!.join(",")}`
+      : `multi:${(selection.multiTaskIdsByClient.get(uuid) ?? []).join(",")}`]));
+}
+
+// 一台节点的设置或可见列表变化不能清掉其他节点；只复用展示规则相同的数据。
+function retainMatchingPingOverview(
+  previous: PreviousPingOverview | undefined, assignmentKey: string, selectionKeys: Map<string, string>,
+): PreviousPingOverview {
+  const matches = (uuid: string) => previous?.selectionKeys
+    ? previous.selectionKeys.get(uuid) === selectionKeys.get(uuid)
+    : previous?.assignmentKey === assignmentKey;
+  return {
+    assignmentKey, selectionKeys,
+    singleItems: new Map([...previous?.singleItems ?? []].filter(([uuid]) => selectionKeys.has(uuid) && matches(uuid))),
+    multiLines: new Map([...previous?.multiLines ?? []].filter(([uuid]) => selectionKeys.has(uuid) && matches(uuid))),
+  };
 }
 
 function assignedEmptyPing(
@@ -367,6 +396,8 @@ export async function buildPingOverviewMap(
   const uuids = normalizeVisibleUuids(clientUuids);
   const selection = resolveHomepagePingSelections(uuids, bindings, multiTaskIds, options);
   const assignmentKey = resolvePingAssignmentKey(uuids, bindings, multiTaskIds, options);
+  const selectionKeys = resolveNodePingSelectionKeys(uuids, bindings, multiTaskIds, options);
+  const retained = retainMatchingPingOverview(previous, assignmentKey, selectionKeys);
   const groups = new Map<string, { uuids: string[]; ids: number[]; single: boolean }>();
   const automatic = new Set(selection.automaticClients);
   for (const uuid of uuids) {
@@ -381,6 +412,7 @@ export async function buildPingOverviewMap(
   const results = new Map<string, PingOverviewMapResult>();
   const combined = (): PingOverviewMapResult => ({
     assignmentKey,
+    selectionKeys,
     intervalMs: Math.min(DEFAULT_PING_REFRESH_INTERVAL, ...[...results.values()].map((r) => r.intervalMs)),
     singleItems: new Map([...results.values()].flatMap((r) => [...r.singleItems])),
     multiLines: new Map([...results.values()].flatMap((r) => [...r.multiLines])),
@@ -390,7 +422,7 @@ export async function buildPingOverviewMap(
   });
   // 先放入上次同规则结果；任务失败时保留已显示的数据并标记失败。
   for (const [key, group] of groups) {
-    const old = previous?.assignmentKey === assignmentKey ? previous : undefined;
+    const old = retained;
     results.set(key, { assignmentKey, intervalMs: DEFAULT_PING_REFRESH_INTERVAL,
       singleItems: new Map(group.uuids.flatMap((id) => old?.singleItems.has(id) ? [[id, old.singleItems.get(id)!] as const] : [])),
       multiLines: new Map(group.uuids.flatMap((id) => old?.multiLines.has(id) ? [[id, old.multiLines.get(id)!] as const] : [])),
@@ -470,8 +502,20 @@ async function buildLegacyPingOverviewMap(
       const autoMultiLines = new Map<string, HomepagePingLine[]>();
       const changedUuids = new Set<string>();
       const successfulTaskIds = new Set<number>();
+      const failedTaskIds = new Set<number>();
+      const failedClients = new Set(overview.failedClients);
 
       for (const uuid of normalizedUuids) {
+        if (failedClients.has(uuid)) {
+          const oldLines = previous?.multiLines.get(uuid);
+          autoItems.set(uuid, { ...(previous?.singleItems.get(uuid) ?? { ...assignedEmptyPing(uuid), isAssigned: false }), loadState: "error" });
+          if (oldLines?.length) {
+            autoMultiLines.set(uuid, oldLines.map((line) => ({ ...line, loadState: "error" })));
+            oldLines.forEach((line) => failedTaskIds.add(line.taskId));
+          }
+          changedUuids.add(uuid);
+          continue;
+        }
         const clientRecords = overview.records.filter((r) => r.client === uuid);
         const associatedTasks = overview.tasks.filter((task) => task.clients.includes(uuid));
         const countByTask = new Map<number, number>();
@@ -528,7 +572,7 @@ async function buildLegacyPingOverviewMap(
         singleItems: autoItems,
         multiLines: autoMultiLines,
         successfulTaskIds: [...successfulTaskIds],
-        failedTaskIds: [],
+        failedTaskIds: [...failedTaskIds],
         pendingTaskIds: [],
         changedUuids: [...changedUuids],
       };
@@ -563,6 +607,7 @@ async function buildLegacyPingOverviewMap(
   );
   const refreshIntervals = new Map<number, number>();
   const loadedByTask = new Map<number, LoadedPingOverviewTask>();
+  const failedClientsByTask = new Map<number, Set<string>>();
   let batchedStats: PingTaskStats[] = [];
 
   // 结果 Map 只初始化一次。后续任务完成时通过反向索引更新受影响的节点，
@@ -618,7 +663,8 @@ async function buildLegacyPingOverviewMap(
     if (!current) return;
     const taskState = taskStates.get(taskId) ?? "pending";
     const displayState = taskState === "pending" ? (current.loadState ?? "ready") : taskState;
-    const next = successfulTaskIds.has(taskId)
+    const next = failedClientsByTask.get(taskId)?.has(uuid) ? { ...current, loadState: "error" as const }
+      : successfulTaskIds.has(taskId)
       ? {
           ...(itemsByTask.get(taskId)?.get(uuid) ?? assignedEmptyPing(uuid, "ready")),
           loadState: "ready" as const,
@@ -640,7 +686,8 @@ async function buildLegacyPingOverviewMap(
     if (!current) return;
     const taskState = taskStates.get(taskId) ?? "pending";
     const displayState = taskState === "pending" ? (current.loadState ?? "ready") : taskState;
-    const next = successfulTaskIds.has(taskId)
+    const next = failedClientsByTask.get(taskId)?.has(uuid) ? { ...current, loadState: "error" as const }
+      : successfulTaskIds.has(taskId)
       ? {
           taskId,
           taskName: taskNames.get(taskId) ?? current.taskName ?? `任务 #${taskId}`,
@@ -687,6 +734,7 @@ async function buildLegacyPingOverviewMap(
 
   const applyOverview = (loaded: LoadedPingOverviewTask) => {
     loadedByTask.set(loaded.taskId, loaded);
+    failedClientsByTask.set(loaded.taskId, new Set(loaded.overview.failedClients));
     successfulTaskIds.add(loaded.taskId);
     failedTaskIds.delete(loaded.taskId);
     taskStates.set(loaded.taskId, "ready");
@@ -791,6 +839,7 @@ interface PingOverviewStoreState {
   intervalMs: number;
   singleItems: Map<string, PingOverviewItem>;
   multiLines: Map<string, HomepagePingLine[]>;
+  selectionKeys?: Map<string, string>;
 }
 
 let pingOverviewState: PingOverviewStoreState = {
@@ -903,7 +952,7 @@ function readPingOverviewCache(
     if (!isRecord(parsed)) return null;
     if (
       parsed.version !== 1 ||
-      parsed.assignmentKey !== assignmentKey ||
+      (parsed.assignmentKey !== assignmentKey && !Array.isArray(parsed.selectionKeys)) ||
       typeof parsed.savedAt !== "number" ||
       !Number.isFinite(parsed.savedAt) ||
       Date.now() - parsed.savedAt > PING_CACHE_TTL_MS ||
@@ -918,6 +967,8 @@ function readPingOverviewCache(
       if (!Array.isArray(entry) || entry.length !== 2 || typeof entry[0] !== "string") {
         return null;
       }
+      // 旧版本可能把“自动模式查完无任务”的占位一起写入；它不应让其他节点的缓存失效。
+      if (isRecord(entry[1]) && entry[1].client === entry[0] && entry[1].isAssigned === false && entry[1].loadState === "ready") continue;
       const item = parseCachedPingItem(entry[1]);
       if (!item || item.client !== entry[0]) return null;
       singleItems.push([entry[0], item]);
@@ -947,6 +998,11 @@ function readPingOverviewCache(
       multiLines.push([entry[0], lines]);
     }
 
+    const selectionKeys = Array.isArray(parsed.selectionKeys)
+      ? parsed.selectionKeys.filter((entry): entry is [string, string] =>
+        Array.isArray(entry) && entry.length === 2 && typeof entry[0] === "string" && typeof entry[1] === "string")
+      : undefined;
+
     return {
       intervalMs:
         typeof parsed.intervalMs === "number" &&
@@ -956,6 +1012,7 @@ function readPingOverviewCache(
           : DEFAULT_PING_REFRESH_INTERVAL,
       singleItems,
       multiLines,
+      selectionKeys,
     };
   } catch {
     return null;
@@ -973,7 +1030,7 @@ export function selectPersistablePingOverview(
   // 失败任务可能仍在内存里显示上一轮数据，但不能把它们带回缓存；否则下一次刷新
   // 会把失败的旧值当成新鲜数据。每个成功任务的数据独立写入同一个 assignment 缓存。
   const singleItems = Array.from(result.singleItems.entries()).filter(
-    ([, item]) => item.loadState === "ready",
+    ([, item]) => item.isAssigned && item.loadState === "ready",
   );
   const multiLines = Array.from(result.multiLines.entries())
     .map(([uuid, lines]) => [
@@ -996,6 +1053,7 @@ function persistPingOverviewCache(result: PingOverviewMapResult) {
       assignmentKey: result.assignmentKey,
       intervalMs: result.intervalMs,
       ...persistable,
+      selectionKeys: result.selectionKeys ? [...result.selectionKeys] : undefined,
     };
     window.sessionStorage.setItem(PING_CACHE_STORAGE_KEY, JSON.stringify(payload));
   } catch {
@@ -1039,6 +1097,7 @@ function commitPingOverview(
     status?: PingOverviewLoadState;
     isRefreshing?: boolean;
     changedUuids?: readonly string[];
+    selectionKeys?: Map<string, string>;
   } = {},
 ) {
   const touched = new Set<string>();
@@ -1140,6 +1199,7 @@ function commitPingOverview(
       intervalMs,
       singleItems: nextSingleItems,
       multiLines: nextMultiLines,
+      selectionKeys: options.selectionKeys ?? pingOverviewState.selectionKeys,
     };
   }
 
@@ -1203,6 +1263,7 @@ async function refreshPingOverview() {
             status: hasCachedOverview ? "ready" : "loading",
             isRefreshing: true,
             changedUuids: progress.changedUuids,
+            selectionKeys: progress.selectionKeys,
           },
         );
       },
@@ -1223,6 +1284,7 @@ async function refreshPingOverview() {
         {
           status: nextStatus,
           isRefreshing: false,
+          selectionKeys: next.selectionKeys,
         },
       );
       persistPingOverviewCache(next);
@@ -1291,14 +1353,24 @@ function ensurePingOverviewStarted(
       options,
     );
     const cached = readPingOverviewCache(assignmentKey);
+    const selectionKeys = resolveNodePingSelectionKeys(normalizedVisibleUuids, bindings, multiTaskIds, options);
+    const cachedOverview = cached ? retainMatchingPingOverview({
+      assignmentKey, singleItems: new Map(cached.singleItems), multiLines: new Map(cached.multiLines),
+      selectionKeys: cached.selectionKeys ? new Map(cached.selectionKeys) : undefined,
+    }, assignmentKey, selectionKeys) : undefined;
+    const retained = retainMatchingPingOverview(pingOverviewState, assignmentKey, selectionKeys);
+    const singleItems = new Map([...cachedOverview?.singleItems ?? [], ...retained.singleItems]);
+    const multiLines = new Map([...cachedOverview?.multiLines ?? [], ...retained.multiLines]);
+    const hasRetained = singleItems.size > 0 || multiLines.size > 0;
     commitPingOverview(
       assignmentKey,
       cached?.intervalMs ?? DEFAULT_PING_REFRESH_INTERVAL,
-      cached ? new Map(cached.singleItems) : new Map(),
-      cached ? new Map(cached.multiLines) : new Map(),
+      singleItems,
+      multiLines,
       {
-        status: cached ? "ready" : "loading",
+        status: hasRetained ? "ready" : "loading",
         isRefreshing: true,
+        selectionKeys,
       },
     );
     void refreshPingOverview();
