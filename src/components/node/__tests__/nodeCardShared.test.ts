@@ -1,11 +1,11 @@
-import { describe, expect, it } from "vitest";
-import type { PingOverviewBucket } from "@/types/komari";
 import {
   formatCompactBillingCycle,
   formatCompactExpire,
   healthBarInteractionModel,
   healthBarSlotModel,
 } from "@/components/node/nodeCardShared";
+import type { PingOverviewBucket } from "@/types/theme";
+import { describe, expect, it } from "vitest";
 
 function bucket(value: number | null, loss: number | null = 0): PingOverviewBucket {
   return {

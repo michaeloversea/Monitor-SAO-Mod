@@ -120,3 +120,10 @@ describe("ClusterHeatmap Component", () => {
     expect(htmlMock).toContain("机架 100 槽");
   });
 });
+
+  it.each(["cyberpunk", "divergence"] as const)("renders %s without changing real node status", (colorTheme) => {
+    const html = renderToStaticMarkup(<ClusterHeatmap nodes={[createMockNode({ online: false })]} onlinePct={0} onlineNodes={0} offlineNodes={1} totalNodes={1} colorTheme={colorTheme} bootEffect={colorTheme === "cyberpunk" ? "cyber-glitch" : "divergence-flux"} />);
+    expect(html).toContain(`data-palette="${colorTheme}"`);
+    expect(html).toContain("is-offline");
+    expect(html).toContain("总计 1 台");
+  });

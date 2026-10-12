@@ -1,5 +1,5 @@
 import { t } from "@/i18n";
-import type { PingOverviewBucket } from "@/types/komari";
+import type { PingOverviewBucket } from "@/types/theme";
 import { trimFixed } from "@/utils/format";
 
 function formatPingBucketWindow(bucket: PingOverviewBucket | null) {

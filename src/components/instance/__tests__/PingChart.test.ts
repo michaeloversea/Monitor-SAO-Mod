@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
 import { summarizePingRecords } from "@/components/instance/PingChart";
-import type { PingRecord } from "@/types/komari";
+import type { PingRecord } from "@/types/theme";
+import { describe, expect, it } from "vitest";
 
 function record(
   time: string,

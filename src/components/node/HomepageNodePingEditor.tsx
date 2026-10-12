@@ -1,6 +1,6 @@
 import { SettingSelect } from "@/components/ui/SettingSelect";
 import { useTranslate } from "@/i18n";
-import type { AdminClient, PingTask } from "@/types/komari";
+import type { AdminClient, PingTask } from "@/types/theme";
 import {
   HOMEPAGE_MULTI_PING_MAX_COUNT,
   invertHomepagePingTaskBindings,

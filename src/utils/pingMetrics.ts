@@ -1,4 +1,4 @@
-import type { PingRecord, PingTask, PingTaskStats } from "@/types/komari";
+import type { PingRecord, PingTask, PingTaskStats } from "@/types/theme";
 
 export const PING_LATENCY_METRIC = "ping.latency_ms";
 export const PING_LOSS_METRIC = "ping.loss";

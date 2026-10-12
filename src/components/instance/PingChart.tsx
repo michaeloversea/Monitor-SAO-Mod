@@ -1,7 +1,7 @@
 import { usePreferences } from "@/hooks/usePreferences";
 import { usePingRecords } from "@/hooks/useRecords";
 import { t as translate, useTranslate } from "@/i18n";
-import type { PingRecord, PingTaskStats } from "@/types/komari";
+import type { PingRecord, PingTaskStats } from "@/types/theme";
 import { historyChartRangeSeconds, historyCoverageLabel } from "@/utils/historyRange";
 import { latencyHeatColor, lossHeatColor } from "@/utils/metricTone";
 import { resolvePingChartInterval, resolvePingSampleCounts } from "@/utils/pingMetrics";

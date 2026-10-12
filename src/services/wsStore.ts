@@ -1,10 +1,10 @@
-import type { NodeInfo, NodeMetrics, TrafficTrendSample } from "@/types/komari";
 import {
   convertMonitorNodeToInfo,
   convertMonitorNodeToMetrics,
   safeMonitorNodes,
   type MonitorNode,
 } from "@/types/monitor";
+import type { NodeInfo, NodeMetrics, TrafficTrendSample } from "@/types/theme";
 
 type Listener = () => void;
 type RealtimePayload = Record<string, unknown>;

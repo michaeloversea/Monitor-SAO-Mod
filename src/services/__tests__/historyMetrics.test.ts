@@ -1,6 +1,6 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
 import { clearNodeMetricsHistoryCache, getLoadRecords } from "@/services/api";
-import { LoadRecordSchema } from "@/types/komari";
+import { LoadRecordSchema } from "@/types/theme";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 const base = { ts: 1700000000, cpu: 10, mem_used: 100, disk_used: 200, net_rx: 3, net_tx: 4 };
 function history(fields: Record<string, unknown>) {

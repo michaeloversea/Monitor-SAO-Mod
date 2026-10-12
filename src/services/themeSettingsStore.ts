@@ -1,4 +1,4 @@
-import type { ThemeSettings } from "@/types/komari";
+import type { ThemeSettings } from "@/types/theme";
 
 const STORAGE_KEY = "monitor-sao:theme-settings";
 

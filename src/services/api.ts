@@ -1,3 +1,17 @@
+import {
+  getLocalThemeSettings,
+  replaceLocalThemeSettings,
+  saveLocalThemeSettings,
+} from "@/services/themeSettingsStore";
+import { getRawNode } from "@/services/wsStore";
+import {
+  convertMonitorNodeToInfo,
+  convertMonitorNodeToMetrics,
+  safeMonitorNodes,
+  type MonitorHistoryPoint,
+  type MonitorMe,
+  type MonitorMetricsHistoryResponse,
+} from "@/types/monitor";
 import type {
   AdminClient,
   LoadRecord,
@@ -10,21 +24,7 @@ import type {
   PingTaskStats,
   PublicConfig,
   ThemeSettings,
-} from "@/types/komari";
-import {
-  convertMonitorNodeToInfo,
-  convertMonitorNodeToMetrics,
-  safeMonitorNodes,
-  type MonitorHistoryPoint,
-  type MonitorMe,
-  type MonitorMetricsHistoryResponse,
-} from "@/types/monitor";
-import {
-  getLocalThemeSettings,
-  replaceLocalThemeSettings,
-  saveLocalThemeSettings,
-} from "@/services/themeSettingsStore";
-import { getRawNode } from "@/services/wsStore";
+} from "@/types/theme";
 import {
   THEME_CONFIG_KEYS,
   THEME_CONFIG_KEYS_SET,
@@ -931,7 +931,7 @@ export async function saveThemeSettings(
     if (value === undefined) {
       delete next[key];
     } else {
-      next[key] = ["homepageMultiPingTaskIds", "homepagePingBindings", "homepageNodePingSettings"].includes(key)
+      next[key] = ["homepageMultiPingTaskIds", "homepagePingBindings", "homepageNodePingSettings", "pingLatencyThresholds", "pingLatencyColors", "pingLossThresholds", "pingLossColors", "trafficSpectrumColors"].includes(key)
         && typeof value !== "string" ? JSON.stringify(value) : value;
     }
   }

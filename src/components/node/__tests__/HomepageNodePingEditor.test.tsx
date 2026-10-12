@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
+import type { AdminClient, PingTask } from "@/types/theme";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { expect, it, vi } from "vitest";
 import { HomepageNodePingEditor } from "../HomepageNodePingEditor";
-import type { AdminClient, PingTask } from "@/types/komari";
 
 it("自定义线路显示为独立标签，保留顺序、缺失任务说明和编辑能力", async () => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);

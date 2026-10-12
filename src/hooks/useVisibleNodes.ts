@@ -1,9 +1,9 @@
-import { useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useAllNodeMeta } from "@/hooks/useNode";
 import { useThemeSettings } from "@/hooks/useThemeSettings";
+import type { NodeInfo } from "@/types/theme";
 import { collectMatchingNodeUuids } from "@/utils/nodeIdentity";
-import type { NodeInfo } from "@/types/komari";
+import { useMemo } from "react";
 
 let cachedMeta: NodeInfo[] | null = null;
 let cachedHidden: string[] | null = null;

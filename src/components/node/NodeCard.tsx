@@ -11,10 +11,10 @@ import type {
   PingOverviewBucket,
   PingOverviewItem,
   TrafficTrendSample,
-} from "@/types/komari";
+} from "@/types/theme";
 import type { ByteRateDisplay } from "@/utils/format";
 import { formatBytes } from "@/utils/format";
-import { speedRateColor, trafficQuotaSegmentColor } from "@/utils/metricTone";
+import { buildTrafficQuotaSegmentColors, speedRateColor, trafficQuotaSegmentColor } from "@/utils/metricTone";
 import { HOMEPAGE_MULTI_PING_MIN_COUNT } from "@/utils/pingTasks";
 import { clsx } from "clsx";
 import {
@@ -33,7 +33,7 @@ import {
   RefreshCw,
   Unplug,
 } from "lucide-react";
-import { memo, useCallback, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { memo, useCallback, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { CanvasStrip, mixSrgbTowardWhite, safeCanvasColor } from "./CanvasStrip";
 import { HealthBucketTooltip } from "./HealthBucketTooltip";
@@ -63,6 +63,10 @@ export const NodeCard = memo(function NodeCard({
   const colorsVersion = useMetricColorsVersion();
   const redrawKey = `${resolvedAppearance}:${colorsVersion}`;
   const themeSettings = useThemeSettings();
+  const trafficSegmentColors = useMemo(
+    () => buildTrafficQuotaSegmentColors(themeSettings.trafficSpectrumColors),
+    [themeSettings.trafficSpectrumColors],
+  );
   const model = useNodeCardModel(uuid, { includeMultiPing: true });
 
   if (!model.node) {
@@ -104,6 +108,7 @@ export const NodeCard = memo(function NodeCard({
   } = model;
   const showConnections = themeSettings.isReady && themeSettings.showConnections;
 
+
   return (
     <article
       id={`node-card-${uuid}`}
@@ -138,6 +143,7 @@ export const NodeCard = memo(function NodeCard({
             remainingLabel={traffic.remainingLabel}
             detail={traffic.detail}
             typeLabel={traffic.typeLabel}
+            segmentColors={trafficSegmentColors}
           />
 
           {showConnections && (
@@ -379,13 +385,17 @@ const NodeTrafficQuota = memo(function NodeTrafficQuota({
   remainingLabel,
   detail,
   typeLabel,
+  segmentColors,
 }: {
   litCount: number;
   remainingLabel: string;
   detail: string;
   typeLabel: string;
+  segmentColors?: string[];
 }) {
   const t = useTranslate();
+  const colors = segmentColors ?? TRAFFIC_QUOTA_SEGMENT_COLORS;
+
   return (
     <div
       className="card-metric-section traffic-quota"
@@ -400,7 +410,7 @@ const NodeTrafficQuota = memo(function NodeTrafficQuota({
         <span className="traffic-quota-usage">{detail}</span>
       </div>
       <div className="traffic-quota-track" aria-hidden>
-        {TRAFFIC_QUOTA_SEGMENT_COLORS.map((color, i) => {
+        {colors.map((color, i) => {
           // litCount === -1:哨兵值,第 0 段画成段内一道细边(细边宽度 = TRAFFIC_SLIVER_RATIO),
           // 而不是点亮/熄灭一整段。见 trafficQuotaLitCount 顶部注释。
           const background =

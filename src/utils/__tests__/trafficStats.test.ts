@@ -1,5 +1,4 @@
-import { describe, expect, it } from "vitest";
-import type { LoadRecord } from "@/types/komari";
+import type { LoadRecord } from "@/types/theme";
 import {
   buildTodayTrafficMetricSamples,
   buildTodayTrafficRecordSamples,
@@ -11,6 +10,7 @@ import {
   TRAFFIC_UP_METRIC,
   type TrafficMetricSeries,
 } from "@/utils/trafficStats";
+import { describe, expect, it } from "vitest";
 
 function metricSeries(
   metricKey: string,

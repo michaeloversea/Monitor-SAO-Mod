@@ -1,7 +1,6 @@
-import { useMemo } from "react";
-import { useTranslate } from "@/i18n";
-import { useFakePingFallback } from "@/hooks/useFakePing";
+import { resolveOsInfo } from "@/components/ui/OsLogo";
 import { useHourlyClock, useMinuteClock } from "@/hooks/useClock";
+import { useFakePingFallback } from "@/hooks/useFakePing";
 import { useNodeCardSnapshots } from "@/hooks/useNode";
 import {
   buildPingBuckets,
@@ -9,16 +8,17 @@ import {
   useNodePingOverviewLines,
   usePingBuckets,
 } from "@/hooks/usePingOverview";
-import { useThemeSettings } from "@/hooks/useThemeSettings";
 import { usePriceVisibility } from "@/hooks/usePriceVisibility";
-import type { HomepagePingDisplayLine, HomepagePingLine } from "@/types/komari";
+import { useThemeSettings } from "@/hooks/useThemeSettings";
+import { useTranslate } from "@/i18n";
+import type { HomepagePingDisplayLine, HomepagePingLine } from "@/types/theme";
 import { formatCompactRenewalPrice, formatRenewalPrice } from "@/utils/billing";
 import { getExpireTextColor } from "@/utils/expireStatus";
-import { formatBytes, formatByteRate, formatExpireDays, formatUptimeDays, parseTags } from "@/utils/format";
-import { latencyHeatColor, lossHeatColor, trafficUsageColor } from "@/utils/metricTone";
-import { resolveTrafficUsage, trafficTypeLabel, type TrafficDisplay } from "@/utils/traffic";
-import { resolveOsInfo } from "@/components/ui/OsLogo";
+import { formatByteRate, formatBytes, formatExpireDays, formatUptimeDays, parseTags } from "@/utils/format";
+import { resolveCustomLatencyColor, resolveCustomLossColor, trafficUsageColor } from "@/utils/metricTone";
 import { hasHomepagePingTaskBinding, resolveHomepagePingSelections } from "@/utils/pingTasks";
+import { resolveTrafficUsage, trafficTypeLabel, type TrafficDisplay } from "@/utils/traffic";
+import { useMemo } from "react";
 
 interface NodeCardModelOptions {
   pingBucketCount?: number;
@@ -48,6 +48,7 @@ export function useNodeCardModel(
     enableHomepageMultiPing,
     homepageMultiPingTaskIds,
     homepageNodePingSettings,
+    pingLatencyThresholds, pingLatencyColors, pingLossThresholds, pingLossColors,
   } = useThemeSettings();
   const { isPriceVisible } = usePriceVisibility();
   const selection = useMemo(() => resolveHomepagePingSelections([uuid], homepagePingBindings,
@@ -172,8 +173,8 @@ export function useNodeCardModel(
   // ping 派生的颜色只在 ping item 变化时才变。
   const pingModel = useMemo(
     () => ({
-      latencyColor: latencyHeatColor(ping.lastValue),
-      lossColor: lossHeatColor(ping.loss),
+      latencyColor: resolveCustomLatencyColor(ping.lastValue, pingLatencyThresholds, pingLatencyColors),
+      lossColor: resolveCustomLossColor(ping.loss, pingLossThresholds, pingLossColors),
       hasRealHomepagePingBinding,
       // 保留旧字段供外部模型消费者兼容；它表示真实配置状态。
       hasHomepagePingBinding: hasRealHomepagePingBinding,
@@ -188,6 +189,7 @@ export function useNodeCardModel(
       pingError,
       pingLoading,
       autoPingSelected,
+      pingLatencyThresholds, pingLatencyColors, pingLossThresholds, pingLossColors,
       shouldRenderPingBars,
     ],
   );

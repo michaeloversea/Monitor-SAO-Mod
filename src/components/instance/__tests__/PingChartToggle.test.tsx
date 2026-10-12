@@ -2,12 +2,12 @@
 // @vitest-environment jsdom
 // @vitest-environment jsdom
 // @vitest-environment jsdom
+import { setLanguage } from "@/i18n";
+import type { PingRecordsResponse } from "@/types/theme";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { PingRecordsResponse } from "@/types/komari";
 import { PingChart } from "../PingChart";
-import { setLanguage } from "@/i18n";
 
 const fixture = vi.hoisted(() => ({
   data: { count: 2, intervalSeconds: 60, records: [

@@ -1,11 +1,11 @@
-import { useMemo } from "react";
 import { useMinuteClock } from "@/hooks/useClock";
+import type { PingOverviewItem } from "@/types/theme";
 import { buildFakePingItem } from "@/utils/fakePing";
 import {
   invertHomepagePingTaskBindings,
   type HomepagePingTaskBindings,
 } from "@/utils/pingTasks";
-import type { PingOverviewItem } from "@/types/komari";
+import { useMemo } from "react";
 
 export function useFakePingFallback(
   uuid: string,

@@ -1,5 +1,13 @@
-import type { ThemeSettings, UserMatrixPreset } from "@/types/komari";
 import { isLanguage, type Language } from "@/i18n";
+import type {
+  PingLatencyColors,
+  PingLatencyThresholds,
+  PingLossColors,
+  PingLossThresholds,
+  ThemeSettings,
+  TrafficSpectrumColors,
+  UserMatrixPreset,
+} from "@/types/theme";
 import {
   DEFAULT_COST_RATE_API_URL,
   normalizeCostIgnoredNodes,
@@ -7,7 +15,6 @@ import {
   normalizeCostRateApiUrl,
   type CostPremiumEntry,
 } from "@/utils/cost";
-import { normalizeNodeIdentityList } from "@/utils/nodeIdentity";
 import { normalizeHomeGroupOrder } from "@/utils/homeNodes";
 import {
   HOME_SORT_NATURAL_DIRECTION,
@@ -16,18 +23,147 @@ import {
   type HomeSortDirection,
   type HomeSortField,
 } from "@/utils/homeSort";
+import { normalizeNodeIdentityList } from "@/utils/nodeIdentity";
 import {
-  normalizeHomepageNodePingSettings,
-  type HomepageNodePingSettings,
   normalizeHomepageMultiPingTaskIds,
+  normalizeHomepageNodePingSettings,
   normalizeHomepagePingTaskBindings,
+  type HomepageNodePingSettings,
   type HomepagePingTaskBindings,
 } from "@/utils/pingTasks";
 
 export type Appearance = "system" | "light" | "dark";
 export type NodeViewMode = "large" | "compact" | "mini" | "list";
 export type ClusterOverviewMode = "classic" | "nodes";
-export type MatrixColorTheme = "default" | "eva";
+export type MatrixColorTheme =
+  | "default"
+  | "eva"
+  | "cyberpunk"
+  | "divergence";
+
+export const MATRIX_COLOR_THEMES: readonly MatrixColorTheme[] = [
+  "default",
+  "eva",
+  "cyberpunk",
+  "divergence",
+] as const;
+
+export type MatrixBootEffect =
+  | "laser-scan"
+  | "digital-rain"
+  | "cyber-glitch"
+  | "divergence-flux";
+
+export const MATRIX_BOOT_EFFECTS: readonly MatrixBootEffect[] = [
+  "laser-scan",
+  "digital-rain",
+  "cyber-glitch",
+  "divergence-flux",
+] as const;
+
+
+export const DEFAULT_PING_LATENCY_THRESHOLDS: PingLatencyThresholds = {
+  excellent: 60,
+  good: 100,
+  moderate: 160,
+  elevated: 200,
+};
+
+export const DEFAULT_PING_LATENCY_COLORS: PingLatencyColors = {
+  excellent: "#10b981",
+  good: "#84cc16",
+  moderate: "#eab308",
+  elevated: "#f59e0b",
+  critical: "#ef4444",
+};
+
+export const DEFAULT_PING_LOSS_THRESHOLDS: PingLossThresholds = {
+  low: 3,
+  medium: 10,
+};
+
+export const DEFAULT_PING_LOSS_COLORS: PingLossColors = {
+  zero: "#10b981",
+  low: "#eab308",
+  medium: "#f97316",
+  high: "#ef4444",
+};
+
+export interface StatusBarPreset {
+  id: string;
+  name: string;
+  colors: TrafficSpectrumColors;
+  latencyColors: PingLatencyColors;
+  lossColors: PingLossColors;
+}
+
+export type TrafficSpectrumPreset = StatusBarPreset;
+
+export const DEFAULT_TRAFFIC_SPECTRUM_COLORS: TrafficSpectrumColors = {
+  start: "#10b981",
+  mid: "#eab308",
+  high: "#f97316",
+  end: "#ef4444",
+};
+
+export const STATUS_BAR_PRESETS: readonly StatusBarPreset[] = [
+  {
+    id: "classic",
+    name: "经典运维 (翡翠绿 · 琥珀黄 · 警示橙 · 熔岩红)",
+    colors: { start: "#10b981", mid: "#eab308", high: "#f97316", end: "#ef4444" },
+    latencyColors: {
+      excellent: "#10b981",
+      good: "#84cc16",
+      moderate: "#eab308",
+      elevated: "#f97316",
+      critical: "#ef4444",
+    },
+    lossColors: {
+      zero: "#10b981",
+      low: "#eab308",
+      medium: "#f97316",
+      high: "#ef4444",
+    },
+  },
+  {
+    id: "icefire",
+    name: "深邃冰火 (冰川蓝 · 暮光紫 · 烈焰橙 · 绝境红)",
+    colors: { start: "#06b6d4", mid: "#8b5cf6", high: "#f97316", end: "#ef4444" },
+    latencyColors: {
+      excellent: "#06b6d4",
+      good: "#3b82f6",
+      moderate: "#8b5cf6",
+      elevated: "#f97316",
+      critical: "#ef4444",
+    },
+    lossColors: {
+      zero: "#06b6d4",
+      low: "#8b5cf6",
+      medium: "#f97316",
+      high: "#ef4444",
+    },
+  },
+  {
+    id: "marine",
+    name: "深海青翠 (薄荷青 · 蔚蓝海 · 暖杏黄 · 珊瑚红)",
+    colors: { start: "#14b8a6", mid: "#0284c7", high: "#f59e0b", end: "#ef4444" },
+    latencyColors: {
+      excellent: "#14b8a6",
+      good: "#06b6d4",
+      moderate: "#0284c7",
+      elevated: "#f59e0b",
+      critical: "#ef4444",
+    },
+    lossColors: {
+      zero: "#14b8a6",
+      low: "#0284c7",
+      medium: "#f59e0b",
+      high: "#ef4444",
+    },
+  },
+] as const;
+
+export const TRAFFIC_SPECTRUM_PRESETS: readonly StatusBarPreset[] = STATUS_BAR_PRESETS;
 
 export interface ResolvedThemeSettings {
   defaultLanguage: Language;
@@ -38,6 +174,7 @@ export interface ResolvedThemeSettings {
   matrixColorTheme: MatrixColorTheme;
   matrixMockFill: boolean;
   matrixBootAnimation: boolean;
+  matrixBootEffect: MatrixBootEffect;
   matrixCustomPattern: number[] | null;
   matrixUserPresets: UserMatrixPreset[];
   enableAdminButton: boolean;
@@ -46,6 +183,11 @@ export interface ResolvedThemeSettings {
   homepageMultiPingTaskIds: number[];
   homepageNodePingSettings: HomepageNodePingSettings;
   fakePingForUnbound: boolean;
+  pingLatencyThresholds: PingLatencyThresholds;
+  pingLatencyColors: PingLatencyColors;
+  pingLossThresholds: PingLossThresholds;
+  pingLossColors: PingLossColors;
+  trafficSpectrumColors: TrafficSpectrumColors;
   showHomeOverview: boolean;
   overviewFollowGroup: boolean;
   showGroupTabs: boolean;
@@ -89,6 +231,13 @@ export const THEME_CONFIG_KEYS = [
   "clusterOverviewMode",
   "matrixColorTheme",
   "matrixBootAnimation",
+  "matrixBootEffect",
+  "pingLatencyThresholds",
+  "pingLatencyColors",
+  "pingLossThresholds",
+  "pingLossColors",
+  "trafficSpectrumColors",
+
   "matrixMockFill",
   "showGroupTabs",
   "showUngroupedTab",
@@ -133,6 +282,7 @@ export const DEFAULT_THEME_SETTINGS: ResolvedThemeSettings = {
   matrixColorTheme: "default",
   matrixMockFill: false,
   matrixBootAnimation: true,
+  matrixBootEffect: "laser-scan",
   matrixCustomPattern: null,
   matrixUserPresets: [],
   enableAdminButton: true,
@@ -141,6 +291,11 @@ export const DEFAULT_THEME_SETTINGS: ResolvedThemeSettings = {
   homepageMultiPingTaskIds: [],
   homepageNodePingSettings: {},
   fakePingForUnbound: false,
+  pingLatencyThresholds: DEFAULT_PING_LATENCY_THRESHOLDS,
+  pingLatencyColors: DEFAULT_PING_LATENCY_COLORS,
+  pingLossThresholds: DEFAULT_PING_LOSS_THRESHOLDS,
+  pingLossColors: DEFAULT_PING_LOSS_COLORS,
+  trafficSpectrumColors: DEFAULT_TRAFFIC_SPECTRUM_COLORS,
   showHomeOverview: true,
   overviewFollowGroup: false,
   showGroupTabs: true,
@@ -223,7 +378,7 @@ function normalizeClusterOverviewMode(
 }
 
 export function isMatrixColorTheme(value: unknown): value is MatrixColorTheme {
-  return value === "default" || value === "eva";
+  return typeof value === "string" && (MATRIX_COLOR_THEMES as readonly string[]).includes(value);
 }
 
 function normalizeMatrixColorTheme(
@@ -239,6 +394,18 @@ function normalizeMatrixMockFill(value: unknown): boolean {
 
 export function normalizeMatrixBootAnimation(value: unknown): boolean {
   return value !== false;
+}
+
+
+export function isMatrixBootEffect(value: unknown): value is MatrixBootEffect {
+  return typeof value === "string" && (MATRIX_BOOT_EFFECTS as readonly string[]).includes(value);
+}
+
+export function normalizeMatrixBootEffect(
+  value: unknown,
+  fallback: MatrixBootEffect = DEFAULT_THEME_SETTINGS.matrixBootEffect,
+): MatrixBootEffect {
+  return isMatrixBootEffect(value) ? value : fallback;
 }
 
 export function normalizeMatrixCustomPattern(val: unknown): number[] | null {
@@ -301,6 +468,95 @@ function normalizeHomeSortDefault(
   };
 }
 
+
+function configRecord(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+  try { return JSON.parse(value); } catch { return null; }
+}
+
+function canonicalHex(value: string) {
+  const hex = value.trim().toLowerCase();
+  return hex.length === 4 ? "#" + [...hex.slice(1)].map((char) => char + char).join("") : hex;
+}
+
+function isValidHexColor(val: unknown): val is string {
+  return typeof val === "string" && /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(val.trim());
+}
+
+export function normalizePingLatencyThresholds(val: unknown): PingLatencyThresholds {
+  val = configRecord(val);
+  const defaults = DEFAULT_PING_LATENCY_THRESHOLDS;
+  if (!val || typeof val !== "object") return defaults;
+  const raw = val as Record<string, unknown>;
+  const e = typeof raw.excellent === "number" && Number.isFinite(raw.excellent) && raw.excellent > 0
+    ? Math.max(1, Math.round(raw.excellent))
+    : defaults.excellent;
+  const g = typeof raw.good === "number" && Number.isFinite(raw.good) && raw.good > e
+    ? Math.max(e + 1, Math.round(raw.good))
+    : Math.max(e + 10, defaults.good);
+  const m = typeof raw.moderate === "number" && Number.isFinite(raw.moderate) && raw.moderate > g
+    ? Math.max(g + 1, Math.round(raw.moderate))
+    : Math.max(g + 10, defaults.moderate);
+  const el = typeof raw.elevated === "number" && Number.isFinite(raw.elevated) && raw.elevated > m
+    ? Math.max(m + 1, Math.round(raw.elevated))
+    : Math.max(m + 10, defaults.elevated);
+  return { excellent: e, good: g, moderate: m, elevated: el };
+}
+
+export function normalizePingLatencyColors(val: unknown): PingLatencyColors {
+  val = configRecord(val);
+  const defaults = DEFAULT_PING_LATENCY_COLORS;
+  if (!val || typeof val !== "object") return defaults;
+  const raw = val as Record<string, unknown>;
+  return {
+    excellent: isValidHexColor(raw.excellent) ? canonicalHex(raw.excellent) : defaults.excellent,
+    good: isValidHexColor(raw.good) ? canonicalHex(raw.good) : defaults.good,
+    moderate: isValidHexColor(raw.moderate) ? canonicalHex(raw.moderate) : defaults.moderate,
+    elevated: isValidHexColor(raw.elevated) ? canonicalHex(raw.elevated) : defaults.elevated,
+    critical: isValidHexColor(raw.critical) ? canonicalHex(raw.critical) : defaults.critical,
+  };
+}
+
+export function normalizePingLossThresholds(val: unknown): PingLossThresholds {
+  val = configRecord(val);
+  const defaults = DEFAULT_PING_LOSS_THRESHOLDS;
+  if (!val || typeof val !== "object") return defaults;
+  const raw = val as Record<string, unknown>;
+  const low = typeof raw.low === "number" && Number.isFinite(raw.low) && raw.low > 0 && raw.low < 100
+    ? Math.max(0.1, Math.min(99.9, Number(raw.low.toFixed(1))))
+    : defaults.low;
+  const medium = typeof raw.medium === "number" && Number.isFinite(raw.medium) && raw.medium > low && raw.medium <= 100
+    ? Math.max(low + 0.1, Number(raw.medium.toFixed(1)))
+    : Math.min(100, Math.max(low + 1, defaults.medium));
+  return { low, medium };
+}
+
+export function normalizePingLossColors(val: unknown): PingLossColors {
+  val = configRecord(val);
+  const defaults = DEFAULT_PING_LOSS_COLORS;
+  if (!val || typeof val !== "object") return defaults;
+  const raw = val as Record<string, unknown>;
+  return {
+    zero: isValidHexColor(raw.zero) ? canonicalHex(raw.zero) : defaults.zero,
+    low: isValidHexColor(raw.low) ? canonicalHex(raw.low) : defaults.low,
+    medium: isValidHexColor(raw.medium) ? canonicalHex(raw.medium) : defaults.medium,
+    high: isValidHexColor(raw.high) ? canonicalHex(raw.high) : defaults.high,
+  };
+}
+
+export function normalizeTrafficSpectrumColors(val: unknown): TrafficSpectrumColors {
+  val = configRecord(val);
+  const defaults = DEFAULT_TRAFFIC_SPECTRUM_COLORS;
+  if (!val || typeof val !== "object") return defaults;
+  const raw = val as Record<string, unknown>;
+  return {
+    start: isValidHexColor(raw.start) ? canonicalHex(raw.start) : defaults.start,
+    mid: isValidHexColor(raw.mid) ? canonicalHex(raw.mid) : defaults.mid,
+    high: isValidHexColor(raw.high) ? canonicalHex(raw.high) : defaults.high,
+    end: isValidHexColor(raw.end) ? canonicalHex(raw.end) : defaults.end,
+  };
+}
+
 export function normalizeThemeSettings(
   settings: (ThemeSettings & Record<string, unknown>) | null | undefined,
 ): ResolvedThemeSettings {
@@ -322,6 +578,7 @@ export function normalizeThemeSettings(
     matrixColorTheme: normalizeMatrixColorTheme(settings?.matrixColorTheme),
     matrixMockFill: normalizeMatrixMockFill(settings?.matrixMockFill),
     matrixBootAnimation: normalizeMatrixBootAnimation(settings?.matrixBootAnimation),
+    matrixBootEffect: normalizeMatrixBootEffect(settings?.matrixBootEffect),
     matrixCustomPattern: normalizeMatrixCustomPattern(settings?.matrixCustomPattern),
     matrixUserPresets: normalizeMatrixUserPresets(settings?.matrixUserPresets),
     enableAdminButton: enabledUnlessFalse(settings?.enableAdminButton),
@@ -332,6 +589,11 @@ export function normalizeThemeSettings(
     homepageNodePingSettings: normalizeHomepageNodePingSettings(settings?.homepageNodePingSettings),
     // 默认关闭(需手动开启):给访客展示的是模拟数据,必须由站长显式决定。
     fakePingForUnbound: settings?.fakePingForUnbound === true,
+    pingLatencyThresholds: normalizePingLatencyThresholds(settings?.pingLatencyThresholds),
+    pingLatencyColors: normalizePingLatencyColors(settings?.pingLatencyColors),
+    pingLossThresholds: normalizePingLossThresholds(settings?.pingLossThresholds),
+    pingLossColors: normalizePingLossColors(settings?.pingLossColors),
+    trafficSpectrumColors: normalizeTrafficSpectrumColors(settings?.trafficSpectrumColors),
     showHomeOverview: enabledUnlessFalse(settings?.showHomeOverview),
     overviewFollowGroup: settings?.overviewFollowGroup === true,
     showGroupTabs: enabledUnlessFalse(settings?.showGroupTabs),

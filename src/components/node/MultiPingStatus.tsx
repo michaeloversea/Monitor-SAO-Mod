@@ -1,8 +1,9 @@
 import { useMetricColorsVersion } from "@/hooks/useMetricColors";
 import { usePreferences } from "@/hooks/usePreferences";
+import { useThemeSettings } from "@/hooks/useThemeSettings";
 import { useTranslate } from "@/i18n";
-import type { HomepagePingDisplayLine } from "@/types/komari";
-import { latencyHeatColor, lossHeatColor } from "@/utils/metricTone";
+import type { HomepagePingDisplayLine } from "@/types/theme";
+import { resolveCustomLatencyColor, resolveCustomLossColor } from "@/utils/metricTone";
 import { clsx } from "clsx";
 import { memo, useState } from "react";
 import { HealthBucketTooltip } from "./HealthBucketTooltip";
@@ -25,9 +26,18 @@ const MultiPingMetricRow = memo(function MultiPingMetricRow({
   redrawKey: string;
 }) {
   const t = useTranslate();
+  const themeSettings = useThemeSettings();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const latencyColor = latencyHeatColor(line.lastValue);
-  const lossColor = lossHeatColor(line.loss);
+  const latencyColor = resolveCustomLatencyColor(
+    line.lastValue,
+    themeSettings.pingLatencyThresholds,
+    themeSettings.pingLatencyColors,
+  );
+  const lossColor = resolveCustomLossColor(
+    line.loss,
+    themeSettings.pingLossThresholds,
+    themeSettings.pingLossColors,
+  );
   const isLoading = line.loadState === "pending";
   const isError = line.loadState === "error";
   const staleError = isError && (line.lastValue != null || line.loss != null);
@@ -92,7 +102,7 @@ const MultiPingMetricRow = memo(function MultiPingMetricRow({
           {value != null && <small>{unit}</small>}
         </strong>
       </div>
-      <span className="multi-ping-buckets">
+      <span className="multi-ping-buckets" title="">
         {metric === "latency" ? (
           <LatencyBars
             buckets={line.buckets}

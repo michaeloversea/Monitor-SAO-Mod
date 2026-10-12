@@ -1,4 +1,4 @@
-import type { NodeInfo } from "@/types/komari";
+import type { NodeInfo } from "@/types/theme";
 
 const MIB = 1024 * 1024;
 const GIB = 1024 * MIB;
@@ -593,9 +593,9 @@ function json(data: unknown, init?: ResponseInit) {
 
 export function installDevMockApi() {
   const nativeFetch = window.fetch.bind(window);
-  // ?mock=1 默认模拟已登录管理员,放开 /api/admin/*,ThemeManage 才可在 dev 正常保存。显式 ?admin=0 模拟未授权。
+  // ?mock=1 默认模拟已登录管理员,放开管理设置,ThemeManage 才可在 dev 正常保存。显式 ?admin=0 模拟未授权。
   const adminMode = new URLSearchParams(window.location.search).get("admin") !== "0";
-  // 保存后的主题设置驻留内存与本地存储，让「保存 → /api/public refetch」以及刷新页面闭环。
+  // 保存后的主题设置驻留内存与本地存储，让「保存 → 主题配置 refetch」以及刷新页面闭环。
   const defaultTheme = "SAO";
   const MOCK_STORAGE_KEY = "monitor_mock_theme_settings";
   const LEGACY_STORAGE_KEY = "komari_mock_theme_settings";
@@ -653,7 +653,6 @@ export function installDevMockApi() {
     savedThemeSettings["SAO"] = initialStored;
     savedThemeSettings["sao"] = initialStored;
     savedThemeSettings["monitor-theme-sao"] = initialStored;
-    savedThemeSettings["komari-theme-sao"] = initialStored;
   }
 
   window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -698,36 +697,6 @@ export function installDevMockApi() {
       );
     }
 
-    if (url.pathname === "/api/admin/client/list") {
-      if (!adminMode) return json({ message: "unauthorized" }, { status: 401 });
-      return json(
-        nodes.map(({ uuid, name, group, region, weight }) => ({
-          uuid,
-          name,
-          group,
-          region,
-          weight,
-        })),
-      );
-    }
-
-    if (url.pathname === "/api/admin/ping") {
-      if (!adminMode) return json({ message: "unauthorized" }, { status: 401 });
-      return json(pingTasks);
-    }
-
-    if (url.pathname === "/api/admin/theme/settings") {
-      if (!adminMode) return json({ message: "unauthorized" }, { status: 401 });
-      const theme = url.searchParams.get("theme") ?? defaultTheme;
-      const body = (await request.json()) as Record<string, unknown>;
-      savedThemeSettings[theme] = body;
-      savedThemeSettings["SAO"] = body;
-      savedThemeSettings["sao"] = body;
-      savedThemeSettings["monitor-theme-sao"] = body;
-      savedThemeSettings["komari-theme-sao"] = body;
-      writePersistedSettings(body);
-      return json({ status: "success" });
-    }
 
     // 拦截 Monitor 官方主题配置接口: GET /api/themes/{short}/config 与 PUT /api/themes/{short}/config
     if (/^\/api\/themes\/[^/]+\/config$/.test(url.pathname) || url.pathname === "/sao-config.json") {
@@ -738,7 +707,6 @@ export function installDevMockApi() {
         savedThemeSettings["SAO"] = body;
         savedThemeSettings["sao"] = body;
         savedThemeSettings["monitor-theme-sao"] = body;
-        savedThemeSettings["komari-theme-sao"] = body;
         writePersistedSettings(body);
         return json(body);
       }
@@ -753,34 +721,6 @@ export function installDevMockApi() {
           ? { ...defaultMockThemeSettings, ...activeSaved }
           : defaultMockThemeSettings,
       );
-    }
-
-    if (url.pathname === "/api/public") {
-      const theme = url.searchParams.get("theme") ?? defaultTheme;
-      const activeSaved =
-        savedThemeSettings[theme] ??
-        savedThemeSettings["SAO"] ??
-        savedThemeSettings["monitor-theme-sao"] ??
-        savedThemeSettings["komari-theme-sao"] ??
-        readPersistedSettings();
-      return json({
-        sitename: "Monitor SAO",
-        description: "全球节点运行状态",
-        theme: "SAO",
-        allow_cors: false,
-        disable_password_login: false,
-        oauth_enable: false,
-        private_site: false,
-        record_enabled: true,
-        record_preserve_time: 30,
-        ping_record_preserve_time: 30,
-        metric_retention_days: 90,
-        custom_head: "",
-        custom_body: "",
-        theme_settings: activeSaved
-          ? { ...defaultMockThemeSettings, ...activeSaved }
-          : defaultMockThemeSettings,
-      });
     }
 
     if (url.pathname === "/api/ping-tasks") {

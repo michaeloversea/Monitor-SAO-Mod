@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
+import type { PingRecordsResponse } from "@/types/theme";
+import type { HomepageNodePingSettings } from "@/utils/pingTasks";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, expect, it, vi } from "vitest";
-import type { PingRecordsResponse } from "@/types/komari";
-import type { HomepageNodePingSettings } from "@/utils/pingTasks";
 
 const fixture = vi.hoisted(() => ({
   nodes: ["node-a", "node-b"],

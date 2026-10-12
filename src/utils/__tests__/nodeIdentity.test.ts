@@ -1,9 +1,9 @@
-import { describe, expect, it } from "vitest";
-import type { NodeInfo } from "@/types/komari";
+import type { NodeInfo } from "@/types/theme";
 import {
   collectMatchingNodeUuids,
   normalizeNodeIdentityList,
 } from "@/utils/nodeIdentity";
+import { describe, expect, it } from "vitest";
 
 function node(partial: Partial<NodeInfo> & Record<string, unknown>): NodeInfo {
   return { uuid: "", name: "", ...partial } as NodeInfo;

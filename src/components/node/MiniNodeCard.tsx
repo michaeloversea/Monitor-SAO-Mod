@@ -2,7 +2,7 @@ import { Flag } from "@/components/ui/Flag";
 import { OsLogo } from "@/components/ui/OsLogo";
 import { useNodeCardModel } from "@/hooks/useNodeCardModel";
 import { useLanguage, useTranslate } from "@/i18n";
-import type { NodeInfo, NodeMetrics, PingOverviewBucket, PingOverviewItem } from "@/types/komari";
+import type { NodeInfo, NodeMetrics, PingOverviewBucket, PingOverviewItem } from "@/types/theme";
 import { formatBytes, type ByteRateDisplay } from "@/utils/format";
 import { supportsFineHover } from "@/utils/mediaQuery";
 import { speedRateColor } from "@/utils/metricTone";

@@ -9,11 +9,11 @@ import type {
   PingOverviewBucket,
   PingOverviewItem,
   TrafficTrendSample,
-} from "@/types/komari";
+} from "@/types/theme";
 import type { ByteRateDisplay } from "@/utils/format";
 import { formatBytes, formatCompactOfflineDuration } from "@/utils/format";
 import { supportsFineHover } from "@/utils/mediaQuery";
-import { speedRateColor, speedRateColorFromBytes } from "@/utils/metricTone";
+import { buildTrafficHeatSpectrum, speedRateColor, speedRateColorFromBytes } from "@/utils/metricTone";
 import { HOMEPAGE_MULTI_PING_MIN_COUNT } from "@/utils/pingTasks";
 import type { TrafficDisplay } from "@/utils/traffic";
 import { clsx } from "clsx";
@@ -33,7 +33,7 @@ import {
   Unplug,
 } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
-import { memo, useRef, useState } from "react";
+import { memo, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { IpStackBadges } from "./IpStackBadges";
 import { MultiPingStatus } from "./MultiPingStatus";
@@ -581,9 +581,11 @@ function CompactNodeInfoStrip({
 function CompactTrafficBar({
   traffic,
   uptimeLabel,
+  trafficHeatSpectrum,
 }: {
   traffic: TrafficDisplay;
   uptimeLabel: string;
+  trafficHeatSpectrum?: string;
 }) {
   const t = useTranslate();
   // 用量非零但极小时,下限填充"一段的 TRAFFIC_SLIVER_RATIO"(段内一道细边),而不是整段——
@@ -595,6 +597,7 @@ function CompactTrafficBar({
   const style = {
     "--compact-gauge-color": traffic.color,
     "--compact-gauge-fill": `${fillFraction * 100}%`,
+    ...(trafficHeatSpectrum ? { "--traffic-heat-spectrum": trafficHeatSpectrum } : {}),
   } as CSSProperties;
 
   return (
@@ -706,6 +709,10 @@ export const CompactNodeCard = memo(function CompactNodeCard({
     includeMultiPing: true,
   });
   const themeSettings = useThemeSettings();
+  const trafficHeatSpectrum = useMemo(
+    () => buildTrafficHeatSpectrum(themeSettings.trafficSpectrumColors),
+    [themeSettings.trafficSpectrumColors],
+  );
 
   if (!model.node) {
     return <div className="compact-node-card animate-pulse" aria-busy />;
@@ -740,6 +747,7 @@ export const CompactNodeCard = memo(function CompactNodeCard({
   const showBilling = themeSettings.isReady && themeSettings.compactShowBilling;
   const showUptime = themeSettings.isReady && themeSettings.compactShowUptime;
   const showConnections = themeSettings.isReady && themeSettings.showConnections;
+
   // 开关关闭时跳过；离线时显示根据 hub 时钟或上报差值计算的离线时长。
   const uptimeLabel = showUptime
     ? isOffline
@@ -775,7 +783,11 @@ export const CompactNodeCard = memo(function CompactNodeCard({
         renewalPrice={compactRenewalPrice}
         isPriceVisible={isPriceVisible}
       />
-      <CompactTrafficBar traffic={traffic} uptimeLabel={uptimeLabel} />
+      <CompactTrafficBar
+        traffic={traffic}
+        uptimeLabel={uptimeLabel}
+        trafficHeatSpectrum={trafficHeatSpectrum}
+      />
       {homepagePingLines.length >= HOMEPAGE_MULTI_PING_MIN_COUNT ? (
         <MultiPingStatus
           lines={homepagePingLines}

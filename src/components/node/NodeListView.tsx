@@ -4,7 +4,7 @@ import { useMetricColorsVersion } from "@/hooks/useMetricColors";
 import { useNodeCardModel } from "@/hooks/useNodeCardModel";
 import { usePreferences } from "@/hooks/usePreferences";
 import { t, useLanguage, useTranslate } from "@/i18n";
-import type { PingOverviewTaskLoadState } from "@/types/komari";
+import type { PingOverviewTaskLoadState } from "@/types/theme";
 import { formatBytes } from "@/utils/format";
 import { speedRateColor } from "@/utils/metricTone";
 import { clsx } from "clsx";

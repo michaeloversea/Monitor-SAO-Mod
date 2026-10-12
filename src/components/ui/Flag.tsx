@@ -3,7 +3,7 @@ import { getDisplayRegionCode } from "@/utils/geo";
 import { useState } from "react";
 
 // 更换旗帜资源时递增目录版本，避免浏览器/CDN 沿用同地址的旧 SVG。
-const FLAG_ASSET_ROOT = "/assets/flags-rect-v1";
+const FLAG_ASSET_ROOT = "/assets/flags-rect-v1.2.1";
 
 interface FlagProps {
   region?: string | null;

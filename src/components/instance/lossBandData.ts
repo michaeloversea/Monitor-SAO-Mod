@@ -1,4 +1,4 @@
-import type { PingRecord } from "@/types/komari";
+import type { PingRecord } from "@/types/theme";
 import { resolvePingSampleCounts } from "@/utils/pingMetrics";
 
 export interface LossBandBucket { start: number; end: number; total: number; lost: number; loss: number | null }

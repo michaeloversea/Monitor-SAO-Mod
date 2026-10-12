@@ -1,6 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
 import { getPublic } from "@/services/api";
-import type { PublicConfig } from "@/types/komari";
+import type { PublicConfig } from "@/types/theme";
+import { useQuery } from "@tanstack/react-query";
 
 export function usePublicConfig() {
   return useQuery<PublicConfig>({

@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
+import { LoadRecordSchema, type LoadRecord } from "@/types/theme";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { LoadRecordSchema, type LoadRecord } from "@/types/komari";
 import { LoadChart } from "../LoadChart";
 
 const fixture = vi.hoisted(() => ({ records: [] as LoadRecord[] }));

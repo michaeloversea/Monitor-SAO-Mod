@@ -2,7 +2,7 @@ import { useNodeMeta, useNodeMetrics } from "@/hooks/useNode";
 import { usePreferences } from "@/hooks/usePreferences";
 import { useLoadRecords } from "@/hooks/useRecords";
 import { t, useLanguage, useTranslate } from "@/i18n";
-import type { LoadRecord, NodeMetrics } from "@/types/komari";
+import type { LoadRecord, NodeMetrics } from "@/types/theme";
 import { formatBytes, formatTrafficRateLabel } from "@/utils/format";
 import { historyChartRangeSeconds, historyCoverageLabel } from "@/utils/historyRange";
 import { resolveLoadRecordTotals } from "@/utils/loadMetrics";

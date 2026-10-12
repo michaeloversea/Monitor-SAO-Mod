@@ -1,12 +1,12 @@
 // @vitest-environment jsdom
+import { HomepageNodePingEditor } from "@/components/node/HomepageNodePingEditor";
+import { LanguageMenu } from "@/components/shell/LanguageMenu";
+import { getLanguage, setDefaultLanguage, setLanguage, t } from "@/i18n";
+import type { AdminClient, PingTask } from "@/types/theme";
+import { normalizeThemeSettings, THEME_CONFIG_KEYS } from "@/utils/themeSettings";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { LanguageMenu } from "@/components/shell/LanguageMenu";
-import { HomepageNodePingEditor } from "@/components/node/HomepageNodePingEditor";
-import { getLanguage, setDefaultLanguage, setLanguage, t } from "@/i18n";
-import { normalizeThemeSettings, THEME_CONFIG_KEYS } from "@/utils/themeSettings";
-import type { AdminClient, PingTask } from "@/types/komari";
 
 beforeEach(() => {
   const values = new Map<string, string>();

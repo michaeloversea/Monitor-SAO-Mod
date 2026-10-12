@@ -1,4 +1,4 @@
-import type { NodeInfo, NodeMetrics } from "@/types/komari";
+import type { NodeInfo, NodeMetrics } from "@/types/theme";
 
 export interface MonitorMetrics {
   uptime: number;

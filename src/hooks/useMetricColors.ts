@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { clearCssColorCache } from "@/components/node/CanvasStrip";
 import { usePublicConfig } from "@/hooks/usePublicConfig";
 import { saveThemeSettings } from "@/services/api";
-import type { PublicConfig } from "@/types/komari";
+import type { PublicConfig } from "@/types/theme";
+import { useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 // 指标色和暗色深度保存到 theme_settings，并通过 CSS 变量全局应用。
 

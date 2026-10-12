@@ -4,6 +4,12 @@ export const GRID_COLUMNS = 20;
 export const MIN_RACK_ROWS = 5;
 export const TOTAL_PIXELS = GRID_COLUMNS * MIN_RACK_ROWS; // 100
 
+/** 黑客帝国模式专属：自上而下数据流动雨各列错落滴落延迟步数与总步进数 */
+export const MATRIX_RAIN_DELAYS = [
+  0, 2, 1, 3, 2, 0, 4, 1, 3, 2, 0, 4, 1, 3, 2, 5, 1, 3, 2, 0,
+] as const;
+export const MATRIX_RAIN_TOTAL_STEPS = 12;
+
 export interface PatternPreset {
   id: string;
   name: string;
@@ -139,12 +145,11 @@ export const PATTERN_PRESETS: Record<string, PatternPreset> = {
 export const DEFAULT_PATTERN = PATTERN_PRESETS.sao.indices;
 export const DEFAULT_PATTERN_SET = new Set<number>(DEFAULT_PATTERN);
 
-import type { UserMatrixPreset } from "@/types/komari";
+import type { UserMatrixPreset } from "@/types/theme";
 export type { UserMatrixPreset };
 
 export const USER_PRESETS_STORAGE_KEY = "monitor-sao:matrix-user-presets";
 const LEGACY_USER_PRESETS_STORAGE_KEY = "komari-sao:matrix-user-presets";
-const CFSM_USER_PRESETS_STORAGE_KEY = "cfsm-sao:matrix-user-presets";
 export const MAX_USER_PRESETS = 12;
 
 /**
@@ -154,9 +159,10 @@ export function loadUserMatrixPresets(): UserMatrixPreset[] {
   if (typeof window === "undefined") return [];
   try {
     const raw =
-      localStorage.getItem(USER_PRESETS_STORAGE_KEY) ||
-      localStorage.getItem(LEGACY_USER_PRESETS_STORAGE_KEY) ||
-      localStorage.getItem(CFSM_USER_PRESETS_STORAGE_KEY);
+      typeof window !== "undefined"
+        ? localStorage.getItem(USER_PRESETS_STORAGE_KEY) ||
+          localStorage.getItem(LEGACY_USER_PRESETS_STORAGE_KEY)
+        : null;
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) {
@@ -179,10 +185,12 @@ export function loadUserMatrixPresets(): UserMatrixPreset[] {
 export function saveUserMatrixPresets(presets: UserMatrixPreset[]): void {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(
-      USER_PRESETS_STORAGE_KEY,
-      JSON.stringify(presets.slice(0, MAX_USER_PRESETS)),
-    );
+    if (typeof window !== "undefined") {
+      localStorage.setItem(
+        USER_PRESETS_STORAGE_KEY,
+        JSON.stringify(presets.slice(0, MAX_USER_PRESETS)),
+      );
+    }
   } catch (err) {
     console.warn("Failed to save user matrix presets:", err);
   }

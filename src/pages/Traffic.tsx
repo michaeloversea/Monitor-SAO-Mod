@@ -5,7 +5,7 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useTodayTrafficStats } from "@/hooks/useTodayTrafficStats";
 import { useVisibleNodes } from "@/hooks/useVisibleNodes";
 import { useLanguage, useTranslate } from "@/i18n";
-import type { NodeInfo } from "@/types/komari";
+import type { NodeInfo } from "@/types/theme";
 import { formatByteRateLabel, formatBytes } from "@/utils/format";
 import type { TodayTrafficSample, TodayTrafficStat } from "@/utils/trafficStats";
 import { ArrowDown, ArrowUp, ChevronDown, ChevronLeft, RefreshCw } from "lucide-react";

@@ -1,9 +1,8 @@
-import { useCallback, useLayoutEffect, useMemo, useSyncExternalStore } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useMinuteClock } from "@/hooks/useClock";
 import { useVisibleNodeUuids } from "@/hooks/useNode";
-import { useHiddenNodeUuids } from "@/hooks/useVisibleNodes";
 import { useThemeSettings } from "@/hooks/useThemeSettings";
+import { useHiddenNodeUuids } from "@/hooks/useVisibleNodes";
 import {
   getPingOverview,
   getPingOverviewStats,
@@ -16,16 +15,17 @@ import type {
   PingOverviewTaskLoadState,
   PingRecord,
   PingTaskStats,
-} from "@/types/komari";
+} from "@/types/theme";
 import { withTimeoutSignal } from "@/utils/abort";
 import { resolvePingSampleCounts } from "@/utils/pingMetrics";
 import {
   isHomepageMultiPingConfigured,
   resolveHomepagePingSelections,
-  type HomepagePingTaskBindings,
   type HomepagePingSelectionOptions,
+  type HomepagePingTaskBindings,
 } from "@/utils/pingTasks";
 import type { NodeViewMode } from "@/utils/themeSettings";
+import { useCallback, useLayoutEffect, useMemo, useSyncExternalStore } from "react";
 
 const DEFAULT_PING_REFRESH_INTERVAL = 60_000;
 const MIN_PING_REFRESH_INTERVAL = 10_000;

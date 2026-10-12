@@ -51,7 +51,7 @@ describe("mergeLoadMetricSeries", () => {
     ).toEqual([]);
   });
 
-  it("requests only metric definitions that still exist in Komari 1.3.0", () => {
+  it("requests only metric definitions that still exist in older Hub", () => {
     expect(LOAD_METRIC_KEYS).not.toContain("memory.total");
     expect(LOAD_METRIC_KEYS).not.toContain("swap.total");
     expect(LOAD_METRIC_KEYS).not.toContain("disk.total");
@@ -62,7 +62,7 @@ describe("mergeLoadMetricSeries", () => {
 });
 
 describe("resolveLoadRecordTotals", () => {
-  it("uses node basic-info totals when Komari 1.3.0 records omit them", () => {
+  it("uses node basic-info totals when older Hub records omit them", () => {
     expect(
       resolveLoadRecordTotals(
         { ram_total: 0, swap_total: 0, disk_total: 0 },
@@ -75,7 +75,7 @@ describe("resolveLoadRecordTotals", () => {
     });
   });
 
-  it("prefers historical totals from older Komari records when available", () => {
+  it("prefers historical totals from older Hub records when available", () => {
     expect(
       resolveLoadRecordTotals(
         { ram_total: 512, swap_total: 1024, disk_total: 2048 },

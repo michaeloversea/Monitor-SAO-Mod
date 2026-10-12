@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildTrafficHeatSpectrum,
+  buildTrafficQuotaSegmentColors,
+  resolveCustomLatencyColor,
+  resolveCustomLossColor,
+  resolveTrafficSegmentColor,
   latencyHeatColor,
   lossHeatColor,
   speedRateColor,
@@ -137,5 +142,31 @@ describe("speedRateColor", () => {
   it("speedRateColorFromBytes routes raw bytes/sec through the unit tier", () => {
     expect(speedRateColorFromBytes(0)).toBe("var(--speed-idle)");
     expect(speedRateColorFromBytes(5 * 1024 * 1024)).toBe("var(--speed-high)");
+  });
+});
+
+describe("custom status bar boundaries", () => {
+  it("uses exact inclusive latency thresholds and preserves missing/failed sample colors", () => {
+    const thresholds = { excellent: 20, good: 40, moderate: 80, elevated: 160 };
+    const colors = { excellent: "#111111", good: "#222222", moderate: "#333333", elevated: "#444444", critical: "#555555" };
+    expect([0, 20, 21, 40, 41, 80, 81, 160, 161].map(n => resolveCustomLatencyColor(n, thresholds, colors)))
+      .toEqual([colors.excellent, colors.excellent, colors.good, colors.good, colors.moderate, colors.moderate, colors.elevated, colors.elevated, colors.critical]);
+    for (const value of [null, undefined, NaN, -1]) expect(resolveCustomLatencyColor(value, thresholds, colors)).toBe("var(--text-tertiary)");
+  });
+  it("distinguishes zero loss, inclusive loss boundaries and outages", () => {
+    const thresholds = { low: 1.5, medium: 7.5 };
+    const colors = { zero: "#111111", low: "#222222", medium: "#333333", high: "#444444" };
+    expect([0, 0.1, 1.5, 1.6, 7.5, 7.6, 100].map(n => resolveCustomLossColor(n, thresholds, colors)))
+      .toEqual([colors.zero, colors.low, colors.low, colors.medium, colors.medium, colors.high, colors.high]);
+    for (const value of [null, undefined, NaN, -1]) expect(resolveCustomLossColor(value, thresholds, colors)).toBe("var(--text-tertiary)");
+  });
+  it("builds the 18-segment spectrum and interpolates all configured anchors", () => {
+    const colors = { start: "#000000", mid: "#ffffff", high: "#ff0000", end: "#0000ff" };
+    expect(buildTrafficQuotaSegmentColors(colors)).toHaveLength(18);
+    expect([0, .15, .5, .8, 1].map(p => resolveTrafficSegmentColor(p, colors))).toEqual([colors.start, colors.start, colors.mid, colors.high, colors.end]);
+    expect(resolveTrafficSegmentColor(.325, colors)).toBe("#808080");
+    expect(resolveTrafficSegmentColor(-1, colors)).toBe(colors.start);
+    expect(resolveTrafficSegmentColor(2, colors)).toBe(colors.end);
+    expect(buildTrafficHeatSpectrum(colors)).toBe("linear-gradient(to right, #000000 0%, #000000 15%, #ffffff 50%, #ff0000 80%, #0000ff 100%)");
   });
 });

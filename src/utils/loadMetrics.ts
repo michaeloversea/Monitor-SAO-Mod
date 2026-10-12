@@ -1,4 +1,4 @@
-import type { LoadRecord } from "@/types/komari";
+import type { LoadRecord } from "@/types/theme";
 
 const LOAD_METRIC_FIELD = {
   "cpu.usage": "cpu",
@@ -39,7 +39,7 @@ function nonNegativeFinite(value: number | undefined) {
 }
 
 /**
- * Komari 1.3.0 不再保存 memory.total、swap.total、disk.total 指标。
+ * 极简探针历史数据可能不包含内存、Swap 与磁盘总量。
  * 旧版记录仍优先使用当时保存的总量；缺失时使用节点基础信息里的当前总量。
  */
 export function resolveLoadRecordTotals(

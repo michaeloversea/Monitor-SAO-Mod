@@ -2,13 +2,13 @@
   "name": "SAO · JKSR Modded",
   "short": "sao",
   "description": "极简立体仪表盘主题 · 适配 Monitor 探针 (v1.4.0+)",
-  "version": "1.1.6",
+  "version": "1.2.1",
   "author": "JKSR / WAOR",
   "url": "https://github.com/michaeloversea/Monitor-SAO-Mod",
   "config": [
     {
       "type": "title",
-      "label": "外观与布局"
+      "label": "首页 · 外观与布局"
     },
     {
       "key": "defaultAppearance",
@@ -37,10 +37,228 @@
       "default": "zh-CN",
       "help": "未选择语言的访客使用此设置；访客可通过首页右上角语言按钮切换。",
       "options": [
-        { "value": "zh-CN", "label": "简体中文" },
-        { "value": "zh-TW", "label": "繁體中文" },
-        { "value": "en", "label": "English" }
+        {
+          "value": "zh-CN",
+          "label": "简体中文"
+        },
+        {
+          "value": "zh-TW",
+          "label": "繁體中文"
+        },
+        {
+          "value": "en",
+          "label": "English"
+        }
       ]
+    },
+    {
+      "key": "clusterOverviewMode",
+      "type": "select",
+      "label": "首页集群状态展示模式",
+      "default": "classic",
+      "options": [
+        {
+          "value": "classic",
+          "label": "经典双层卡片 (上下两层：状态与实时流量)"
+        },
+        {
+          "value": "nodes",
+          "label": "机架方格热力矩阵 (20 列紧凑机架网格全景)"
+        }
+      ]
+    },
+    {
+      "key": "matrixColorTheme",
+      "type": "select",
+      "label": "机架方格矩阵配色风格",
+      "default": "default",
+      "options": [
+        {
+          "value": "default",
+          "label": "经典标准 (绿 · 橙 · 红)"
+        },
+        {
+          "value": "eva",
+          "label": "EVA 初号机 (紫 · 荧光绿 · 橙红)"
+        },
+        {
+          "value": "cyberpunk",
+          "label": "夜之城 2077 (电光青 · 亮黄 · 绯红)"
+        },
+        {
+          "value": "divergence",
+          "label": "命运石之门 (暖杏橙 · 氖气橙 · 烈焰红橙)"
+        }
+      ]
+    },
+    {
+      "key": "matrixBootAnimation",
+      "type": "boolean",
+      "label": "方格矩阵 SAO 主题开场动画",
+      "help": "进入首页时方格矩阵是否播放光束横扫与开场点阵动画",
+      "default": true
+    },
+    {
+      "key": "matrixMockFill",
+      "type": "boolean",
+      "label": "模拟数据填充机架空闲机位插槽",
+      "help": "在方格矩阵中是否使用动态模拟负载数据填满未接入服务器的闲置插槽",
+      "default": false
+    },
+    {
+      "key": "showGroupTabs",
+      "type": "boolean",
+      "label": "显示分组筛选栏",
+      "help": "在卡片列表上方展示分组 Tab 快速筛选",
+      "default": true
+    },
+    {
+      "key": "showUngroupedTab",
+      "type": "boolean",
+      "label": "在分组栏显示“未分组”标签",
+      "help": "当存在未指定分组的节点时，在分组栏提供“未分组”快捷标签（关闭后未分组节点仍在“全部”中可见）",
+      "default": false
+    },
+    {
+      "key": "showRegionBar",
+      "type": "boolean",
+      "label": "显示地区筛选栏",
+      "help": "在卡片列表上方展示国旗地区快捷标签",
+      "default": true
+    },
+    {
+      "key": "showHomeOverview",
+      "type": "boolean",
+      "label": "显示首页顶部总览栏",
+      "help": "在首页顶部展示服务器数、在线率、内存、硬盘、流量及资产卡片",
+      "default": true
+    },
+    {
+      "key": "overviewFollowGroup",
+      "type": "boolean",
+      "label": "顶部总览跟随当前分组联动",
+      "help": "开启后切换分组时，顶部总览仅统计当前分组数据；关闭后始终统计全站整体数据",
+      "default": false
+    },
+    {
+      "key": "showTrafficPageButton",
+      "type": "boolean",
+      "label": "显示今日流量页入口按钮",
+      "help": "在首页今日流量卡片右上角显示进入流量统计页的图表按钮；若希望访客可见需同步开启「向访客显示流量入口按钮」",
+      "default": true
+    },
+    {
+      "key": "showTrafficPageForGuests",
+      "type": "boolean",
+      "label": "向访客显示流量入口按钮",
+      "help": "默认关闭。关闭时未登录访客隐藏今日流量卡片右上角图表按钮，保持卡片无图标统一纯净；开启后访客亦可在卡片右上角点击进入流量统计页",
+      "default": false
+    },
+    {
+      "key": "showCostSummary",
+      "type": "boolean",
+      "label": "显示资产统计页入口按钮",
+      "help": "在首页资产总值卡右上角显示进入资产统计页的钱币图标按钮；若未开启「向访客公开价格与资产」，该按钮仅管理员登录后可见",
+      "default": true
+    },
+    {
+      "key": "showCostSummaryFloatingButton",
+      "type": "boolean",
+      "label": "显示资产看板悬浮按钮",
+      "help": "备用悬浮入口（在页面右下角显示）：仅在关闭了「资产总值」卡片右上角按钮或关闭了「显示顶部总览栏」时生效浮现，避免入口重复；同样受访客资产权限控制",
+      "default": true
+    },
+    {
+      "key": "showPriceForGuests",
+      "type": "boolean",
+      "label": "向访客公开价格与资产",
+      "help": "默认关闭。独立控制财务数据是否对访客脱敏：开启后访客可见节点价格与资产总额并解锁资产入口；关闭时对访客隐藏价格并将资产显示为保密",
+      "default": false
+    },
+    {
+      "key": "showTrafficRating",
+      "type": "boolean",
+      "label": "显示今日流量评级",
+      "help": "在首页「今日流量」指标卡片底部显示用量评级标签",
+      "default": false
+    },
+    {
+      "key": "trafficRatingLabels",
+      "type": "string",
+      "label": "今日流量评级用词",
+      "default": "",
+      "help": "4 级评级用词以逗号隔开"
+    },
+    {
+      "key": "showAssetRating",
+      "type": "boolean",
+      "label": "显示资产总值评级",
+      "help": "在首页「资产总值」指标卡片底部显示总价值评级标签",
+      "default": false
+    },
+    {
+      "key": "assetRatingLabels",
+      "type": "string",
+      "label": "资产总值评级用词",
+      "default": "",
+      "help": "4 级评级用词以逗号隔开"
+    },
+    {
+      "key": "showBandwidthRating",
+      "type": "boolean",
+      "label": "显示集群实时带宽徽章评级",
+      "help": "在右上角「集群状态」面板标题栏（状态健康旁）显示吞吐状态徽章",
+      "default": true
+    },
+    {
+      "key": "bandwidthRatingLabels",
+      "type": "string",
+      "label": "集群实时带宽评级用词",
+      "default": "",
+      "help": "4 级评级用词以逗号隔开"
+    },
+    {
+      "key": "enableAdminButton",
+      "type": "boolean",
+      "label": "显示前台管理员登录入口",
+      "help": "在页面右上角展示登录/管理面板快捷入口",
+      "default": true
+    },
+    {
+      "key": "adminNickname",
+      "type": "string",
+      "label": "管理员显示昵称",
+      "default": "",
+      "help": "登录后在页面顶部总览问候语处展示（如：早上好，jerry），留空默认为 Admin"
+    },
+    {
+      "key": "matrixBootEffect",
+      "type": "select",
+      "label": "方格矩阵开屏动效形式",
+      "help": "设置进入首页时方格矩阵的开场显影动效",
+      "default": "laser-scan",
+      "options": [
+        {
+          "value": "laser-scan",
+          "label": "激光横扫 (Laser Scan)"
+        },
+        {
+          "value": "digital-rain",
+          "label": "数码雨流 (Digital Rain)"
+        },
+        {
+          "value": "cyber-glitch",
+          "label": "神经故障 (Cyber Glitch)"
+        },
+        {
+          "value": "divergence-flux",
+          "label": "世界线跳变 (Divergence Flux)"
+        }
+      ]
+    },
+    {
+      "type": "title",
+      "label": "服务器"
     },
     {
       "key": "desktopNodeViewMode",
@@ -91,73 +309,6 @@
       ]
     },
     {
-      "key": "clusterOverviewMode",
-      "type": "select",
-      "label": "首页集群状态展示模式",
-      "default": "classic",
-      "options": [
-        {
-          "value": "classic",
-          "label": "经典双层卡片 (上下两层：状态与实时流量)"
-        },
-        {
-          "value": "nodes",
-          "label": "机架方格热力矩阵 (20 列紧凑机架网格全景)"
-        }
-      ]
-    },
-    {
-      "key": "matrixColorTheme",
-      "type": "select",
-      "label": "机架方格矩阵配色风格",
-      "default": "default",
-      "options": [
-        {
-          "value": "default",
-          "label": "经典标准 (绿 · 橙 · 红)"
-        },
-        {
-          "value": "eva",
-          "label": "EVA 初号机 (紫 · 荧光绿 · 橙红)"
-        }
-      ]
-    },
-    {
-      "key": "matrixBootAnimation",
-      "type": "boolean",
-      "label": "方格矩阵 SAO 主题开场动画",
-      "help": "进入首页时方格矩阵是否播放光束横扫与开场点阵动画",
-      "default": true
-    },
-    {
-      "key": "matrixMockFill",
-      "type": "boolean",
-      "label": "模拟数据填充机架空闲机位插槽",
-      "help": "在方格矩阵中是否使用动态模拟负载数据填满未接入服务器的闲置插槽",
-      "default": false
-    },
-    {
-      "key": "showGroupTabs",
-      "type": "boolean",
-      "label": "显示分组筛选栏",
-      "help": "在卡片列表上方展示分组 Tab 快速筛选",
-      "default": true
-    },
-    {
-      "key": "showUngroupedTab",
-      "type": "boolean",
-      "label": "在分组栏显示“未分组”标签",
-      "help": "当存在未指定分组的节点时，在分组栏提供“未分组”快捷标签（关闭后未分组节点仍在“全部”中可见）",
-      "default": false
-    },
-    {
-      "key": "showRegionBar",
-      "type": "boolean",
-      "label": "显示地区筛选栏",
-      "help": "在卡片列表上方展示国旗地区快捷标签",
-      "default": true
-    },
-    {
       "key": "showCardGroup",
       "type": "boolean",
       "label": "在卡片上显示节点分组标签",
@@ -170,59 +321,6 @@
       "label": "允许前台切换节点排序",
       "help": "在首页卡片上方提供按名称、延迟、流量等排序下拉菜单",
       "default": true
-    },
-    {
-      "type": "title",
-      "label": "监控与组件"
-    },
-    {
-      "key": "showHomeOverview",
-      "type": "boolean",
-      "label": "显示首页顶部总览栏",
-      "help": "在首页顶部展示服务器数、在线率、内存、硬盘、流量及资产卡片",
-      "default": true
-    },
-    {
-      "key": "overviewFollowGroup",
-      "type": "boolean",
-      "label": "顶部总览跟随当前分组联动",
-      "help": "开启后切换分组时，顶部总览仅统计当前分组数据；关闭后始终统计全站整体数据",
-      "default": false
-    },
-    {
-      "key": "showTrafficPageButton",
-      "type": "boolean",
-      "label": "显示今日流量页入口按钮",
-      "help": "在首页今日流量卡片右上角显示进入流量统计页的图表按钮；若希望访客可见需同步开启「向访客显示流量入口按钮」",
-      "default": true
-    },
-    {
-      "key": "showTrafficPageForGuests",
-      "type": "boolean",
-      "label": "向访客显示流量入口按钮",
-      "help": "默认关闭。关闭时未登录访客隐藏今日流量卡片右上角图表按钮，保持卡片无图标统一纯净；开启后访客亦可在卡片右上角点击进入流量统计页",
-      "default": false
-    },
-    {
-      "key": "showCostSummary",
-      "type": "boolean",
-      "label": "显示资产统计页入口按钮",
-      "help": "在首页资产总值卡右上角显示进入资产统计页的钱币图标按钮；若未开启「向访客公开价格与资产」，该按钮仅管理员登录后可见",
-      "default": true
-    },
-    {
-      "key": "showCostSummaryFloatingButton",
-      "type": "boolean",
-      "label": "显示资产看板悬浮按钮",
-      "help": "备用悬浮入口（在页面右下角显示）：仅在关闭了「资产总值」卡片右上角按钮或关闭了「显示顶部总览栏」时生效浮现，避免入口重复；同样受访客资产权限控制",
-      "default": true
-    },
-    {
-      "key": "showPriceForGuests",
-      "type": "boolean",
-      "label": "向访客公开价格与资产",
-      "help": "默认关闭。独立控制财务数据是否对访客脱敏：开启后访客可见节点价格与资产总额并解锁资产入口；关闭时对访客隐藏价格并将资产显示为保密",
-      "default": false
     },
     {
       "key": "enableHomepageMultiPing",
@@ -288,8 +386,43 @@
       "default": true
     },
     {
+      "key": "pingLatencyThresholds",
+      "type": "text",
+      "label": "延迟评级阈值",
+      "default": "{\"excellent\":60,\"good\":100,\"moderate\":160,\"elevated\":200}",
+      "help": "也可在前台主题设置 → 服务器 → 状态光柱中实时预览并调整。"
+    },
+    {
+      "key": "pingLatencyColors",
+      "type": "text",
+      "label": "延迟光柱颜色",
+      "default": "{\"excellent\":\"#10b981\",\"good\":\"#84cc16\",\"moderate\":\"#eab308\",\"elevated\":\"#f59e0b\",\"critical\":\"#ef4444\"}",
+      "help": "也可在前台主题设置 → 服务器 → 状态光柱中实时预览并调整。"
+    },
+    {
+      "key": "pingLossThresholds",
+      "type": "text",
+      "label": "丢包评级阈值",
+      "default": "{\"low\":3,\"medium\":10}",
+      "help": "也可在前台主题设置 → 服务器 → 状态光柱中实时预览并调整。"
+    },
+    {
+      "key": "pingLossColors",
+      "type": "text",
+      "label": "丢包光柱颜色",
+      "default": "{\"zero\":\"#10b981\",\"low\":\"#eab308\",\"medium\":\"#f97316\",\"high\":\"#ef4444\"}",
+      "help": "也可在前台主题设置 → 服务器 → 状态光柱中实时预览并调整。"
+    },
+    {
+      "key": "trafficSpectrumColors",
+      "type": "text",
+      "label": "流量光柱色谱",
+      "default": "{\"start\":\"#10b981\",\"mid\":\"#eab308\",\"high\":\"#f97316\",\"end\":\"#ef4444\"}",
+      "help": "也可在前台主题设置 → 服务器 → 状态光柱中实时预览并调整。"
+    },
+    {
       "type": "title",
-      "label": "资产与财务"
+      "label": "资产"
     },
     {
       "key": "costRateApiUrl",
@@ -297,70 +430,6 @@
       "label": "实时汇率 API 接口 URL",
       "default": "https://open.er-api.com/v6/latest/CNY",
       "help": "留空使用官方默认免费公共汇率接口"
-    },
-    {
-      "type": "title",
-      "label": "文字评级配置"
-    },
-    {
-      "key": "showTrafficRating",
-      "type": "boolean",
-      "label": "显示今日流量评级",
-      "help": "在首页「今日流量」指标卡片底部显示用量评级标签",
-      "default": false
-    },
-    {
-      "key": "trafficRatingLabels",
-      "type": "string",
-      "label": "今日流量评级用词",
-      "default": "",
-      "help": "4 级评级用词以逗号隔开"
-    },
-    {
-      "key": "showAssetRating",
-      "type": "boolean",
-      "label": "显示资产总值评级",
-      "help": "在首页「资产总值」指标卡片底部显示总价值评级标签",
-      "default": false
-    },
-    {
-      "key": "assetRatingLabels",
-      "type": "string",
-      "label": "资产总值评级用词",
-      "default": "",
-      "help": "4 级评级用词以逗号隔开"
-    },
-    {
-      "key": "showBandwidthRating",
-      "type": "boolean",
-      "label": "显示集群实时带宽徽章评级",
-      "help": "在右上角「集群状态」面板标题栏（状态健康旁）显示吞吐状态徽章",
-      "default": true
-    },
-    {
-      "key": "bandwidthRatingLabels",
-      "type": "string",
-      "label": "集群实时带宽评级用词",
-      "default": "",
-      "help": "4 级评级用词以逗号隔开"
-    },
-    {
-      "type": "title",
-      "label": "管理与安全"
-    },
-    {
-      "key": "enableAdminButton",
-      "type": "boolean",
-      "label": "显示前台管理员登录入口",
-      "help": "在页面右上角展示登录/管理面板快捷入口",
-      "default": true
-    },
-    {
-      "key": "adminNickname",
-      "type": "string",
-      "label": "管理员显示昵称",
-      "default": "",
-      "help": "登录后在页面顶部总览问候语处展示（如：早上好，jerry），留空默认为 Admin"
     }
   ]
 }

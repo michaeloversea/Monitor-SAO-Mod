@@ -1,9 +1,12 @@
 import { InstancePanel } from "@/components/instance/InstancePanel";
 import { MatrixPatternEditor } from "@/components/matrix/MatrixPatternEditor";
 import { HomepageNodePingEditor } from "@/components/node/HomepageNodePingEditor";
+import { LatencyBars } from "@/components/node/LatencyBars";
+import { QualityBars } from "@/components/node/QualityBars";
 import { Flag } from "@/components/ui/Flag";
 import { SettingSelect } from "@/components/ui/SettingSelect";
 import { Spinner } from "@/components/ui/Spinner";
+import { useAutoSave } from "@/hooks/useAutoSave";
 import { useHourlyClock } from "@/hooks/useClock";
 import { usePublicConfig } from "@/hooks/usePublicConfig";
 import { LANGUAGE_OPTIONS, t, useLanguage, useTranslate, type Language } from "@/i18n";
@@ -15,7 +18,7 @@ import {
   saveThemeSettings,
 } from "@/services/api";
 import { queryClient } from "@/services/queryClient";
-import type { AdminClient, PingTask, ThemeSettings } from "@/types/komari";
+import type { AdminClient, PingLatencyColors, PingLatencyThresholds, PingLossColors, PingLossThresholds, PingOverviewBucket, PingTask, ThemeSettings, TrafficSpectrumColors } from "@/types/theme";
 import {
   calculateCostPremiumAmount,
   calculateCostPremiumBasisAt,
@@ -31,6 +34,7 @@ import {
 } from "@/utils/cost";
 import { dedupeGroupLabels, normalizeHomeGroupOrder, sortHomeGroupOptions } from "@/utils/homeNodes";
 import { HOME_SORT_FIELD_LABELS, HOME_SORT_FIELDS } from "@/utils/homeSort";
+import { buildTrafficQuotaSegmentColors } from "@/utils/metricTone";
 import { normalizeNodeIdentityList } from "@/utils/nodeIdentity";
 import { getDefaultOverviewRatingLabelText, type OverviewRatingKind } from "@/utils/overviewRating";
 import {
@@ -41,11 +45,7 @@ import {
   normalizeHomepagePingTaskBindings,
   type HomepagePingTaskBindings,
 } from "@/utils/pingTasks";
-import {
-  DEFAULT_THEME_SETTINGS,
-  normalizeThemeSettings,
-  type ResolvedThemeSettings,
-} from "@/utils/themeSettings";
+import { DEFAULT_PING_LATENCY_COLORS, DEFAULT_PING_LATENCY_THRESHOLDS, DEFAULT_PING_LOSS_COLORS, DEFAULT_PING_LOSS_THRESHOLDS, DEFAULT_THEME_SETTINGS, DEFAULT_TRAFFIC_SPECTRUM_COLORS, normalizePingLatencyColors, normalizePingLatencyThresholds, normalizePingLossColors, normalizePingLossThresholds, normalizeThemeSettings, normalizeTrafficSpectrumColors, STATUS_BAR_PRESETS, type MatrixBootEffect, type MatrixColorTheme, type ResolvedThemeSettings, type StatusBarPreset } from "@/utils/themeSettings";
 import { useQuery } from "@tanstack/react-query";
 import { clsx } from "clsx";
 import {
@@ -62,16 +62,175 @@ import {
   List,
   ListFilter,
   Moon,
-  RefreshCw,
-  Rows3,
+  RefreshCw, RotateCcw, Rows3,
   Save,
-  Search,
-  Square,
+  Search, Server, Sliders, Sparkles, Square,
   Sun,
-  SunMoon,
+  SunMoon
 } from "lucide-react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, Navigate, useLocation, useSearchParams } from "react-router-dom";
+const LATENCY_TIER_CONFIG = [
+  { key: "excellent" as const, label: "极好", hint: "极低延迟，最流畅体验", defaultColor: DEFAULT_PING_LATENCY_COLORS.excellent },
+  { key: "good" as const, label: "良好", hint: "正常低延迟，无感知波动", defaultColor: DEFAULT_PING_LATENCY_COLORS.good },
+  { key: "moderate" as const, label: "中等", hint: "稍有延迟，基本稳定可用", defaultColor: DEFAULT_PING_LATENCY_COLORS.moderate },
+  { key: "elevated" as const, label: "偏高", hint: "高延迟警示，网络较吃紧", defaultColor: DEFAULT_PING_LATENCY_COLORS.elevated },
+  { key: "critical" as const, label: "极高", hint: "严重延迟，极度拥堵或告警", defaultColor: DEFAULT_PING_LATENCY_COLORS.critical },
+] as const;
+
+const LOSS_TIER_CONFIG = [
+  { key: "zero" as const, label: "无丢包 (0%)", hint: "网络通畅，零样本丢失", defaultColor: DEFAULT_PING_LOSS_COLORS.zero },
+  { key: "low" as const, label: "轻微丢包", hint: "偶发微量丢包，基本可用", defaultColor: DEFAULT_PING_LOSS_COLORS.low },
+  { key: "medium" as const, label: "中度丢包", hint: "较明显持续丢包，需注意", defaultColor: DEFAULT_PING_LOSS_COLORS.medium },
+  { key: "high" as const, label: "严重丢包", hint: "严重丢包甚至失联脱网", defaultColor: DEFAULT_PING_LOSS_COLORS.high },
+] as const;
+
+const TRAFFIC_SPECTRUM_ANCHOR_CONFIG = [
+  {
+    key: "start" as const,
+    label: "充裕健康色 (0% ~ 15%)",
+    stage: "充裕健康期",
+    hint: "初始充裕配额，健康充足状态",
+    defaultColor: DEFAULT_TRAFFIC_SPECTRUM_COLORS.start,
+  },
+  {
+    key: "mid" as const,
+    label: "半程消耗色 (~50%)",
+    stage: "半程过渡期",
+    hint: "中位消耗阶段，稳定过渡",
+    defaultColor: DEFAULT_TRAFFIC_SPECTRUM_COLORS.mid,
+  },
+  {
+    key: "high" as const,
+    label: "高耗预警色 (~80%)",
+    stage: "高耗预警期",
+    hint: "配额消耗过半，提示关注用量",
+    defaultColor: DEFAULT_TRAFFIC_SPECTRUM_COLORS.high,
+  },
+  {
+    key: "end" as const,
+    label: "危险耗尽色 (100% 警报红)",
+    stage: "耗尽警报红",
+    hint: "临近或已耗尽，末端绝对保证警报红",
+    defaultColor: DEFAULT_TRAFFIC_SPECTRUM_COLORS.end,
+  },
+] as const;
+interface ColorThemeOption {
+  id: MatrixColorTheme;
+  label: string;
+  badge: string;
+  desc: string;
+  colors: [string, string, string, string];
+  badgeClass: string;
+}
+
+const COLOR_THEME_OPTIONS: ColorThemeOption[] = [
+  {
+    id: "default",
+    label: "经典标准",
+    badge: "CLASSIC",
+    desc: "绿 · 橙 · 红 常规监控色阶",
+    colors: ["#34d399", "#10b981", "#f59e0b", "#ef4444"],
+    badgeClass: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border-emerald-500/30",
+  },
+  {
+    id: "eva",
+    label: "EVA 初号机",
+    badge: "UNIT-01",
+    desc: "机体紫 · 荧光绿 · 警告橙 · 暴走红",
+    colors: ["#7c3aed", "#00ff66", "#f97316", "#ef4444"],
+    badgeClass: "bg-purple-500/15 text-purple-600 dark:text-purple-300 border-purple-500/30",
+  },
+  {
+    id: "cyberpunk",
+    label: "夜之城 2077",
+    badge: "NIGHT CITY",
+    desc: "斯安威斯坦青 · 霓虹亮黄 · 超频绯红",
+    colors: ["#00f0ff", "#fcee0a", "#ff0055", "#ef4444"],
+    badgeClass: "bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 border-cyan-500/30",
+  },
+  {
+    id: "divergence",
+    label: "命运石之门",
+    badge: "1.048596%",
+    desc: "待机暖杏橙 · 氖气放电暖橙 · 烈焰超频红橙",
+    colors: ["#fdba74", "#f97316", "#ea580c", "#ef4444"],
+    badgeClass: "bg-orange-500/15 text-orange-600 dark:text-orange-300 border-orange-500/30",
+  },
+];
+
+interface BootEffectOption {
+  id: MatrixBootEffect;
+  label: string;
+  badge: string;
+  desc: string;
+  badgeClass: string;
+}
+
+const BOOT_EFFECT_OPTIONS: BootEffectOption[] = [
+  {
+    id: "laser-scan",
+    label: "激光横扫 (Laser Scan)",
+    badge: "RADAR",
+    desc: "经典雷达激光束自左向右横向扫描显影，纯正 SAO 机能风格",
+    badgeClass: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border-emerald-500/30",
+  },
+  {
+    id: "digital-rain",
+    label: "数码雨流 (Digital Rain)",
+    badge: "CASCADE",
+    desc: "交错流光瀑布自上而下倾泻显影，如黑客帝国代码雨般涌现",
+    badgeClass: "bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 border-cyan-500/30",
+  },
+  {
+    id: "cyber-glitch",
+    label: "神经故障 (Cyber Glitch)",
+    badge: "OVERCLOCK",
+    desc: "斯安威斯坦电光青与超频品红噪波爆闪、行撕裂与协议校准咬合",
+    badgeClass: "bg-fuchsia-500/15 text-fuchsia-600 dark:text-fuchsia-300 border-fuchsia-500/30",
+  },
+  {
+    id: "divergence-flux",
+    label: "世界线跳变 (Divergence Flux)",
+    badge: "1.048596%",
+    desc: "真空管惰性氖气放电赤橙火花高频跳动，自左向右逐位锁定定格",
+    badgeClass: "bg-orange-500/15 text-orange-600 dark:text-orange-300 border-orange-500/30",
+  },
+];
+
+const PREVIEW_LATENCY_SAMPLES = [
+  15, 25, 40, 55, 65, 80, 95, 110, 130, 150, 165, 185, 195, 210, 260, 320,
+];
+
+const PREVIEW_LOSS_SAMPLES = [
+  0, 0, 0, 1.2, 0, 0, 2.5, 0, 4.8, 7.5, 0, 12.0, 18.5, 0, 25.0, 0,
+];
+
+const PREVIEW_LATENCY_BUCKETS: PingOverviewBucket[] = PREVIEW_LATENCY_SAMPLES.map(
+  (value, index) => ({
+    index,
+    total: 10,
+    successful: 10,
+    lost: 0,
+    loss: 0,
+    value,
+    startAt: null,
+    endAt: null,
+  }),
+);
+
+const PREVIEW_LOSS_BUCKETS: PingOverviewBucket[] = PREVIEW_LOSS_SAMPLES.map(
+  (loss, index) => ({
+    index,
+    total: 10,
+    successful: Math.round(10 * (1 - loss / 100)),
+    lost: Math.round(10 * (loss / 100)),
+    loss,
+    value: 40,
+    startAt: null,
+    endAt: null,
+  }),
+);
 
 const APPEARANCE_OPTIONS = [
   { value: "light", label: "浅色", icon: Sun },
@@ -273,6 +432,12 @@ function pickManagedThemeSettings(settings: ResolvedThemeSettings) {
     mobileNodeViewMode: settings.mobileNodeViewMode,
     clusterOverviewMode: settings.clusterOverviewMode,
     matrixColorTheme: settings.matrixColorTheme,
+    matrixBootEffect: settings.matrixBootEffect,
+    pingLatencyThresholds: settings.pingLatencyThresholds,
+    pingLatencyColors: settings.pingLatencyColors,
+    pingLossThresholds: settings.pingLossThresholds,
+    pingLossColors: settings.pingLossColors,
+    trafficSpectrumColors: settings.trafficSpectrumColors,
     matrixMockFill: settings.matrixMockFill,
     matrixBootAnimation: settings.matrixBootAnimation,
     matrixCustomPattern: settings.matrixCustomPattern,
@@ -399,7 +564,7 @@ const ToggleRow = memo(function ToggleRow({
   );
 });
 
-type ThemeTabId = "home" | "card" | "cost" | "ping";
+type ThemeTabId = "home" | "card" | "cost";
 
 const THEME_TABS: ReadonlyArray<{
   id: ThemeTabId;
@@ -407,10 +572,9 @@ const THEME_TABS: ReadonlyArray<{
   hint: string;
   icon: typeof ListFilter;
 }> = [
-  { id: "home", label: "首页", hint: "外观、视图、总览与排序", icon: ListFilter },
-  { id: "card", label: "卡片", hint: "卡片上显示哪些信息与悬浮窗", icon: Rows3 },
-  { id: "cost", label: "花费", hint: "资产统计与收购溢价", icon: CircleDollarSign },
-  { id: "ping", label: "延迟", hint: "多线路与逐节点指定", icon: Activity },
+  { id: "home", label: "首页", hint: "外观、总览、权限与评级", icon: ListFilter },
+  { id: "card", label: "服务器", hint: "视图、指标、排序、延迟与光柱", icon: Server },
+  { id: "cost", label: "资产", hint: "财务汇率与买入溢价", icon: CircleDollarSign },
 ];
 
 const DEFAULT_THEME_TAB: ThemeTabId = "home";
@@ -739,7 +903,7 @@ export function ThemeManage() {
   const [premiumSearch, setPremiumSearch] = useState("");
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get("tab");
-  const activeTab: ThemeTabId = isThemeTabId(tabParam) ? tabParam : DEFAULT_THEME_TAB;
+  const activeTab: ThemeTabId = tabParam === "ping" ? "card" : isThemeTabId(tabParam) ? tabParam : DEFAULT_THEME_TAB;
   const bodyRef = useRef<HTMLDivElement>(null);
   const sectionsRef = useRef<HTMLDivElement>(null);
 
@@ -850,6 +1014,117 @@ export function ThemeManage() {
     },
     [],
   );
+  const patchPingLatencyThreshold = useCallback(
+    (key: keyof PingLatencyThresholds, val: number) => {
+      editVersionRef.current += 1;
+      setDraft((prev) => ({
+        ...prev,
+        pingLatencyThresholds: {
+          ...prev.pingLatencyThresholds,
+          [key]: val,
+        },
+      }));
+    },
+    [],
+  );
+
+  const patchPingLatencyColor = useCallback(
+    (key: keyof PingLatencyColors, hex: string) => {
+      editVersionRef.current += 1;
+      setDraft((prev) => ({
+        ...prev,
+        pingLatencyColors: {
+          ...prev.pingLatencyColors,
+          [key]: hex,
+        },
+      }));
+    },
+    [],
+  );
+
+  const resetPingLatency = useCallback(() => {
+    editVersionRef.current += 1;
+    setDraft((prev) => ({
+      ...prev,
+      pingLatencyThresholds: DEFAULT_PING_LATENCY_THRESHOLDS,
+      pingLatencyColors: DEFAULT_PING_LATENCY_COLORS,
+    }));
+  }, []);
+
+  const patchPingLossThreshold = useCallback(
+    (key: keyof PingLossThresholds, val: number) => {
+      editVersionRef.current += 1;
+      setDraft((prev) => ({
+        ...prev,
+        pingLossThresholds: {
+          ...prev.pingLossThresholds,
+          [key]: val,
+        },
+      }));
+    },
+    [],
+  );
+
+  const patchPingLossColor = useCallback(
+    (key: keyof PingLossColors, hex: string) => {
+      editVersionRef.current += 1;
+      setDraft((prev) => ({
+        ...prev,
+        pingLossColors: {
+          ...prev.pingLossColors,
+          [key]: hex,
+        },
+      }));
+    },
+    [],
+  );
+
+  const resetPingLoss = useCallback(() => {
+    editVersionRef.current += 1;
+    setDraft((prev) => ({
+      ...prev,
+      pingLossThresholds: DEFAULT_PING_LOSS_THRESHOLDS,
+      pingLossColors: DEFAULT_PING_LOSS_COLORS,
+    }));
+  }, []);
+
+  const patchTrafficSpectrumColor = useCallback(
+    (key: keyof TrafficSpectrumColors, hex: string) => {
+      editVersionRef.current += 1;
+      setDraft((prev) => ({
+        ...prev,
+        trafficSpectrumColors: {
+          ...prev.trafficSpectrumColors,
+          [key]: hex,
+        },
+      }));
+    },
+    [],
+  );
+
+  const applyStatusBarPreset = useCallback((preset: StatusBarPreset) => {
+    editVersionRef.current += 1;
+    setDraft((prev) => ({
+      ...prev,
+      trafficSpectrumColors: { ...preset.colors },
+      pingLatencyColors: { ...preset.latencyColors },
+      pingLossColors: { ...preset.lossColors },
+    }));
+  }, []);
+
+  const resetTrafficSpectrum = useCallback(() => {
+    editVersionRef.current += 1;
+    setDraft((prev) => ({
+      ...prev,
+      trafficSpectrumColors: DEFAULT_TRAFFIC_SPECTRUM_COLORS,
+    }));
+  }, []);
+
+  const previewTrafficSegmentColors = useMemo(
+    () => buildTrafficQuotaSegmentColors(draft.trafficSpectrumColors),
+    [draft.trafficSpectrumColors],
+  );
+
   const toggleTaskExpanded = useCallback((taskId: number) => {
     setExpandedTaskId((current) => (current === taskId ? null : taskId));
     setNodeSearch("");
@@ -1122,6 +1397,10 @@ export function ThemeManage() {
   );
   const draftCostRateApiUrlInvalid =
     draft.costRateApiUrl.trim() !== "" && !isCostRateApiUrlValid(draft.costRateApiUrl.trim());
+  const latencyBounds = Object.values(draft.pingLatencyThresholds);
+  const draftStatusInvalid = !latencyBounds.every((value, index) => Number.isFinite(value) && value >= 1 && Number.isInteger(value) && (index === 0 || value > latencyBounds[index - 1]))
+    || !Number.isFinite(draft.pingLossThresholds.low) || !Number.isFinite(draft.pingLossThresholds.medium)
+    || draft.pingLossThresholds.low <= 0 || draft.pingLossThresholds.medium <= draft.pingLossThresholds.low || draft.pingLossThresholds.medium > 100;
   const draftNodePingInvalid = Object.values(draft.homepageNodePingSettings).some(
     (setting) => setting.mode === "custom" && setting.taskIds.length === 0,
   );
@@ -1139,6 +1418,12 @@ function draftToThemeSettings(targetDraft: ThemeDraft): ThemeSettings {
   return {
     ...rest,
     homepagePingBindings: pruneBindings(rest.homepagePingBindings),
+    pingLatencyThresholds: normalizePingLatencyThresholds(rest.pingLatencyThresholds),
+    pingLatencyColors: normalizePingLatencyColors(rest.pingLatencyColors),
+    pingLossThresholds: normalizePingLossThresholds(rest.pingLossThresholds),
+    pingLossColors: normalizePingLossColors(rest.pingLossColors),
+    trafficSpectrumColors: normalizeTrafficSpectrumColors(rest.trafficSpectrumColors),
+
     homeGroupOrder: normalizeHomeGroupOrder(rest.homeGroupOrder),
     trafficRatingLabels: ratingLabels.traffic,
     bandwidthRatingLabels: ratingLabels.bandwidth,
@@ -1199,7 +1484,7 @@ function draftToThemeSettings(targetDraft: ThemeDraft): ThemeSettings {
       !config?.theme ||
       savingDraftRef.current ||
       draftCostRateApiUrlInvalid ||
-      draftNodePingInvalid
+      draftNodePingInvalid || draftStatusInvalid
     ) {
       return;
     }
@@ -1223,9 +1508,7 @@ function draftToThemeSettings(targetDraft: ThemeDraft): ThemeSettings {
       await Promise.all([savePromise, minDelayPromise]);
       lastSeededSignatureRef.current = managedSettingsSignature(nextSettings);
       await queryClient.invalidateQueries({ queryKey: ["public"] });
-      if (editVersionRef.current === submittedEditVersion) {
-        showToast(t("主题设置已保存"));
-      }
+      if (editVersionRef.current === submittedEditVersion) setMessage(null);
     } catch (saveError) {
       if (
         saveError instanceof ApiRequestError &&
@@ -1233,7 +1516,7 @@ function draftToThemeSettings(targetDraft: ThemeDraft): ThemeSettings {
       ) {
         showToast(t("保存失败：管理员未登录或凭据已失效"));
         setAccessRevoked(true);
-        return;
+        throw saveError;
       }
       showToast(saveError instanceof Error ? saveError.message : t("保存失败"));
       setError(saveError instanceof Error ? saveError.message : t("保存失败"));
@@ -1243,6 +1526,18 @@ function draftToThemeSettings(targetDraft: ThemeDraft): ThemeSettings {
       setSaving(false);
     }
   };
+
+  const autoSaveInvalid = draftCostRateApiUrlInvalid || draftNodePingInvalid || draftStatusInvalid;
+  const autoSave = useAutoSave({
+    value: draft,
+    signature: draftSignature,
+    enabled: Boolean(config?.theme && !accessRevoked && isDirty && editVersionRef.current > 0),
+    invalid: autoSaveInvalid,
+    save: handleSave,
+  });
+  const autoSaveLabel = autoSaveInvalid ? t("请完成当前设置") : autoSave.phase === "error" ? t("同步失败，点击重试")
+    : autoSave.phase === "saving" ? t("正在同步") : autoSave.phase === "waiting" ? t("等待同步")
+      : autoSave.phase === "saved" ? t("已同步") : t("自动保存");
 
   const handleReset = () => {
     seedDrafts(sourceThemeSettings);
@@ -1359,16 +1654,16 @@ function draftToThemeSettings(targetDraft: ThemeDraft): ThemeSettings {
           </button>
           <button
             type="button"
-            onClick={() => void handleSave()}
+            onClick={autoSave.retry}
             disabled={
               saving ||
               draftCostRateApiUrlInvalid ||
-              draftNodePingInvalid
+              draftNodePingInvalid || draftStatusInvalid
             }
             className="theme-manage-button is-compact is-primary min-w-23 justify-center"
           >
             {saving ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
-            <span>{saving ? t("保存中") : t("保存设置")}</span>
+            <span>{autoSaveLabel}</span>
           </button>
         </div>
       </header>
@@ -1422,9 +1717,8 @@ function draftToThemeSettings(targetDraft: ThemeDraft): ThemeSettings {
         </nav>
 
         <div className="theme-manage-sections" ref={sectionsRef}>
-          {activeTab === "home" && (
-            <>
-              <InstancePanel
+          {activeTab === "home" && (<>
+<InstancePanel
                 kicker={t("外观")}
                 title={t("默认外观")}
                 aside={<LayoutTemplate size={16} />}
@@ -1446,70 +1740,15 @@ function draftToThemeSettings(targetDraft: ThemeDraft): ThemeSettings {
                 </div>
               </InstancePanel>
 
-              <InstancePanel kicker={t("语言")} title={t("默认语言")}>
+<InstancePanel kicker={t("语言")} title={t("默认语言")}>
                 <SettingSelect value={draft.defaultLanguage} aria-label={t("默认语言")}
                   onChange={(event) => patch("defaultLanguage", event.target.value as Language)}>
-                  {LANGUAGE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                  {LANGUAGE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{t(option.label)}</option>)}
                 </SettingSelect>
                 <p className="setting-hint">{t("未选择语言的访客使用此设置；首页语言按钮可覆盖站点默认。")}</p>
               </InstancePanel>
 
-              <InstancePanel
-                kicker={t("视图")}
-                title={t("默认卡片视图")}
-                aside={<LayoutGrid size={16} />}
-              >
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="surface-inset setting-segment-slot flex flex-col gap-3 px-4 py-4">
-                    <div>
-                      <div className="setting-subhead-title">
-                        {t("桌面端默认")}</div>
-                      <div className="mt-1 setting-hint">
-                        {t("适用于宽度大于 720px 的浏览器窗口。")}</div>
-                    </div>
-                    <div className="instance-segmented is-prominent is-even">
-                      {NODE_VIEW_MODE_OPTIONS.map(({ value, label, icon: Icon }) => (
-                        <button
-                          key={value}
-                          type="button"
-                          data-active={draft.desktopNodeViewMode === value ? "true" : "false"}
-                          aria-pressed={draft.desktopNodeViewMode === value}
-                          onClick={() => patch("desktopNodeViewMode", value)}
-                          className="inline-flex items-center justify-center gap-2"
-                        >
-                          <Icon size={14} />
-                          <span>{t(label)}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="surface-inset setting-segment-slot flex flex-col gap-3 px-4 py-4">
-                    <div>
-                      <div className="setting-subhead-title">
-                        {t("移动端默认")}</div>
-                      <div className="mt-1 setting-hint">
-                        {t("适用于宽度小于等于 720px 的手机或窄屏窗口。")}</div>
-                    </div>
-                    <div className="instance-segmented is-prominent is-even">
-                      {MOBILE_VIEW_MODE_OPTIONS.map(({ value, label, icon: Icon }) => (
-                        <button
-                          key={value}
-                          type="button"
-                          data-active={draft.mobileNodeViewMode === value ? "true" : "false"}
-                          aria-pressed={draft.mobileNodeViewMode === value}
-                          onClick={() => patch("mobileNodeViewMode", value)}
-                          className="inline-flex items-center justify-center gap-2"
-                        >
-                          <Icon size={14} />
-                          <span>{t(label)}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </InstancePanel>
-
-              <InstancePanel
+<InstancePanel
                 kicker={t("顶部")}
                 title={t("首页顶部组件")}
                 aside={<ListFilter size={16} />}
@@ -1539,7 +1778,7 @@ function draftToThemeSettings(targetDraft: ThemeDraft): ThemeSettings {
                 </div>
               </InstancePanel>
 
-              <InstancePanel
+<InstancePanel
                 kicker={t("入口")}
                 title={t("卡片扩展入口与访客权限")}
                 aside={<Compass size={16} />}
@@ -1594,7 +1833,7 @@ function draftToThemeSettings(targetDraft: ThemeDraft): ThemeSettings {
                 </div>
               </InstancePanel>
 
-              <InstancePanel
+<InstancePanel
                 id="set-cluster-overview-mode"
                 kicker={t("集群")}
                 title={t("集群状态展示模式")}
@@ -1643,12 +1882,11 @@ function draftToThemeSettings(targetDraft: ThemeDraft): ThemeSettings {
                 </div>
               </InstancePanel>
 
-              {/* 当选择「方格矩阵」展示模式时，在下方动态呈现专属方格矩阵设置卡 */}
-              {draft.clusterOverviewMode === "nodes" && (
+{draft.clusterOverviewMode === "nodes" && (
                 <InstancePanel
                   id="set-matrix-settings"
                   kicker={t("矩阵")}
-                  title={t("方格矩阵设置")}
+                  title={t("矩阵定制")}
                   aside={<LayoutGrid size={16} />}
                 >
                   {/* 1. 矩阵配色风格切换（经典标准 vs EVA 初号机） */}
@@ -1657,73 +1895,63 @@ function draftToThemeSettings(targetDraft: ThemeDraft): ThemeSettings {
                       <div className="min-w-0">
                         <div className="text-xs font-semibold text-(--text-primary) flex items-center gap-1.5">
                           <span>{t("配色风格")}</span>
-                          {(draft.matrixColorTheme ?? "default") === "eva" ? (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-600 dark:text-purple-300 border border-purple-500/30">
-                              EVA UNIT-01
-                            </span>
-                          ) : (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30">
-                              CLASSIC
-                            </span>
-                          )}
+                          {(() => {
+                            const currentOpt = COLOR_THEME_OPTIONS.find(
+                              (opt) => opt.id === (draft.matrixColorTheme ?? "default"),
+                            ) ?? COLOR_THEME_OPTIONS[0];
+                            return (
+                              <span
+                                className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${currentOpt.badgeClass}`}
+                              >
+                                {currentOpt.badge}
+                              </span>
+                            );
+                          })()}
                         </div>
                         <p className="text-[11px] text-(--text-muted) mt-0.5">
-                          {t("定制方块热力矩阵的主题色阶。EVA 初号机版采用标志性机体紫、荧光绿、警告橙与暴走红。")}</p>
+                          {t("定制方格矩阵与指标卡片的高光配色风格。")}</p>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      <button
-                        type="button"
-                        onClick={() => patch("matrixColorTheme", "default")}
-                        data-active={(draft.matrixColorTheme ?? "default") === "default" ? "true" : "false"}
-                        aria-pressed={(draft.matrixColorTheme ?? "default") === "default"}
-                        className="setting-color-theme-card"
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="flex items-center gap-1 shrink-0 p-1 rounded-md bg-(--bg-card) border border-(--hairline)">
-                            <span className="w-2.5 h-2.5 rounded-xs bg-[#34d399]" />
-                            <span className="w-2.5 h-2.5 rounded-xs bg-[#10b981]" />
-                            <span className="w-2.5 h-2.5 rounded-xs bg-[#f59e0b]" />
-                            <span className="w-2.5 h-2.5 rounded-xs bg-[#ef4444]" />
-                          </div>
-                          <div className="min-w-0">
-                            <span className="text-xs font-medium text-(--text-primary) block">{t("经典标准")}</span>
-                            <span className="text-[10px] text-(--text-muted) block">{t("绿 · 橙 · 红 常规监控色阶")}</span>
-                          </div>
-                        </div>
-                        <div className="setting-color-theme-radio" aria-hidden="true">
-                          {(draft.matrixColorTheme ?? "default") === "default" && (
-                            <div className="setting-color-theme-radio-dot" />
-                          )}
-                        </div>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => patch("matrixColorTheme", "eva")}
-                        data-active={(draft.matrixColorTheme ?? "default") === "eva" ? "true" : "false"}
-                        aria-pressed={(draft.matrixColorTheme ?? "default") === "eva"}
-                        className="setting-color-theme-card is-eva"
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="flex items-center gap-1 shrink-0 p-1 rounded-md bg-(--bg-card) border border-(--hairline)">
-                            <span className="w-2.5 h-2.5 rounded-xs bg-[#7c3aed]" />
-                            <span className="w-2.5 h-2.5 rounded-xs bg-[#00ff66]" />
-                            <span className="w-2.5 h-2.5 rounded-xs bg-[#f97316]" />
-                            <span className="w-2.5 h-2.5 rounded-xs bg-[#ef4444]" />
-                          </div>
-                          <div className="min-w-0">
-                            <span className="text-xs font-medium text-(--text-primary) block">{t("EVA 初号机")}</span>
-                            <span className="text-[10px] text-(--text-muted) block">{t("机体紫 · 荧光绿 · 暴走红")}</span>
-                          </div>
-                        </div>
-                        <div className="setting-color-theme-radio" aria-hidden="true">
-                          {(draft.matrixColorTheme ?? "default") === "eva" && (
-                            <div className="setting-color-theme-radio-dot" />
-                          )}
-                        </div>
-                      </button>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5">
+                      {COLOR_THEME_OPTIONS.map((opt) => {
+                        const isSelected = (draft.matrixColorTheme ?? "default") === opt.id;
+                        return (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            onClick={() => patch("matrixColorTheme", opt.id)}
+                            data-active={isSelected ? "true" : "false"}
+                            aria-pressed={isSelected}
+                            className={`setting-color-theme-card ${opt.id === "eva" ? "is-eva" : ""}`}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div className="flex items-center gap-1 shrink-0 p-1 rounded-md bg-(--bg-card) border border-(--hairline)">
+                                {opt.colors.map((c, i) => (
+                                  <span
+                                    key={i}
+                                    className="w-2.5 h-2.5 rounded-xs"
+                                    style={{ backgroundColor: c }}
+                                  />
+                                ))}
+                              </div>
+                              <div className="min-w-0">
+                                <span className="text-xs font-medium text-(--text-primary) block truncate">
+                                  {t(opt.label)}
+                                </span>
+                                <span className="text-[10px] text-(--text-muted) block truncate">
+                                  {t(opt.desc)}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="setting-color-theme-radio" aria-hidden="true">
+                              {isSelected && (
+                                <div className="setting-color-theme-radio-dot" />
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -1732,13 +1960,13 @@ function draftToThemeSettings(targetDraft: ThemeDraft): ThemeSettings {
                     <label className="flex items-center justify-between gap-3 cursor-pointer">
                       <div className="min-w-0">
                         <div className="text-xs font-semibold text-(--text-primary) flex items-center gap-1.5">
-                          <span>{t("SAO 主题开场动画")}</span>
+                          <span>{t("开屏动画")}</span>
                           <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-500/30">
                             BOOT INTRO
                           </span>
                         </div>
                         <p className="text-[11px] text-(--text-muted) mt-0.5">
-                          {t("开启后，进入首页时方格矩阵将播放光束横扫显现专属点阵文字并呼吸三下后切入实时集群数据；关闭后直接呈现真实节点。")}</p>
+                          {t("进入首页时播放光效开屏动画，随后载入数据。")}</p>
                       </div>
                       <input
                         type="checkbox"
@@ -1748,31 +1976,79 @@ function draftToThemeSettings(targetDraft: ThemeDraft): ThemeSettings {
                       />
                     </label>
 
-                    {/* 开场点阵图案自定义画布（仅在开启开场动画时展开） */}
+                    {/* 开场点阵图案自定义画布与动效形式（仅在开启开场动画时展开） */}
                     {(draft.matrixBootAnimation ?? true) && (
-                      <MatrixPatternEditor
-                        value={draft.matrixCustomPattern}
-                        userPresets={draft.matrixUserPresets}
-                        colorTheme={draft.matrixColorTheme ?? "default"}
-                        onApply={async (pattern) => {
-                          patch("matrixCustomPattern", pattern);
-                          try {
-                            await handleSave({ matrixCustomPattern: pattern });
-                            showToast(t("已将点阵图案应用到首页并保存生效"));
-                          } catch {
-                            showToast(t("已应用到画板，请点击右上角保存"));
-                          }
-                        }}
-                        onSaveUserPresets={async (presets) => {
-                          patch("matrixUserPresets", presets);
-                          try {
-                            await handleSave({ matrixUserPresets: presets });
-                            showToast(t("用户预设已更新并保存生效"));
-                          } catch {
-                            showToast(t("预设已更新，请点击右上角保存"));
-                          }
-                        }}
-                      />
+                      <div className="mt-3.5 space-y-4">
+                        {/* 动效形式独立选择器 */}
+                        <div className="rounded-xl border border-(--hairline) bg-[color-mix(in_srgb,var(--bg-card)_55%,transparent)] p-3 sm:p-3.5">
+                          <div className="flex items-center justify-between gap-2 mb-2.5">
+                            <div>
+                              <div className="text-xs font-semibold text-(--text-primary) flex items-center gap-1.5">
+                                <span>{t("动效样式")}</span>
+                                {(() => {
+                                  const currentEffect =
+                                    BOOT_EFFECT_OPTIONS.find(
+                                      (e) => e.id === (draft.matrixBootEffect ?? "laser-scan"),
+                                    ) ?? BOOT_EFFECT_OPTIONS[0];
+                                  return (
+                                    <span
+                                      className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${currentEffect.badgeClass}`}
+                                    >
+                                      {currentEffect.badge}
+                                    </span>
+                                  );
+                                })()}
+                              </div>
+                              <p className="text-[11px] text-(--text-muted) mt-0.5">
+                                {t("选择开屏画面的入场动效样式。")}</p>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            {BOOT_EFFECT_OPTIONS.map((opt) => {
+                              const isSelected = (draft.matrixBootEffect ?? "laser-scan") === opt.id;
+                              return (
+                                <button
+                                  key={opt.id}
+                                  type="button"
+                                  onClick={() => patch("matrixBootEffect", opt.id)}
+                                  data-active={isSelected ? "true" : "false"}
+                                  aria-pressed={isSelected}
+                                  className="setting-color-theme-card"
+                                >
+                                  <div className="flex items-center gap-2.5 min-w-0">
+                                    <div className="min-w-0">
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="text-xs font-medium text-(--text-primary) truncate">
+                                          {t(opt.label)}
+                                        </span>
+                                      </div>
+                                      <span className="text-[10px] text-(--text-muted) block truncate mt-0.5">
+                                        {t(opt.desc)}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div className="setting-color-theme-radio" aria-hidden="true">
+                                    {isSelected && (
+                                      <div className="setting-color-theme-radio-dot" />
+                                    )}
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* 点阵画板 */}
+                        <MatrixPatternEditor
+                          value={draft.matrixCustomPattern}
+                          userPresets={draft.matrixUserPresets}
+                          colorTheme={draft.matrixColorTheme ?? "default"}
+                          bootEffect={draft.matrixBootEffect ?? "laser-scan"}
+                          onApply={(pattern) => { patch("matrixCustomPattern", pattern); showToast(t("点阵图案已更新，正在同步")); }}
+                        onSaveUserPresets={(presets) => { patch("matrixUserPresets", presets); showToast(t("用户预设已更新，正在同步")); }}
+                        />
+                      </div>
                     )}
                   </div>
 
@@ -1800,7 +2076,183 @@ function draftToThemeSettings(targetDraft: ThemeDraft): ThemeSettings {
                 </InstancePanel>
               )}
 
-              <InstancePanel
+<InstancePanel
+                kicker={t("评级")}
+                title={t("总览文字评级")}
+                aside={<ListFilter size={16} />}
+              >
+                <div className="grid gap-3 md:grid-cols-3">
+                  {OVERVIEW_RATING_LABEL_FIELDS.map((field) => {
+                    const defaultLabel = getDefaultOverviewRatingLabelText(field.key);
+                    const ratingEnabled = draft[field.toggleKey];
+                    return (
+                      <div
+                        key={field.key}
+                        className={`surface-inset flex min-w-0 flex-col gap-2.5 px-4 py-3 transition-colors ${
+                          field.isBadge ? "border-l-2 border-l-(--accent-500)" : ""
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="setting-subhead-title">{t(field.title)}</span>
+                              <span
+                                className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium rounded ${
+                                  field.isBadge
+                                    ? "bg-(--accent-500)/15 text-(--accent-400) border border-(--accent-500)/30"
+                                    : "bg-white/5 text-(--text-muted) border border-white/10"
+                                }`}
+                              >
+                                {field.isBadge && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1 animate-pulse" />}
+                                {t(field.scopeBadge)}
+                              </span>
+                            </div>
+                            <p className="mt-1 text-[11px] text-(--text-tertiary) leading-normal">
+                              {t(field.description)}
+                            </p>
+                          </div>
+                          <input
+                            type="checkbox"
+                            checked={draft[field.toggleKey]}
+                            onChange={(event) => patch(field.toggleKey, event.target.checked)}
+                            className="h-4 w-4 shrink-0 mt-0.5 accent-(--accent-500)"
+                            title={t("开启/关闭{0}", [field.title])}
+                          />
+                        </div>
+
+                        <div className="flex flex-col gap-1.5 mt-auto pt-1">
+                          <div className="flex items-center justify-between text-[11px] text-(--text-muted)">
+                            <span>{t("自定义分级词")}</span>
+                            {!ratingEnabled && <span className="opacity-70">{t("(已停用)")}</span>}
+                          </div>
+                          <input
+                            value={draft.ratingLabels[field.key]}
+                            disabled={!ratingEnabled}
+                            onChange={(event) => setRatingLabelDraft(field.key, event.target.value)}
+                            placeholder={defaultLabel}
+                            aria-label={t("{0}评级名称", [field.title])}
+                            className="surface-inset w-full px-3 py-1.5 text-[12px] outline-none disabled:opacity-60 font-mono"
+                          />
+                          <span className="setting-hint">
+                            {t(field.tierHint)}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </InstancePanel>
+</>)}
+
+          {activeTab === "card" && (<>
+<InstancePanel
+                kicker={t("视图")}
+                title={t("默认卡片视图")}
+                aside={<LayoutGrid size={16} />}
+              >
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="surface-inset setting-segment-slot flex flex-col gap-3 px-4 py-4">
+                    <div>
+                      <div className="setting-subhead-title">
+                        {t("桌面端默认")}</div>
+                      <div className="mt-1 setting-hint">
+                        {t("适用于宽度大于 720px 的浏览器窗口。")}</div>
+                    </div>
+                    <div className="instance-segmented is-prominent is-even">
+                      {NODE_VIEW_MODE_OPTIONS.map(({ value, label, icon: Icon }) => (
+                        <button
+                          key={value}
+                          type="button"
+                          data-active={draft.desktopNodeViewMode === value ? "true" : "false"}
+                          aria-pressed={draft.desktopNodeViewMode === value}
+                          onClick={() => patch("desktopNodeViewMode", value)}
+                          className="inline-flex items-center justify-center gap-2"
+                        >
+                          <Icon size={14} />
+                          <span>{t(label)}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="surface-inset setting-segment-slot flex flex-col gap-3 px-4 py-4">
+                    <div>
+                      <div className="setting-subhead-title">
+                        {t("移动端默认")}</div>
+                      <div className="mt-1 setting-hint">
+                        {t("适用于宽度小于等于 720px 的手机或窄屏窗口。")}</div>
+                    </div>
+                    <div className="instance-segmented is-prominent is-even">
+                      {MOBILE_VIEW_MODE_OPTIONS.map(({ value, label, icon: Icon }) => (
+                        <button
+                          key={value}
+                          type="button"
+                          data-active={draft.mobileNodeViewMode === value ? "true" : "false"}
+                          aria-pressed={draft.mobileNodeViewMode === value}
+                          onClick={() => patch("mobileNodeViewMode", value)}
+                          className="inline-flex items-center justify-center gap-2"
+                        >
+                          <Icon size={14} />
+                          <span>{t(label)}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </InstancePanel>
+
+<InstancePanel
+              kicker={t("卡片")}
+              title={t("卡片展示内容")}
+              description={t("定制大卡片、小卡片和列表模式下呈现的具体指标。")}
+              aside={<Rows3 size={16} />}
+            >
+              <div className="grid gap-3 md:grid-cols-2">
+                <ToggleRow
+                  field="showCardGroup"
+                  title={t("显示节点分组标签")}
+                  desc={t("在卡片副标题处标明其所属分组。")}
+                  checked={draft.showCardGroup}
+                  onPatch={patch}
+                />
+                <ToggleRow
+                  field="compactShowTrafficTotal"
+                  title={t("小卡片显示累计流量")}
+                  desc={t("在紧凑视图中展示月度或累计出入站流量。")}
+                  checked={draft.compactShowTrafficTotal}
+                  onPatch={patch}
+                />
+                <ToggleRow
+                  field="compactShowBilling"
+                  title={t("小卡片显示计费周期")}
+                  desc={t("在紧凑视图中保留周期标注。")}
+                  checked={draft.compactShowBilling}
+                  onPatch={patch}
+                />
+                <ToggleRow
+                  field="compactShowUptime"
+                  title={t("小卡片显示在线时长")}
+                  desc={t("在紧凑视图中展示系统运行时间。")}
+                  checked={draft.compactShowUptime}
+                  onPatch={patch}
+                />
+                <ToggleRow
+                  field="showConnections"
+                  title={t("显示 TCP/UDP 连接数")}
+                  desc={t("在卡片网络区域标注实时活跃连接统计。")}
+                  checked={draft.showConnections}
+                  onPatch={patch}
+                />
+                <ToggleRow
+                  field="showTodayTrafficPopover"
+                  title={t("显示当日流量与峰值按钮")}
+                  desc={t("在节点卡片上显示扩展统计按钮，点击或悬停可查看当日出入站流量与峰值带宽。")}
+                  checked={draft.showTodayTrafficPopover}
+                  onPatch={patch}
+                />
+              </div>
+            </InstancePanel>
+
+<InstancePanel
                 kicker={t("排序")}
                 title={t("排序规则与默认选中")}
                 aside={<Rows3 size={16} />}
@@ -1891,246 +2343,7 @@ function draftToThemeSettings(targetDraft: ThemeDraft): ThemeSettings {
                 </div>
               </InstancePanel>
 
-              <InstancePanel
-                kicker={t("评级")}
-                title={t("总览文字评级")}
-                aside={<ListFilter size={16} />}
-              >
-                <div className="grid gap-3 md:grid-cols-3">
-                  {OVERVIEW_RATING_LABEL_FIELDS.map((field) => {
-                    const defaultLabel = getDefaultOverviewRatingLabelText(field.key);
-                    const ratingEnabled = draft[field.toggleKey];
-                    return (
-                      <div
-                        key={field.key}
-                        className={`surface-inset flex min-w-0 flex-col gap-2.5 px-4 py-3 transition-colors ${
-                          field.isBadge ? "border-l-2 border-l-(--accent-500)" : ""
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="setting-subhead-title">{t(field.title)}</span>
-                              <span
-                                className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium rounded ${
-                                  field.isBadge
-                                    ? "bg-(--accent-500)/15 text-(--accent-400) border border-(--accent-500)/30"
-                                    : "bg-white/5 text-(--text-muted) border border-white/10"
-                                }`}
-                              >
-                                {field.isBadge && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1 animate-pulse" />}
-                                {t(field.scopeBadge)}
-                              </span>
-                            </div>
-                            <p className="mt-1 text-[11px] text-(--text-tertiary) leading-normal">
-                              {t(field.description)}
-                            </p>
-                          </div>
-                          <input
-                            type="checkbox"
-                            checked={draft[field.toggleKey]}
-                            onChange={(event) => patch(field.toggleKey, event.target.checked)}
-                            className="h-4 w-4 shrink-0 mt-0.5 accent-(--accent-500)"
-                            title={t("开启/关闭{0}", [field.title])}
-                          />
-                        </div>
-
-                        <div className="flex flex-col gap-1.5 mt-auto pt-1">
-                          <div className="flex items-center justify-between text-[11px] text-(--text-muted)">
-                            <span>{t("自定义分级词")}</span>
-                            {!ratingEnabled && <span className="opacity-70">{t("(已停用)")}</span>}
-                          </div>
-                          <input
-                            value={draft.ratingLabels[field.key]}
-                            disabled={!ratingEnabled}
-                            onChange={(event) => setRatingLabelDraft(field.key, event.target.value)}
-                            placeholder={defaultLabel}
-                            aria-label={t("{0}评级名称", [field.title])}
-                            className="surface-inset w-full px-3 py-1.5 text-[12px] outline-none disabled:opacity-60 font-mono"
-                          />
-                          <span className="setting-hint">
-                            {t(field.tierHint)}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </InstancePanel>
-
-              <InstancePanel
-                kicker={t("过滤")}
-                title={t("隐藏节点")}
-                aside={<Search size={16} />}
-              >
-                <div className="surface-inset flex flex-col gap-2 px-4 py-3">
-                  <span className="setting-subhead-title">{t("隐藏节点列表 (每行一个 UUID 或名称)")}</span>
-                  <textarea
-                    rows={4}
-                    value={draft.hiddenNodesText}
-                    onChange={(event) => patch("hiddenNodesText", event.target.value)}
-                    placeholder="node-uuid-1&#10;Tokyo Edge"
-                    className="surface-inset p-3 text-[13px] font-mono outline-none min-h-28"
-                  />
-                  <span className="setting-hint">
-                    {t("列在此处的节点将不会在首页及总览中展示。当前已生效")}{draftHiddenNodes.length} {t("台。")}</span>
-                </div>
-              </InstancePanel>
-            </>
-          )}
-
-          {activeTab === "card" && (
-            <InstancePanel
-              kicker={t("卡片")}
-              title={t("卡片展示内容")}
-              description={t("定制大卡片、小卡片和列表模式下呈现的具体指标。")}
-              aside={<Rows3 size={16} />}
-            >
-              <div className="grid gap-3 md:grid-cols-2">
-                <ToggleRow
-                  field="showCardGroup"
-                  title={t("显示节点分组标签")}
-                  desc={t("在卡片副标题处标明其所属分组。")}
-                  checked={draft.showCardGroup}
-                  onPatch={patch}
-                />
-                <ToggleRow
-                  field="compactShowTrafficTotal"
-                  title={t("小卡片显示累计流量")}
-                  desc={t("在紧凑视图中展示月度或累计出入站流量。")}
-                  checked={draft.compactShowTrafficTotal}
-                  onPatch={patch}
-                />
-                <ToggleRow
-                  field="compactShowBilling"
-                  title={t("小卡片显示计费周期")}
-                  desc={t("在紧凑视图中保留周期标注。")}
-                  checked={draft.compactShowBilling}
-                  onPatch={patch}
-                />
-                <ToggleRow
-                  field="compactShowUptime"
-                  title={t("小卡片显示在线时长")}
-                  desc={t("在紧凑视图中展示系统运行时间。")}
-                  checked={draft.compactShowUptime}
-                  onPatch={patch}
-                />
-                <ToggleRow
-                  field="showConnections"
-                  title={t("显示 TCP/UDP 连接数")}
-                  desc={t("在卡片网络区域标注实时活跃连接统计。")}
-                  checked={draft.showConnections}
-                  onPatch={patch}
-                />
-                <ToggleRow
-                  field="showTodayTrafficPopover"
-                  title={t("显示当日流量与峰值按钮")}
-                  desc={t("在节点卡片上显示扩展统计按钮，点击或悬停可查看当日出入站流量与峰值带宽。")}
-                  checked={draft.showTodayTrafficPopover}
-                  onPatch={patch}
-                />
-              </div>
-            </InstancePanel>
-          )}
-
-          {activeTab === "cost" && (
-            <>
-              <InstancePanel
-                kicker={t("资产")}
-                title={t("资产与财务设置")}
-                aside={<CircleDollarSign size={16} />}
-              >
-                <div className="flex flex-col gap-4">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <label className="surface-inset flex flex-col gap-2 px-4 py-3">
-                      <span className="setting-subhead-title">{t("实时汇率接口 API URL")}</span>
-                      <input
-                        value={draft.costRateApiUrl}
-                        onChange={(event) => patch("costRateApiUrl", event.target.value)}
-                        placeholder={DEFAULT_THEME_SETTINGS.costRateApiUrl}
-                        aria-invalid={draftCostRateApiUrlInvalid}
-                        className="surface-inset w-full px-3 py-2 text-[13px] outline-none"
-                      />
-                      <span className="setting-hint">
-                        {draftCostRateApiUrlInvalid
-                          ? t("请输入 http(s) 链接，保存后将回退默认接口")
-                          : t("留空使用官方默认免费公共汇率接口。")}
-                      </span>
-                    </label>
-
-                    <div className="surface-inset flex flex-col gap-2 px-4 py-3">
-                      <span className="setting-subhead-title">{t("忽略计算费用的节点")}</span>
-                      <textarea
-                        rows={3}
-                        value={draft.costIgnoredText}
-                        onChange={(event) => patch("costIgnoredText", event.target.value)}
-                        placeholder={t("每行一个节点名称 / UUID，也可以用逗号分隔")}
-                        className="surface-inset min-h-24 w-full resize-y p-2.5 text-[13px] outline-none font-mono"
-                      />
-                      <span className="setting-hint">{t("每行一个节点 UUID 或名称，计入资产时不摊销其成本。")}</span>
-                    </div>
-                  </div>
-                </div>
-              </InstancePanel>
-
-              <InstancePanel
-                kicker={t("溢价")}
-                title={t("二手买入溢价/折价固化")}
-                description={t("记录收购时的实际支出，系统自动算出折价盈亏并在到期日前线性摊销。")}
-                aside={<CircleDollarSign size={16} />}
-              >
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <label className="surface-inset flex flex-1 max-w-sm items-center gap-2 px-3 py-1.5">
-                      <Search size={14} className="text-(--text-tertiary)" />
-                      <input
-                        value={premiumSearch}
-                        onChange={(event) => setPremiumSearch(event.target.value)}
-                        placeholder={t("搜索节点录入收购价…")}
-                        aria-label={t("搜索节点")}
-                        className="min-w-0 flex-1 bg-transparent text-[13px] outline-none placeholder:text-(--text-tertiary)"
-                      />
-                    </label>
-                    <span className="setting-hint shrink-0">
-                      {t("已记录")}{premiumConfiguredCount} {t("台溢价")}</span>
-                  </div>
-
-                  {clientsLoading && (
-                    <div className="flex min-h-[15vh] items-center justify-center">
-                      <Spinner size={24} />
-                    </div>
-                  )}
-
-                  {!clientsLoading && sortedClients.length === 0 && (
-                    <div className="theme-manage-empty-state">
-                      <span>{t("还没有任何节点。")}</span>
-                    </div>
-                  )}
-
-                  {!clientsLoading && sortedClients.length > 0 && filteredPremiumClients.length === 0 && (
-                    <div className="surface-inset px-4 py-5 text-[13px] text-(--text-secondary)">
-                      {t("没有匹配的节点。")}</div>
-                  )}
-
-                  {!clientsLoading && filteredPremiumClients.length > 0 && (
-                    <PremiumList
-                      clients={filteredPremiumClients}
-                      costPremiums={draft.costPremiums}
-                      detailByUuid={premiumDetailByUuid}
-                      rateLoading={premiumRateQuery.isLoading}
-                      acquiredAtMax={acquiredAtMax}
-                      onPatchPaid={patchPremiumPaid}
-                      onPatchAcquiredAt={patchPremiumAcquiredAt}
-                    />
-                  )}
-                </div>
-              </InstancePanel>
-            </>
-          )}
-
-          {activeTab === "ping" && (
-            <>
-              <InstancePanel kicker={t("逐服务器")} title={t("逐服务器线路设置")} aside={<Activity size={16} />}>
+<InstancePanel kicker={t("逐服务器")} title={t("逐服务器线路设置")} aside={<Activity size={16} />}>
                 <HomepageNodePingEditor nodes={sortedClients} tasks={sortedTasks}
                   settings={draft.homepageNodePingSettings} bindings={draft.homepagePingBindings}
                   nodesReady={!clientsLoading && !clientsError}
@@ -2141,7 +2354,8 @@ function draftToThemeSettings(targetDraft: ThemeDraft): ThemeSettings {
                 {tasksError && <p className="setting-hint" role="alert">{t("任务列表读取失败，请刷新重试。")}</p>}
                 {draftNodePingInvalid && <p className="setting-hint text-(--status-error)" role="alert">{t("自定义模式请至少选择一条线路；需要自动展示时请选择“自动”。")}</p>}
               </InstancePanel>
-              <InstancePanel
+
+<InstancePanel
                 kicker={t("线路")}
                 title={t("全局延迟展示设置")}
                 aside={<Activity size={16} />}
@@ -2292,8 +2506,536 @@ function draftToThemeSettings(targetDraft: ThemeDraft): ThemeSettings {
                   )}
                 </div>
               </InstancePanel>
-            </>
-          )}
+
+<InstancePanel
+                kicker={t("光柱")}
+                title={t("状态光柱")}
+                description={t("定制流量、延迟与丢包光柱的过渡色与判断门槛。")}
+                aside={<Sliders size={16} />}
+              >
+                {draftStatusInvalid && <p role="alert" className="setting-hint">{t("延迟阈值须为递增的正整数；丢包阈值须递增且介于 0% 与 100% 之间。")}</p>}
+                <div className="flex flex-col gap-5">
+                  {/* 顶置配套方案预设：一套方案联动覆盖流量、延迟、丢包三处光柱 */}
+                  <div className="surface-inset flex flex-col gap-3.5 px-4 py-4">
+                    <div>
+                      <span className="setting-subhead-title">{t("配套预设方案")}</span>
+                      <p className="setting-hint mt-1">
+                        {t("一键联动设定流量、延迟与丢包光柱的成套视觉方案。")}</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                      {STATUS_BAR_PRESETS.map((preset) => {
+                        const isSelected =
+                          draft.trafficSpectrumColors.start === preset.colors.start &&
+                          draft.trafficSpectrumColors.mid === preset.colors.mid &&
+                          draft.trafficSpectrumColors.high === preset.colors.high &&
+                          draft.trafficSpectrumColors.end === preset.colors.end &&
+                          draft.pingLatencyColors.excellent === preset.latencyColors.excellent &&
+                          draft.pingLatencyColors.good === preset.latencyColors.good &&
+                          draft.pingLatencyColors.moderate === preset.latencyColors.moderate &&
+                          draft.pingLatencyColors.elevated === preset.latencyColors.elevated &&
+                          draft.pingLatencyColors.critical === preset.latencyColors.critical &&
+                          draft.pingLossColors.zero === preset.lossColors.zero &&
+                          draft.pingLossColors.low === preset.lossColors.low &&
+                          draft.pingLossColors.medium === preset.lossColors.medium &&
+                          draft.pingLossColors.high === preset.lossColors.high;
+                        const gradient = `linear-gradient(to right, ${preset.colors.start}, ${preset.colors.mid}, ${preset.colors.high}, ${preset.colors.end})`;
+                        return (
+                          <button
+                            key={preset.id}
+                            type="button"
+                            onClick={() => applyStatusBarPreset(preset)}
+                            data-active={isSelected ? "true" : "false"}
+                            aria-pressed={isSelected}
+                            className="setting-spectrum-preset-card"
+                          >
+                            <div className="flex items-center justify-between gap-1.5 w-full">
+                              <span
+                                className={clsx(
+                                  "text-xs font-semibold truncate",
+                                  isSelected
+                                    ? "text-(--accent-500)"
+                                    : "text-(--text-primary)",
+                                )}
+                              >
+                                {t(preset.name)}
+                              </span>
+                              <div className="setting-color-theme-radio" aria-hidden="true">
+                                {isSelected && <div className="setting-color-theme-radio-dot" />}
+                              </div>
+                            </div>
+                            <div
+                              className="h-2 w-full rounded-full shadow-inner ring-1 ring-black/10 dark:ring-white/10"
+                              style={{ background: gradient }}
+                            />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* 1. 流量进度光柱色谱自定义 */}
+                  <div className="surface-inset flex flex-col gap-3.5 px-4 py-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <span className="setting-subhead-title">{t("流量光柱")}</span>
+                        <p className="setting-hint mt-1">
+                          {t("从用量充裕到即将耗尽，呈现平滑过渡色谱。")}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={resetTrafficSpectrum}
+                        className="theme-manage-button is-compact shrink-0 flex items-center gap-1.5"
+                        title={t("恢复为默认的监控绿色谱")}
+                      >
+                        <RotateCcw size={13} />
+                        {t("重置色彩")}</button>
+                    </div>
+
+                    {/* 就近实时预览：18 段发光光柱色谱全貌（置顶呈现） */}
+                    <div className="flex flex-col gap-2.5 rounded-[10px] border border-(--hairline) bg-(--bg-card) p-3.5">
+                      <div className="flex items-center justify-between text-[12px]">
+                        <span className="font-medium text-(--text-secondary) flex items-center gap-1.5">
+                          <Sparkles size={13} className="text-(--accent-500)" />
+                          {t("流量光柱实时效果 (18 段)")}</span>
+                        <span className="text-[11px] text-(--text-tertiary)">
+                          {t("所见即所得 · 0% 充裕至 100% 耗尽连续色谱")}</span>
+                      </div>
+
+                      <div className="flex flex-col gap-1 rounded-md bg-(--bg-primary) p-2.5 shadow-inner">
+                        <div className="flex items-center justify-between text-[11px] text-(--text-tertiary) mb-1">
+                          <span>{t("18 段发光光柱色谱全貌：")}</span>
+                          <span className="font-mono">{t("从轻载平滑过渡至警戒红")}</span>
+                        </div>
+                        <div className="traffic-quota-track" aria-hidden>
+                          {previewTrafficSegmentColors.map((color, i) => (
+                            <span key={i} className="traffic-quota-segment" style={{ background: color }} />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 4 锚点 HEX 输入网格 */}
+                    <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+                      {TRAFFIC_SPECTRUM_ANCHOR_CONFIG.map(({ key, label, stage, hint, defaultColor }) => {
+                        const currentColor = draft.trafficSpectrumColors[key];
+                        const isEnd = key === "end";
+                        return (
+                          <div
+                            key={key}
+                            className="flex flex-col justify-between gap-2.5 rounded-[10px] border border-(--hairline) bg-(--bg-card) p-3"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-[13px] font-semibold text-(--text-primary)">
+                                {t(label)}
+                              </span>
+                              <span
+                                className={clsx(
+                                  "text-[10px] px-1.5 py-0.5 rounded border font-mono font-medium",
+                                  isEnd
+                                    ? "bg-rose-500/10 text-rose-500 border-rose-500/20"
+                                    : "bg-(--bg-primary) text-(--text-tertiary) border-(--hairline)",
+                                )}
+                              >
+                                {t(stage)}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <label className="relative flex items-center justify-center shrink-0 cursor-pointer">
+                                <span
+                                  className="inline-block h-7 w-7 rounded-full border-2 border-white/40 shadow-sm"
+                                  style={{ backgroundColor: currentColor }}
+                                />
+                                <input
+                                  type="color"
+                                  value={currentColor}
+                                  onChange={(e) => patchTrafficSpectrumColor(key, e.target.value)}
+                                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                  title={t("选取{0}", [t(label)])}
+                                />
+                              </label>
+                              <input
+                                type="text"
+                                maxLength={7}
+                                value={currentColor}
+                                onChange={(e) => patchTrafficSpectrumColor(key, e.target.value)}
+                                className="surface-inset px-2.5 py-1 text-[12px] font-mono uppercase text-(--text-primary) w-full outline-none"
+                                placeholder={defaultColor}
+                              />
+                            </div>
+
+                            <p className="text-[11px] text-(--text-tertiary) leading-tight">
+                              {t(hint)}
+                            </p>
+
+                            <div className="flex items-center justify-between gap-2 pt-1 border-t border-(--hairline)">
+                              <span className="text-[11px] text-(--text-secondary) shrink-0">
+                                {isEnd ? t("末端特性") : t("阶段定位")}
+                              </span>
+                              <span className="text-[11px] font-mono text-(--text-tertiary)">
+                                {isEnd ? t("严格警报红守护") : t("平滑色谱锚点")}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* 2. 延迟评级标准与色彩设置 */}
+                  <div className="surface-inset flex flex-col gap-3.5 px-4 py-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <span className="setting-subhead-title">{t("延迟光柱")}</span>
+                        <p className="setting-hint mt-1">
+                          {t("设定各毫秒区间的判断门槛与对应光柱颜色。")}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={resetPingLatency}
+                        className="theme-manage-button is-compact shrink-0 flex items-center gap-1.5"
+                        title={t("恢复为默认的 60/100/160/200ms 及预设色")}
+                      >
+                        <RotateCcw size={13} />
+                        {t("重置延迟")}</button>
+                    </div>
+
+                    {/* 就近实时预览：延迟光柱 */}
+                    <div className="flex flex-col gap-2 rounded-[10px] border border-(--hairline) bg-(--bg-card) p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-1 text-[12px]">
+                        <span className="font-medium text-(--text-secondary) flex items-center gap-1.5">
+                          <Activity size={13} className="text-(--status-success)" />
+                          {t("延迟光柱实时效果 (示例梯度 15ms ~ 320ms)")}</span>
+                        <span className="tabular font-medium text-(--text-tertiary) text-[11px]">
+                          {t("门槛：")}{draft.pingLatencyThresholds.excellent}ms / {draft.pingLatencyThresholds.good}ms / {draft.pingLatencyThresholds.moderate}ms / {draft.pingLatencyThresholds.elevated}ms
+                        </span>
+                      </div>
+                      <div className="rounded-md bg-(--bg-primary) p-2 shadow-inner">
+                        <LatencyBars
+                          buckets={PREVIEW_LATENCY_BUCKETS}
+                          latencyThresholds={draft.pingLatencyThresholds}
+                          latencyColors={draft.pingLatencyColors}
+                          height={18}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+                      {LATENCY_TIER_CONFIG.map(({ key, label, hint, defaultColor }) => {
+                        const currentColor = draft.pingLatencyColors[key];
+                        const isThresholdEditable = key !== "critical";
+                        const thresholdVal = isThresholdEditable
+                          ? draft.pingLatencyThresholds[key]
+                          : null;
+
+                        return (
+                          <div
+                            key={key}
+                            className="flex flex-col justify-between gap-2.5 rounded-[10px] border border-(--hairline) bg-(--bg-card) p-3"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-[13px] font-semibold text-(--text-primary)">
+                                {t(label)}
+                              </span>
+                              <div className="flex items-center gap-1.5">
+                                <label
+                                  className="metric-color-swatch"
+                                  style={{ background: currentColor }}
+                                  title={t("点击调整颜色")}
+                                >
+                                  <input
+                                    type="color"
+                                    value={currentColor}
+                                    onChange={(e) => patchPingLatencyColor(key, e.target.value)}
+                                  />
+                                </label>
+                                {currentColor.toLowerCase() !== defaultColor.toLowerCase() && (
+                                  <button
+                                    type="button"
+                                    onClick={() => patchPingLatencyColor(key, defaultColor)}
+                                    className="text-(--text-tertiary) hover:text-(--text-primary) transition-colors p-1"
+                                    title={t("恢复该项默认色")}
+                                  >
+                                    <RotateCcw size={12} />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+
+                            <p className="text-[11px] text-(--text-tertiary) leading-tight">
+                              {t(hint)}
+                            </p>
+
+                            <div className="flex items-center justify-between gap-2 pt-1 border-t border-(--hairline)">
+                              <span className="text-[11px] text-(--text-secondary) shrink-0">
+                                {isThresholdEditable ? t("门槛上限") : t("高延迟区间")}
+                              </span>
+                              {isThresholdEditable ? (
+                                <div className="flex items-center gap-1">
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    max={9999}
+                                    value={thresholdVal ?? 0}
+                                    onChange={(e) => {
+                                      const num = parseInt(e.target.value, 10);
+                                      if (!Number.isNaN(num) && num > 0) {
+                                        patchPingLatencyThreshold(key, num);
+                                      }
+                                    }}
+                                    className="w-16 rounded-[5px] border border-(--hairline) bg-(--bg-primary) px-2 py-0.5 text-right font-mono text-[12px] font-medium outline-none focus:border-(--status-success)"
+                                  />
+                                  <span className="text-[11px] text-(--text-tertiary)">ms</span>
+                                </div>
+                              ) : (
+                                <span className="font-mono text-[11px] text-(--text-tertiary)">
+                                  &gt; {draft.pingLatencyThresholds.elevated}ms
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* 3. 丢包评级标准与色彩设置 */}
+                  <div className="surface-inset flex flex-col gap-3.5 px-4 py-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <span className="setting-subhead-title">{t("丢包光柱")}</span>
+                        <p className="setting-hint mt-1">
+                          {t("设定不同丢包率区间的判断门槛与对应颜色。")}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={resetPingLoss}
+                        className="theme-manage-button is-compact shrink-0 flex items-center gap-1.5"
+                        title={t("恢复为默认的 3%/10% 门槛及预设色")}
+                      >
+                        <RotateCcw size={13} />
+                        {t("重置丢包")}</button>
+                    </div>
+
+                    {/* 就近实时预览：丢包光柱 */}
+                    <div className="flex flex-col gap-2 rounded-[10px] border border-(--hairline) bg-(--bg-card) p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-1 text-[12px]">
+                        <span className="font-medium text-(--text-secondary) flex items-center gap-1.5">
+                          <Activity size={13} className="text-(--status-warning)" />
+                          {t("丢包光柱实时效果 (示例梯度 0% ~ 25%)")}</span>
+                        <span className="tabular font-medium text-(--text-tertiary) text-[11px]">
+                          {t("门槛：0% /")}{draft.pingLossThresholds.low}% / {draft.pingLossThresholds.medium}%
+                        </span>
+                      </div>
+                      <div className="rounded-md bg-(--bg-primary) p-2 shadow-inner">
+                        <QualityBars
+                          buckets={PREVIEW_LOSS_BUCKETS}
+                          lossThresholds={draft.pingLossThresholds}
+                          lossColors={draft.pingLossColors}
+                          height={18}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+                      {LOSS_TIER_CONFIG.map(({ key, label, hint, defaultColor }) => {
+                        const currentColor = draft.pingLossColors[key];
+                        const isEditable = key === "low" || key === "medium";
+                        const thresholdVal =
+                          key === "low"
+                            ? draft.pingLossThresholds.low
+                            : key === "medium"
+                              ? draft.pingLossThresholds.medium
+                              : null;
+
+                        return (
+                          <div
+                            key={key}
+                            className="flex flex-col justify-between gap-2.5 rounded-[10px] border border-(--hairline) bg-(--bg-card) p-3"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-[13px] font-semibold text-(--text-primary)">
+                                {t(label)}
+                              </span>
+                              <div className="flex items-center gap-1.5">
+                                <label
+                                  className="metric-color-swatch"
+                                  style={{ background: currentColor }}
+                                  title={t("点击调整颜色")}
+                                >
+                                  <input
+                                    type="color"
+                                    value={currentColor}
+                                    onChange={(e) => patchPingLossColor(key, e.target.value)}
+                                  />
+                                </label>
+                                {currentColor.toLowerCase() !== defaultColor.toLowerCase() && (
+                                  <button
+                                    type="button"
+                                    onClick={() => patchPingLossColor(key, defaultColor)}
+                                    className="text-(--text-tertiary) hover:text-(--text-primary) transition-colors p-1"
+                                    title={t("恢复该项默认色")}
+                                  >
+                                    <RotateCcw size={12} />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+
+                            <p className="text-[11px] text-(--text-tertiary) leading-tight">
+                              {t(hint)}
+                            </p>
+
+                            <div className="flex items-center justify-between gap-2 pt-1 border-t border-(--hairline)">
+                              <span className="text-[11px] text-(--text-secondary) shrink-0">
+                                {isEditable ? t("丢包上限") : t("生效条件")}
+                              </span>
+                              {isEditable ? (
+                                <div className="flex items-center gap-1">
+                                  <input
+                                    type="number"
+                                    step="0.5"
+                                    min={0.1}
+                                    max={100}
+                                    value={thresholdVal ?? 0}
+                                    onChange={(e) => {
+                                      const num = parseFloat(e.target.value);
+                                      if (!Number.isNaN(num) && num > 0) {
+                                        patchPingLossThreshold(key, num);
+                                      }
+                                    }}
+                                    className="w-16 rounded-[5px] border border-(--hairline) bg-(--bg-primary) px-2 py-0.5 text-right font-mono text-[12px] font-medium outline-none focus:border-(--status-success)"
+                                  />
+                                  <span className="text-[11px] text-(--text-tertiary)">%</span>
+                                </div>
+                              ) : (
+                                <span className="font-mono text-[11px] text-(--text-tertiary)">
+                                  {key === "zero" ? t("= 0% (完全健康)") : `> ${draft.pingLossThresholds.medium}%`}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </InstancePanel>
+
+<InstancePanel
+                kicker={t("过滤")}
+                title={t("隐藏节点")}
+                aside={<Search size={16} />}
+              >
+                <div className="surface-inset flex flex-col gap-2 px-4 py-3">
+                  <span className="setting-subhead-title">{t("隐藏节点列表 (每行一个 UUID 或名称)")}</span>
+                  <textarea
+                    rows={4}
+                    value={draft.hiddenNodesText}
+                    onChange={(event) => patch("hiddenNodesText", event.target.value)}
+                    placeholder="node-uuid-1&#10;Tokyo Edge"
+                    className="surface-inset p-3 text-[13px] font-mono outline-none min-h-28"
+                  />
+                  <span className="setting-hint">
+                    {t("列在此处的节点将不会在首页及总览中展示。当前已生效")}{draftHiddenNodes.length} {t("台。")}</span>
+                </div>
+              </InstancePanel>
+</>)}
+
+          {activeTab === "cost" && (<>
+<InstancePanel
+                kicker={t("资产")}
+                title={t("资产与财务设置")}
+                aside={<CircleDollarSign size={16} />}
+              >
+                <div className="flex flex-col gap-4">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <label className="surface-inset flex flex-col gap-2 px-4 py-3">
+                      <span className="setting-subhead-title">{t("实时汇率接口 API URL")}</span>
+                      <input
+                        value={draft.costRateApiUrl}
+                        onChange={(event) => patch("costRateApiUrl", event.target.value)}
+                        placeholder={DEFAULT_THEME_SETTINGS.costRateApiUrl}
+                        aria-invalid={draftCostRateApiUrlInvalid}
+                        className="surface-inset w-full px-3 py-2 text-[13px] outline-none"
+                      />
+                      <span className="setting-hint">
+                        {draftCostRateApiUrlInvalid
+                          ? t("请输入 http(s) 链接，保存后将回退默认接口")
+                          : t("留空使用官方默认免费公共汇率接口。")}
+                      </span>
+                    </label>
+
+                    <div className="surface-inset flex flex-col gap-2 px-4 py-3">
+                      <span className="setting-subhead-title">{t("忽略计算费用的节点")}</span>
+                      <textarea
+                        rows={3}
+                        value={draft.costIgnoredText}
+                        onChange={(event) => patch("costIgnoredText", event.target.value)}
+                        placeholder={t("每行一个节点名称 / UUID，也可以用逗号分隔")}
+                        className="surface-inset min-h-24 w-full resize-y p-2.5 text-[13px] outline-none font-mono"
+                      />
+                      <span className="setting-hint">{t("每行一个节点 UUID 或名称，计入资产时不摊销其成本。")}</span>
+                    </div>
+                  </div>
+                </div>
+              </InstancePanel>
+
+<InstancePanel
+                kicker={t("溢价")}
+                title={t("二手买入溢价/折价固化")}
+                description={t("记录收购时的实际支出，系统自动算出折价盈亏并在到期日前线性摊销。")}
+                aside={<CircleDollarSign size={16} />}
+              >
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <label className="surface-inset flex flex-1 max-w-sm items-center gap-2 px-3 py-1.5">
+                      <Search size={14} className="text-(--text-tertiary)" />
+                      <input
+                        value={premiumSearch}
+                        onChange={(event) => setPremiumSearch(event.target.value)}
+                        placeholder={t("搜索节点录入收购价…")}
+                        aria-label={t("搜索节点")}
+                        className="min-w-0 flex-1 bg-transparent text-[13px] outline-none placeholder:text-(--text-tertiary)"
+                      />
+                    </label>
+                    <span className="setting-hint shrink-0">
+                      {t("已记录")}{premiumConfiguredCount} {t("台溢价")}</span>
+                  </div>
+
+                  {clientsLoading && (
+                    <div className="flex min-h-[15vh] items-center justify-center">
+                      <Spinner size={24} />
+                    </div>
+                  )}
+
+                  {!clientsLoading && sortedClients.length === 0 && (
+                    <div className="theme-manage-empty-state">
+                      <span>{t("还没有任何节点。")}</span>
+                    </div>
+                  )}
+
+                  {!clientsLoading && sortedClients.length > 0 && filteredPremiumClients.length === 0 && (
+                    <div className="surface-inset px-4 py-5 text-[13px] text-(--text-secondary)">
+                      {t("没有匹配的节点。")}</div>
+                  )}
+
+                  {!clientsLoading && filteredPremiumClients.length > 0 && (
+                    <PremiumList
+                      clients={filteredPremiumClients}
+                      costPremiums={draft.costPremiums}
+                      detailByUuid={premiumDetailByUuid}
+                      rateLoading={premiumRateQuery.isLoading}
+                      acquiredAtMax={acquiredAtMax}
+                      onPatchPaid={patchPremiumPaid}
+                      onPatchAcquiredAt={patchPremiumAcquiredAt}
+                    />
+                  )}
+                </div>
+              </InstancePanel>
+</>)}
+
         </div>
       </div>
 </div>

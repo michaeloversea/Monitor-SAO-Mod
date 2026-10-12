@@ -1,4 +1,4 @@
-import type { LoadRecord } from "@/types/komari";
+import type { LoadRecord } from "@/types/theme";
 
 export const TRAFFIC_UP_METRIC = "traffic.up";
 export const TRAFFIC_DOWN_METRIC = "traffic.down";

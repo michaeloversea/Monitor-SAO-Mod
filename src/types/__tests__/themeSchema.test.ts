@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { NodeInfoSchema, PingRecordSchema } from "@/types/komari";
+import { NodeInfoSchema, PingRecordSchema } from "@/types/theme";
 import { safeMonitorNodes, convertMonitorNodeToInfo } from "@/types/monitor";
 
-describe("Komari schemas", () => {
+describe("Theme view-model schemas", () => {
   it("exposes transformed node fields through the schema output", () => {
     const node = NodeInfoSchema.parse({ uuid: "node-a", group: null, region: null });
     expect(node.group).toBe("");

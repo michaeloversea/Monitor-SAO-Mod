@@ -161,3 +161,40 @@ describe("normalizeThemeSettings", () => {
     });
   });
 });
+
+describe("v1.2.1 status settings compatibility", () => {
+  it("accepts both palettes and all intro effects, falling back for unknown values", () => {
+    for (const matrixColorTheme of ["cyberpunk", "divergence"] as const) expect(normalizeThemeSettings({ matrixColorTheme }).matrixColorTheme).toBe(matrixColorTheme);
+    for (const matrixBootEffect of ["laser-scan", "digital-rain", "cyber-glitch", "divergence-flux"] as const) expect(normalizeThemeSettings({ matrixBootEffect }).matrixBootEffect).toBe(matrixBootEffect);
+    expect(normalizeThemeSettings({ matrixBootEffect: "unknown" } as never).matrixBootEffect).toBe("laser-scan");
+  });
+  it("round-trips Hub text JSON fields without losing the existing language and per-node lines", () => {
+    const settings = normalizeThemeSettings({
+      defaultLanguage: "en", enableHomepageMultiPing: true, homepageMultiPingTaskIds: [],
+      homepageNodePingSettings: { "example-id": { mode: "custom", taskIds: [8, 3] } },
+      pingLatencyThresholds: JSON.stringify({ excellent: 20, good: 50, moderate: 90, elevated: 180 }),
+      pingLatencyColors: JSON.stringify({ excellent: " #AbC " }),
+      pingLossThresholds: JSON.stringify({ low: 1.5, medium: 7.5 }),
+      pingLossColors: JSON.stringify({ zero: "#FFF" }),
+      trafficSpectrumColors: JSON.stringify({ start: "#abc", end: "#F00" }),
+    } as never);
+    expect(settings.defaultLanguage).toBe("en"); expect(settings.homepageMultiPingTaskIds).toEqual([]);
+    expect(settings.homepageNodePingSettings["example-id"]).toEqual({ mode: "custom", taskIds: [8, 3] });
+    expect(settings.pingLatencyThresholds).toEqual({ excellent: 20, good: 50, moderate: 90, elevated: 180 });
+    expect(settings.pingLatencyColors.excellent).toBe("#aabbcc"); expect(settings.pingLossColors.zero).toBe("#ffffff");
+    expect(settings.pingLossThresholds).toEqual({ low: 1.5, medium: 7.5 });
+    expect(settings.trafficSpectrumColors).toMatchObject({ start: "#aabbcc", end: "#ff0000" });
+  });
+  it("repairs invalid thresholds and colors without rendering non-finite values", () => {
+    const settings = normalizeThemeSettings({
+      pingLatencyThresholds: { excellent: 20.4, good: 20.5, moderate: NaN, elevated: Infinity },
+      pingLossThresholds: { low: 99.99, medium: 1 },
+      pingLossColors: { zero: "url(javascript:bad)" }, trafficSpectrumColors: "{broken",
+    } as never);
+    const bounds = Object.values(settings.pingLatencyThresholds);
+    expect(bounds.every((n, i) => Number.isInteger(n) && n > 0 && (i === 0 || n > bounds[i - 1]))).toBe(true);
+    expect(settings.pingLossThresholds).toEqual({ low: 99.9, medium: 100 });
+    expect(settings.pingLossColors.zero).toBe(normalizeThemeSettings({}).pingLossColors.zero);
+    expect(settings.trafficSpectrumColors).toEqual(normalizeThemeSettings({}).trafficSpectrumColors);
+  });
+});

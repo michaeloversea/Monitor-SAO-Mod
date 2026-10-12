@@ -1,26 +1,51 @@
-import type { PingOverviewBucket } from "@/types/komari";
+import { useThemeSettings } from "@/hooks/useThemeSettings";
+import type {
+  PingLatencyColors,
+  PingLatencyThresholds, PingOverviewBucket
+} from "@/types/theme";
 import { useCallback, useMemo } from "react";
 import { CanvasStrip, fillRoundedRect, safeCanvasColor } from "./CanvasStrip";
-import { getBarGeometry, getBarSlot, healthBarInteractionModel, healthBarSlotModel } from "./nodeCardShared";
+import {
+  getBarGeometry,
+  getBarSlot,
+  healthBarInteractionModel,
+  healthBarSlotModel,
+} from "./nodeCardShared";
 
 interface LatencyBarsProps {
   buckets: PingOverviewBucket[];
   redrawKey?: string;
   height?: number;
   onHoverIndex?: (index: number | null) => void;
+  latencyThresholds?: PingLatencyThresholds;
+  latencyColors?: PingLatencyColors;
 }
 
-export function LatencyBars({ buckets, redrawKey, height = 16, onHoverIndex }: LatencyBarsProps) {
+export function LatencyBars({
+  buckets,
+  redrawKey,
+  height = 16,
+  onHoverIndex,
+  latencyThresholds,
+  latencyColors,
+}: LatencyBarsProps) {
+  const themeSettings = useThemeSettings();
+  const effectiveThresholds = latencyThresholds ?? themeSettings.pingLatencyThresholds;
+  const effectiveColors = latencyColors ?? themeSettings.pingLatencyColors;
+
   const bars = useMemo(
     () => {
-      // CSS 色变化时需要重新解析预计算的 canvas 色值。
+      // CSS 色或配置变化时需要重新解析预计算的 canvas 色值。
       void redrawKey;
       return buckets.map((bucket) => {
-        const slot = healthBarSlotModel(bucket, "latency");
+        const slot = healthBarSlotModel(bucket, "latency", {
+          latencyThresholds: effectiveThresholds,
+          latencyColors: effectiveColors,
+        });
         return { ...slot, tone: safeCanvasColor(slot.color) };
       });
     },
-    [buckets, redrawKey],
+    [buckets, redrawKey, effectiveThresholds, effectiveColors],
   );
 
   const getHoverIndex = useCallback(

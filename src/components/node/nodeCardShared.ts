@@ -4,12 +4,12 @@ import { t } from "@/i18n";
 // 大卡与紧凑卡共享的格式化和命中逻辑。
 // 大卡与紧凑卡共享的格式化和命中逻辑。
 // 大卡与紧凑卡共享的格式化和命中逻辑。
+import type { PingOverviewBucket } from "@/types/theme";
 import {
   formatUptimeDays,
   trimFixed,
 } from "@/utils/format";
 import { latencyHeatColor, lossHeatColor } from "@/utils/metricTone";
-import type { PingOverviewBucket } from "@/types/komari";
 
 /** 卡片标签行的完整 tag 列表 tooltip(几种卡片布局共用同一文案)。 */
 export function joinTagTitle(tags: { label: string }[]) {
@@ -31,7 +31,7 @@ export function formatCompactExpire({ value, unit }: { value: string; unit: stri
 
 import { CHINESE_YEAR_PAY_NAMES, normalizeBillingCycle } from "@/utils/billing";
 
-/** 格式化紧凑卡片隐藏价格时的精简账单周期（完全对齐 Komari 后台设计）。 */
+/** 格式化紧凑卡片隐藏价格时的精简账单周期（完全对齐 极简探针后台设计）。 */
 export function formatCompactBillingCycle(
   billingCycle: string | number | null | undefined,
   price?: number,
@@ -148,20 +148,44 @@ export function healthBarInteractionModel(
   };
 }
 
+import type {
+  PingLatencyColors,
+  PingLatencyThresholds,
+  PingLossColors,
+  PingLossThresholds,
+} from "@/types/theme";
+import { resolveCustomLatencyColor, resolveCustomLossColor } from "@/utils/metricTone";
+
+export interface HealthBarOptions {
+  latencyThresholds?: PingLatencyThresholds;
+  latencyColors?: PingLatencyColors;
+  lossThresholds?: PingLossThresholds;
+  lossColors?: PingLossColors;
+}
+
 const HEALTH_LOSS_BAR_HEIGHT = 0.84;
 const HEALTH_INACTIVE_BAR_HEIGHT = 0.25;
 
 export function healthBarSlotModel(
   bucket: PingOverviewBucket,
   kind: "latency" | "loss",
+  options?: HealthBarOptions,
 ): HealthBarSlotModel {
   if (kind === "latency") {
     const value = bucket.value;
     if (value != null && Number.isFinite(value) && value >= 0) {
+      const color =
+        options?.latencyThresholds || options?.latencyColors
+          ? resolveCustomLatencyColor(
+              value,
+              options?.latencyThresholds,
+              options?.latencyColors,
+            )
+          : latencyHeatColor(value);
       return {
         active: true,
         heightFraction: HEALTH_LOSS_BAR_HEIGHT,
-        color: latencyHeatColor(value),
+        color,
         alpha: 0.94,
       };
     }
@@ -174,10 +198,18 @@ export function healthBarSlotModel(
   }
   const loss = bucket.loss;
   if (loss != null && Number.isFinite(loss) && bucket.total > 0) {
+    const color =
+      options?.lossThresholds || options?.lossColors
+        ? resolveCustomLossColor(
+            loss,
+            options?.lossThresholds,
+            options?.lossColors,
+          )
+        : lossHeatColor(loss);
     return {
       active: true,
       heightFraction: HEALTH_LOSS_BAR_HEIGHT,
-      color: lossHeatColor(loss),
+      color,
       alpha: 0.94,
     };
   }

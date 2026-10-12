@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
+import { pingEmptyLabels } from "@/components/node/nodeCardShared";
+import type { HomepagePingLine, PingOverviewItem } from "@/types/theme";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, expect, it, vi } from "vitest";
-import type { HomepagePingLine, PingOverviewItem } from "@/types/komari";
 import { useNodeCardModel } from "../useNodeCardModel";
-import { pingEmptyLabels } from "@/components/node/nodeCardShared";
 
 const fixture = vi.hoisted(() => ({
   ping: { client: "example-node", isAssigned: false, loadState: "pending", lastValue: null, samples: [], max: 1, loss: null } as PingOverviewItem,

@@ -1,13 +1,24 @@
-import type { PingOverviewBucket } from "@/types/komari";
+import { useThemeSettings } from "@/hooks/useThemeSettings";
+import type {
+  PingLossColors,
+  PingLossThresholds, PingOverviewBucket
+} from "@/types/theme";
 import { useCallback, useMemo } from "react";
 import { CanvasStrip, fillRoundedRect, safeCanvasColor } from "./CanvasStrip";
-import { getBarGeometry, getBarSlot, healthBarInteractionModel, healthBarSlotModel } from "./nodeCardShared";
+import {
+  getBarGeometry,
+  getBarSlot,
+  healthBarInteractionModel,
+  healthBarSlotModel,
+} from "./nodeCardShared";
 
 interface QualityBarsProps {
   buckets: PingOverviewBucket[];
   redrawKey?: string;
   height?: number;
   onHoverIndex?: (index: number | null) => void;
+  lossThresholds?: PingLossThresholds;
+  lossColors?: PingLossColors;
 }
 
 export function QualityBars({
@@ -15,17 +26,26 @@ export function QualityBars({
   redrawKey,
   height = 16,
   onHoverIndex,
+  lossThresholds,
+  lossColors,
 }: QualityBarsProps) {
+  const themeSettings = useThemeSettings();
+  const effectiveThresholds = lossThresholds ?? themeSettings.pingLossThresholds;
+  const effectiveColors = lossColors ?? themeSettings.pingLossColors;
+
   const bars = useMemo(
     () => {
-      // CSS 色变化时需要重新解析预计算的 canvas 色值。
+      // CSS 色或配置变化时需要重新解析预计算的 canvas 色值。
       void redrawKey;
       return buckets.map((bucket) => {
-        const slot = healthBarSlotModel(bucket, "loss");
+        const slot = healthBarSlotModel(bucket, "loss", {
+          lossThresholds: effectiveThresholds,
+          lossColors: effectiveColors,
+        });
         return { ...slot, tone: safeCanvasColor(slot.color) };
       });
     },
-    [buckets, redrawKey],
+    [buckets, redrawKey, effectiveThresholds, effectiveColors],
   );
 
   const getHoverIndex = useCallback(

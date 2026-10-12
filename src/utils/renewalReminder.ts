@@ -1,5 +1,5 @@
 import { t } from "@/i18n";
-import type { NodeInfo } from "@/types/komari";
+import type { NodeInfo } from "@/types/theme";
 import { formatRenewalPrice } from "@/utils/billing";
 import { getExpireDaysRemaining, resolveExpireTimestamp } from "@/utils/format";
 

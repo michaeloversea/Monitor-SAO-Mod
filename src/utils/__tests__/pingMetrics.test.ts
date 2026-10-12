@@ -1,15 +1,15 @@
-import { describe, expect, it } from "vitest";
-import type { PingTaskStats } from "@/types/komari";
+import type { PingTaskStats } from "@/types/theme";
 import {
   mergePingMetricSeries,
-  pingTasksFromMetricStats,
-  reconcilePingMetricStats,
-  resolvePingSampleCounts,
-  resolvePingChartInterval,
   PING_LATENCY_METRIC,
   PING_LOSS_METRIC,
+  pingTasksFromMetricStats,
+  reconcilePingMetricStats,
+  resolvePingChartInterval,
+  resolvePingSampleCounts,
   type PingMetricSeries,
 } from "@/utils/pingMetrics";
+import { describe, expect, it } from "vitest";
 
 const CLIENT = "node-a";
 const TIME = "2026-07-13T02:00:00Z";

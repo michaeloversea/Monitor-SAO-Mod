@@ -1,7 +1,7 @@
-import { describe, expect, it, vi } from "vitest";
 import { buildPingOverviewMap, selectPersistablePingOverview } from "@/hooks/usePingOverview";
-import type { PingRecordsResponse, PingTask } from "@/types/komari";
+import type { PingRecordsResponse, PingTask } from "@/types/theme";
 import type { HomepagePingSelectionOptions } from "@/utils/pingTasks";
+import { describe, expect, it, vi } from "vitest";
 const task = (id: number, name: string, clients: string[]): PingTask => ({ id, name, clients, interval: 60, loss: 0, type: "icmp", target: "", weight: id });
 const tasks = [task(1, "CT", ["normal"]), task(2, "CU", ["normal"]), task(3, "CM", ["normal"]), task(5, "Example_Trace1", ["example-node"]), task(4, "Example_Trace2", ["example-node"]), task(8, "无样本", ["offline"])];
 const data: PingRecordsResponse = { count: 5, tasks, intervalSeconds: 300, records: tasks.slice(0, 5).map((t) => ({ client: t.clients[0], task_id: t.id, time: 1_780_000_000_000, value: 60, loss: 0 })) };

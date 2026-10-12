@@ -175,14 +175,23 @@ describe("Monitor API Service", () => {
       });
       await saveThemeSettings({ enableHomepageMultiPing: true, homepageMultiPingTaskIds: [],
         homepageNodePingSettings: { "example-node-id": { mode: "custom", taskIds: [5, 4] }, auto: { mode: "auto" } },
-        homepagePingBindings: { "1": ["auto"] } });
+        homepagePingBindings: { "1": ["auto"] },
+        pingLatencyThresholds: { excellent: 20, good: 40, moderate: 80, elevated: 160 },
+        pingLatencyColors: { excellent: "#abcdef" }, pingLossThresholds: { low: 1.5, medium: 7.5 },
+        pingLossColors: { zero: "#123456" }, trafficSpectrumColors: { start: "#654321" } });
       expect(saved.futureSetting).toBe("keep");
+      for (const key of ["pingLatencyThresholds", "pingLatencyColors", "pingLossThresholds", "pingLossColors", "trafficSpectrumColors"]) expect(typeof saved[key]).toBe("string");
       expect(saved.homepageMultiPingTaskIds).toBe("[]");
       expect(typeof saved.homepageNodePingSettings).toBe("string");
       // 模拟换设备：清空本地与服务端内存缓存，再从接口读取。
       resetLocalThemeSettings(); clearServerThemeSettingsCache();
       const result = await getPublic();
       expect(result.theme_settings.homepageMultiPingTaskIds).toEqual([]);
+      expect(result.theme_settings.pingLatencyThresholds).toEqual({ excellent: 20, good: 40, moderate: 80, elevated: 160 });
+      expect(result.theme_settings.pingLatencyColors).toMatchObject({ excellent: "#abcdef" });
+      expect(result.theme_settings.pingLossThresholds).toEqual({ low: 1.5, medium: 7.5 });
+      expect(result.theme_settings.pingLossColors).toMatchObject({ zero: "#123456" });
+      expect(result.theme_settings.trafficSpectrumColors).toMatchObject({ start: "#654321" });
       expect(result.theme_settings.homepageNodePingSettings).toEqual({ "example-node-id": { mode: "custom", taskIds: [5, 4] }, auto: { mode: "auto" } });
     });
     it("保存失败不会更新本地，也不会被报告为成功；读取失败不发 PUT", async () => {

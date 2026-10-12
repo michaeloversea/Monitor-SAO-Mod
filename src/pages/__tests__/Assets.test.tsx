@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
+import { setLanguage } from "@/i18n";
+import type { NodeInfo } from "@/types/theme";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, expect, it, vi } from "vitest";
 import { Assets } from "../Assets";
-import { setLanguage } from "@/i18n";
-import type { NodeInfo } from "@/types/komari";
 
 const fixture = vi.hoisted(() => ({ mobile: false }));
 const nodes = [

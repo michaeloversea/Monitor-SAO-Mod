@@ -1,6 +1,9 @@
 // 主题界面文案。节点名称、任务名与用户输入不属于翻译键。
 export const messages: Record<string, { en: string; "zh-TW": string }> = {
-  "{0}，": { "en": "{0},", "zh-TW": "{0}，" },
+  "{0}，": {
+    "en": "{0},",
+    "zh-TW": "{0}，"
+  },
   " · 刷新失败，显示上次数据": {
     "en": " · Refresh failed; showing previous data",
     "zh-TW": " · 刷新失敗，顯示上次數據"
@@ -2804,5 +2807,409 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   "🕹️ 吃豆人": {
     "en": "🕹️ Pac-Man",
     "zh-TW": "🕹️ 吃豆人"
+  },
+  "18 段发光光柱色谱全貌：": {
+    "en": "18-segment spectrum:",
+    "zh-TW": "18 段發光光柱色譜全貌："
+  },
+  "= 0% (完全健康)": {
+    "en": "= 0% (healthy)",
+    "zh-TW": "= 0% (完全健康)"
+  },
+  "一键联动设定流量、延迟与丢包光柱的成套视觉方案。": {
+    "en": "Apply coordinated colors to traffic, latency and packet loss bars.",
+    "zh-TW": "一鍵聯動設定流量、延遲與丟包光柱的成套視覺方案。"
+  },
+  "世界线跳变 (Divergence Flux)": {
+    "en": "Divergence Flux",
+    "zh-TW": "世界線跳變 (Divergence Flux)"
+  },
+  "丢包上限": {
+    "en": "Loss ceiling",
+    "zh-TW": "丟包上限"
+  },
+  "丢包光柱": {
+    "en": "Packet loss bars",
+    "zh-TW": "丟包光柱"
+  },
+  "丢包光柱实时效果 (示例梯度 0% ~ 25%)": {
+    "en": "Packet loss preview (0%–25%)",
+    "zh-TW": "丟包光柱實時效果 (示例梯度 0% ~ 25%)"
+  },
+  "严格警报红守护": {
+    "en": "Red alert endpoint",
+    "zh-TW": "嚴格警報紅守護"
+  },
+  "严重丢包": {
+    "en": "Severe loss",
+    "zh-TW": "嚴重丟包"
+  },
+  "严重丢包甚至失联脱网": {
+    "en": "Severe packet loss or connection failure",
+    "zh-TW": "嚴重丟包甚至失聯脫網"
+  },
+  "严重延迟，极度拥堵或告警": {
+    "en": "Severe latency or congestion",
+    "zh-TW": "嚴重延遲，極度擁堵或告警"
+  },
+  "中位消耗阶段，稳定过渡": {
+    "en": "Smooth transition at moderate usage",
+    "zh-TW": "中位消耗階段，穩定過渡"
+  },
+  "中度丢包": {
+    "en": "Moderate loss",
+    "zh-TW": "中度丟包"
+  },
+  "中等": {
+    "en": "Moderate",
+    "zh-TW": "中等"
+  },
+  "临近或已耗尽，末端绝对保证警报红": {
+    "en": "Red alert as quota runs out",
+    "zh-TW": "臨近或已耗盡，末端絕對保證警報紅"
+  },
+  "交错流光瀑布自上而下倾泻显影，如黑客帝国代码雨般涌现": {
+    "en": "Cascading columns reveal the matrix like falling code.",
+    "zh-TW": "交錯流光瀑布自上而下傾瀉顯影，如黑客帝國代碼雨般湧現"
+  },
+  "从用量充裕到即将耗尽，呈现平滑过渡色谱。": {
+    "en": "A smooth spectrum from available quota to exhaustion.",
+    "zh-TW": "從用量充裕到即將耗盡，呈現平滑過渡色譜。"
+  },
+  "从轻载平滑过渡至警戒红": {
+    "en": "Smooth transition from light usage to warning red",
+    "zh-TW": "從輕載平滑過渡至警戒紅"
+  },
+  "偏高": {
+    "en": "Elevated",
+    "zh-TW": "偏高"
+  },
+  "偶发微量丢包，基本可用": {
+    "en": "Occasional minor loss; generally usable",
+    "zh-TW": "偶發微量丟包，基本可用"
+  },
+  "充裕健康期": {
+    "en": "Healthy quota",
+    "zh-TW": "充裕健康期"
+  },
+  "充裕健康色 (0% ~ 15%)": {
+    "en": "Healthy color (0%–15%)",
+    "zh-TW": "充裕健康色 (0% ~ 15%)"
+  },
+  "光柱": {
+    "en": "Bars",
+    "zh-TW": "光柱"
+  },
+  "初始充裕配额，健康充足状态": {
+    "en": "Available quota; healthy status",
+    "zh-TW": "初始充裕配額，健康充足狀態"
+  },
+  "动效样式": {
+    "en": "Animation style",
+    "zh-TW": "動效樣式"
+  },
+  "半程消耗色 (~50%)": {
+    "en": "Midpoint color (~50%)",
+    "zh-TW": "半程消耗色 (~50%)"
+  },
+  "半程过渡期": {
+    "en": "Midpoint transition",
+    "zh-TW": "半程過渡期"
+  },
+  "危险耗尽色 (100% 警报红)": {
+    "en": "Exhaustion color (100% alert)",
+    "zh-TW": "危險耗盡色 (100% 警報紅)"
+  },
+  "同步失败，点击重试": {
+    "en": "Sync failed; click to retry",
+    "zh-TW": "同步失敗，點擊重試"
+  },
+  "命运石之门": {
+    "en": "Steins;Gate",
+    "zh-TW": "命運石之門"
+  },
+  "夜之城 2077": {
+    "en": "Cyberpunk 2077",
+    "zh-TW": "夜之城 2077"
+  },
+  "定制方格矩阵与指标卡片的高光配色风格。": {
+    "en": "Customize matrix and card highlight colors.",
+    "zh-TW": "定制方格矩陣與指標卡片的高光配色風格。"
+  },
+  "定制流量、延迟与丢包光柱的过渡色与判断门槛。": {
+    "en": "Customize colors and thresholds for traffic, latency and packet loss bars.",
+    "zh-TW": "定制流量、延遲與丟包光柱的過渡色與判斷門檻。"
+  },
+  "已同步": {
+    "en": "Synced",
+    "zh-TW": "已同步"
+  },
+  "平滑色谱锚点": {
+    "en": "Spectrum anchors",
+    "zh-TW": "平滑色譜錨點"
+  },
+  "延迟光柱": {
+    "en": "Latency bars",
+    "zh-TW": "延遲光柱"
+  },
+  "延迟光柱实时效果 (示例梯度 15ms ~ 320ms)": {
+    "en": "Latency preview (15–320 ms)",
+    "zh-TW": "延遲光柱實時效果 (示例梯度 15ms ~ 320ms)"
+  },
+  "延迟阈值须为递增的正整数；丢包阈值须递增且介于 0% 与 100% 之间。": {
+    "en": "Latency thresholds must be increasing positive integers. Loss thresholds must increase between 0% and 100%.",
+    "zh-TW": "延遲閾值須為遞增的正整數；丟包閾值須遞增且介於 0% 與 100% 之間。"
+  },
+  "开屏动画": {
+    "en": "Intro animation",
+    "zh-TW": "開屏動畫"
+  },
+  "待机暖杏橙 · 氖气放电暖橙 · 烈焰超频红橙": {
+    "en": "Warm apricot · Neon orange · Overclock red-orange",
+    "zh-TW": "待機暖杏橙 · 氖氣放電暖橙 · 烈焰超頻紅橙"
+  },
+  "恢复为默认的 3%/10% 门槛及预设色": {
+    "en": "Restore 3%/10% thresholds and default colors",
+    "zh-TW": "恢復為默認的 3%/10% 門檻及預設色"
+  },
+  "恢复为默认的 60/100/160/200ms 及预设色": {
+    "en": "Restore 60/100/160/200 ms thresholds and default colors",
+    "zh-TW": "恢復為默認的 60/100/160/200ms 及預設色"
+  },
+  "恢复为默认的监控绿色谱": {
+    "en": "Restore the default green spectrum",
+    "zh-TW": "恢復為默認的監控綠色譜"
+  },
+  "恢复该项默认色": {
+    "en": "Restore default color",
+    "zh-TW": "恢復該項默認色"
+  },
+  "所见即所得 · 0% 充裕至 100% 耗尽连续色谱": {
+    "en": "Live preview · Available quota to exhaustion",
+    "zh-TW": "所見即所得 · 0% 充裕至 100% 耗盡連續色譜"
+  },
+  "数码雨流 (Digital Rain)": {
+    "en": "Digital Rain",
+    "zh-TW": "數碼雨流 (Digital Rain)"
+  },
+  "斯安威斯坦电光青与超频品红噪波爆闪、行撕裂与协议校准咬合": {
+    "en": "Electric cyan and magenta noise flashes, torn scan lines and protocol alignment.",
+    "zh-TW": "斯安威斯坦電光青與超頻品紅噪波爆閃、行撕裂與協議校准咬合"
+  },
+  "斯安威斯坦青 · 霓虹亮黄 · 超频绯红": {
+    "en": "Electric cyan · Neon yellow · Overclock crimson",
+    "zh-TW": "斯安威斯坦青 · 霓虹亮黃 · 超頻緋紅"
+  },
+  "无丢包 (0%)": {
+    "en": "No loss (0%)",
+    "zh-TW": "無丟包 (0%)"
+  },
+  "末端特性": {
+    "en": "Endpoint behavior",
+    "zh-TW": "末端特性"
+  },
+  "机体紫 · 荧光绿 · 警告橙 · 暴走红": {
+    "en": "Mecha purple · Fluorescent green · Warning orange · Berserk red",
+    "zh-TW": "機體紫 · 螢光綠 · 警告橙 · 暴走紅"
+  },
+  "极低延迟，最流畅体验": {
+    "en": "Very low latency; smooth response",
+    "zh-TW": "極低延遲，最流暢體驗"
+  },
+  "极好": {
+    "en": "Excellent",
+    "zh-TW": "極好"
+  },
+  "极高": {
+    "en": "Critical",
+    "zh-TW": "極高"
+  },
+  "正在同步": {
+    "en": "Syncing",
+    "zh-TW": "正在同步"
+  },
+  "正常低延迟，无感知波动": {
+    "en": "Low latency; no noticeable fluctuations",
+    "zh-TW": "正常低延遲，無感知波動"
+  },
+  "流量光柱": {
+    "en": "Traffic bars",
+    "zh-TW": "流量光柱"
+  },
+  "流量光柱实时效果 (18 段)": {
+    "en": "Traffic preview (18 segments)",
+    "zh-TW": "流量光柱實時效果 (18 段)"
+  },
+  "激光横扫 (Laser Scan)": {
+    "en": "Laser Scan",
+    "zh-TW": "激光橫掃 (Laser Scan)"
+  },
+  "点击调整颜色": {
+    "en": "Adjust color",
+    "zh-TW": "點擊調整顏色"
+  },
+  "点阵图案已更新，正在同步": {
+    "en": "Matrix pattern updated; syncing",
+    "zh-TW": "點陣圖案已更新，正在同步"
+  },
+  "状态光柱": {
+    "en": "Status bars",
+    "zh-TW": "狀態光柱"
+  },
+  "生效条件": {
+    "en": "When enabled",
+    "zh-TW": "生效條件"
+  },
+  "用户预设已更新，正在同步": {
+    "en": "User presets updated; syncing",
+    "zh-TW": "用戶預設已更新，正在同步"
+  },
+  "真空管惰性氖气放电赤橙火花高频跳动，自左向右逐位锁定定格": {
+    "en": "Warm neon discharge flickers and locks each digit from left to right.",
+    "zh-TW": "真空管惰性氖氣放電赤橙火花高頻跳動，自左向右逐位鎖定定格"
+  },
+  "矩阵定制": {
+    "en": "Matrix customization",
+    "zh-TW": "矩陣定制"
+  },
+  "神经故障 (Cyber Glitch)": {
+    "en": "Cyber Glitch",
+    "zh-TW": "神經故障 (Cyber Glitch)"
+  },
+  "稍有延迟，基本稳定可用": {
+    "en": "Some latency; generally stable",
+    "zh-TW": "稍有延遲，基本穩定可用"
+  },
+  "等待同步": {
+    "en": "Pending sync",
+    "zh-TW": "等待同步"
+  },
+  "经典雷达激光束自左向右横向扫描显影，纯正 SAO 机能风格": {
+    "en": "A classic radar beam reveals the matrix from left to right.",
+    "zh-TW": "經典雷達激光束自左向右橫向掃描顯影，純正 SAO 機能風格"
+  },
+  "网络通畅，零样本丢失": {
+    "en": "Healthy network; no sample loss",
+    "zh-TW": "網絡通暢，零樣本丟失"
+  },
+  "耗尽警报红": {
+    "en": "Exhaustion alert red",
+    "zh-TW": "耗盡警報紅"
+  },
+  "自动保存": {
+    "en": "Auto-save",
+    "zh-TW": "自動保存"
+  },
+  "良好": {
+    "en": "Good",
+    "zh-TW": "良好"
+  },
+  "视图、指标、排序、延迟与光柱": {
+    "en": "Views, metrics, sorting, latency and bars",
+    "zh-TW": "視圖、指標、排序、延遲與光柱"
+  },
+  "设定不同丢包率区间的判断门槛与对应颜色。": {
+    "en": "Set packet loss thresholds and their colors.",
+    "zh-TW": "設定不同丟包率區間的判斷門檻與對應顏色。"
+  },
+  "设定各毫秒区间的判断门槛与对应光柱颜色。": {
+    "en": "Set latency thresholds and their colors.",
+    "zh-TW": "設定各毫秒區間的判斷門檻與對應光柱顏色。"
+  },
+  "请完成当前设置": {
+    "en": "Complete the current settings",
+    "zh-TW": "請完成當前設置"
+  },
+  "财务汇率与买入溢价": {
+    "en": "Exchange rates and purchase premium",
+    "zh-TW": "財務匯率與買入溢價"
+  },
+  "轻微丢包": {
+    "en": "Minor loss",
+    "zh-TW": "輕微丟包"
+  },
+  "较明显持续丢包，需注意": {
+    "en": "Persistent packet loss; needs attention",
+    "zh-TW": "較明顯持續丟包，需注意"
+  },
+  "进入首页时播放光效开屏动画，随后载入数据。": {
+    "en": "Play the intro animation when opening the homepage, then display live data.",
+    "zh-TW": "進入首頁時播放光效開屏動畫，隨後載入數據。"
+  },
+  "选取{0}": {
+    "en": "Select {0}",
+    "zh-TW": "選取{0}"
+  },
+  "选择开屏画面的入场动效样式。": {
+    "en": "Choose the intro animation style.",
+    "zh-TW": "選擇開屏畫面的入場動效樣式。"
+  },
+  "配套预设方案": {
+    "en": "Coordinated presets",
+    "zh-TW": "配套預設方案"
+  },
+  "配额消耗过半，提示关注用量": {
+    "en": "More than half the quota used; monitor usage",
+    "zh-TW": "配額消耗過半，提示關注用量"
+  },
+  "重置丢包": {
+    "en": "Reset loss",
+    "zh-TW": "重置丟包"
+  },
+  "重置延迟": {
+    "en": "Reset latency",
+    "zh-TW": "重置延遲"
+  },
+  "重置色彩": {
+    "en": "Reset colors",
+    "zh-TW": "重置色彩"
+  },
+  "门槛上限": {
+    "en": "Threshold ceiling",
+    "zh-TW": "門檻上限"
+  },
+  "门槛：": {
+    "en": "Thresholds:",
+    "zh-TW": "門檻："
+  },
+  "门槛：0% /": {
+    "en": "Thresholds: 0% /",
+    "zh-TW": "門檻：0% /"
+  },
+  "阶段定位": {
+    "en": "Usage stage",
+    "zh-TW": "階段定位"
+  },
+  "高延迟区间": {
+    "en": "High latency",
+    "zh-TW": "高延遲區間"
+  },
+  "高延迟警示，网络较吃紧": {
+    "en": "High latency; network under pressure",
+    "zh-TW": "高延遲警示，網絡較吃緊"
+  },
+  "高耗预警期": {
+    "en": "High usage warning",
+    "zh-TW": "高耗預警期"
+  },
+  "高耗预警色 (~80%)": {
+    "en": "Warning color (~80%)",
+    "zh-TW": "高耗預警色 (~80%)"
+  },
+  "经典运维 (翡翠绿 · 琥珀黄 · 警示橙 · 熔岩红)": {
+    "en": "Classic (Emerald · Amber · Warning orange · Lava red)",
+    "zh-TW": "經典運維 (翡翠綠 · 琥珀黃 · 警示橙 · 熔岩紅)"
+  },
+  "深邃冰火 (冰川蓝 · 暮光紫 · 烈焰橙 · 绝境红)": {
+    "en": "Ice and fire (Glacier blue · Twilight purple · Flame orange · Alert red)",
+    "zh-TW": "深邃冰火 (冰川藍 · 暮光紫 · 烈焰橙 · 絕境紅)"
+  },
+  "深海青翠 (薄荷青 · 蔚蓝海 · 暖杏黄 · 珊瑚红)": {
+    "en": "Marine (Mint · Ocean blue · Apricot yellow · Coral red)",
+    "zh-TW": "深海青翠 (薄荷青 · 蔚藍海 · 暖杏黃 · 珊瑚紅)"
+  },
+  "外观、总览、权限与评级": {
+    "en": "Appearance, overview, permissions and ratings",
+    "zh-TW": "外觀、總覽、權限與評級"
   }
 };

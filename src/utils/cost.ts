@@ -1,6 +1,6 @@
-import type { NodeInfo } from "@/types/komari";
-import { formatBillingCycle, normalizeBillingCycle } from "@/utils/billing";
+import type { NodeInfo } from "@/types/theme";
 import { fetchWithTimeout } from "@/utils/abort";
+import { formatBillingCycle, normalizeBillingCycle } from "@/utils/billing";
 import { resolveExpireTimestamp } from "@/utils/format";
 import {
   buildNodeIdentitySet,
