@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { getDisplayRegionCode } from "@/utils/geo";
 
+// 更换旗帜资源时递增目录版本，避免浏览器/CDN 沿用同地址的旧 SVG。
+const FLAG_ASSET_ROOT = "/assets/flags-rect-v1";
+
 interface FlagProps {
   region?: string | null;
   size?: number;
@@ -50,8 +53,8 @@ export function Flag({ region, size = 14 }: FlagProps) {
   // 本地打包的完整矩形旗帜；未知地区或读取失败时使用同尺寸的 xx.svg。
   const src =
     failStage === 0
-      ? `/assets/flags/${flagCode.toLowerCase()}.svg`
-      : "/assets/flags/xx.svg";
+      ? `${FLAG_ASSET_ROOT}/${flagCode.toLowerCase()}.svg`
+      : `${FLAG_ASSET_ROOT}/xx.svg`;
 
   return (
     <span
