@@ -1,3 +1,4 @@
+import { getLanguage, t, type Language } from "@/i18n";
 import { getExpireDaysRemaining, LONG_TERM_EXPIRE_DAYS } from "@/utils/format";
 
 const INT_PRICE_FORMATTER = new Intl.NumberFormat("zh-CN", {
@@ -263,21 +264,21 @@ export function normalizeBillingCycle(
 }
 
 /** 格式化节点价格后的计费周期后缀（如 ¥71.08/三年、¥30/月 或 ¥99/18个月） */
-export function formatBillingCycle(value: string | number | null | undefined) {
+export function formatBillingCycle(value: string | number | null | undefined, locale: Language = getLanguage()) {
   const cycle = normalizeBillingCycle(value);
   switch (cycle.kind) {
     case "lifetime":
-      return "一次性";
+      return t("一次性", [], locale);
     case "month":
-      return cycle.months && cycle.months > 1 ? `${cycle.months}个月` : "月";
+      return cycle.months && cycle.months > 1 ? t("{0}个月", [cycle.months], locale) : t("月", [], locale);
     case "quarter":
-      return "季";
+      return t("季", [], locale);
     case "halfYear":
-      return "半年";
+      return t("半年", [], locale);
     case "year":
-      return CHINESE_YEAR_NAMES[cycle.years ?? 1] || `${cycle.years}年`;
+      return t(CHINESE_YEAR_NAMES[cycle.years ?? 1] || t("{0}年", [cycle.years], locale), [], locale);
     case "days":
-      return `${cycle.days}天`;
+      return t("{0}天", [cycle.days], locale);
   }
 }
 
@@ -286,17 +287,17 @@ export function formatCompactBillingCycleText(value: string | number | null | un
   const cycle = normalizeBillingCycle(value);
   switch (cycle.kind) {
     case "lifetime":
-      return "一次";
+      return t("一次");
     case "month":
-      return cycle.months && cycle.months > 1 ? `${cycle.months}月` : "月";
+      return cycle.months && cycle.months > 1 ? t("{0}月", [cycle.months]) : t("月");
     case "quarter":
-      return "季";
+      return t("季");
     case "halfYear":
-      return "半年";
+      return t("半年");
     case "year":
-      return cycle.years && cycle.years > 1 ? `${cycle.years}年` : "年";
+      return cycle.years && cycle.years > 1 ? t("{0}年", [cycle.years]) : t("年");
     case "days":
-      return `${cycle.days}天`;
+      return t("{0}天", [cycle.days]);
   }
 }
 
@@ -312,8 +313,8 @@ export function formatRenewalPrice({
   expired_at?: string | number | null;
 }) {
   if (!Number.isFinite(price)) return null;
-  if (price === -1) return "免费";
-  if (price === 0) return isLongTermExpire(expired_at) ? "免费" : null;
+  if (price === -1) return t("免费");
+  if (price === 0) return isLongTermExpire(expired_at) ? t("免费") : null;
   if (price < 0) return null;
 
   const symbol = currency?.trim() || "¥";
@@ -333,8 +334,8 @@ export function formatCompactRenewalPrice({
   expired_at?: string | number | null;
 }) {
   if (!Number.isFinite(price)) return null;
-  if (price === -1) return "免费";
-  if (price === 0) return isLongTermExpire(expired_at) ? "免费" : null;
+  if (price === -1) return t("免费");
+  if (price === 0) return isLongTermExpire(expired_at) ? t("免费") : null;
   if (price < 0) return null;
 
   const symbol = resolveCurrencySymbol(currency);

@@ -1,10 +1,12 @@
+import { t, useLanguage } from "@/i18n";
 export function Spinner({
   size = 20,
-  label = "加载中",
+  label = t("加载中"),
 }: {
   size?: number;
   label?: string;
 }) {
+  useLanguage();
   return (
     <span
       role={label ? "status" : undefined}

@@ -1,26 +1,11 @@
 ﻿// 含 JSX 的 Provider 放这里，因此文件扩展名为 .tsx；外部导入路径不带扩展名，无需改动调用方。
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  useSyncExternalStore,
-  type ReactNode,
-} from "react";
-import {
-  queryOptions,
-  useQueries,
-  useQuery,
-  type QueryClient,
-} from "@tanstack/react-query";
-import { useMinuteClock } from "@/hooks/useClock";
+// 含 JSX 的 Provider 放这里，因此文件扩展名为 .tsx；外部导入路径不带扩展名，无需改动调用方。
 import {
   getTodayTrafficRecordRangeHours,
   getTodayTrafficRefreshInterval,
   selectActiveTodayTrafficUuids,
 } from "@/hooks/todayTrafficQueryPolicy";
+import { useMinuteClock } from "@/hooks/useClock";
 import {
   getLoadRecords,
   getTodayTrafficMetrics,
@@ -35,6 +20,17 @@ import {
   type TodayTrafficSample,
   type TodayTrafficStat,
 } from "@/utils/trafficStats";
+import { queryOptions, useQueries, useQuery, type QueryClient } from "@tanstack/react-query";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 
 const FALLBACK_CONCURRENCY = 8;
 const OPTIONAL_METRIC_TIMEOUT_MS = 6_000;

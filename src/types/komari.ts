@@ -123,6 +123,7 @@ export interface UserMatrixPreset {
 }
 
 export interface ThemeSettings {
+  defaultLanguage?: "zh-CN" | "zh-TW" | "en";
   defaultAppearance?: "system" | "light" | "dark";
   desktopNodeViewMode?: "large" | "compact" | "mini" | "list";
   mobileNodeViewMode?: "large" | "compact" | "mini" | "list";

@@ -387,27 +387,34 @@
   white-space: nowrap;
 }
 
-.cost-summary-original-price-chip {
+.asset-value-tag {
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
-  border-radius: 6px;
-  background: var(--tag-purple-bg);
-  color: var(--tag-purple-fg);
-  padding: 2px 6px;
-  font-size: 11px;
-  font-weight: 680;
-  line-height: 1.15;
+  gap: 7px;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  background: var(--surface-elev);
+  color: var(--text-secondary);
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: 560;
+  line-height: 1.3;
   white-space: nowrap;
+  max-width: 100%;
 }
-
-.assets-price-labels {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 6px;
-}
+.asset-value-tag-dot { width: 6px; height: 6px; flex: 0 0 auto; border-radius: 50%; background: var(--tag-dot, var(--text-tertiary)); }
+.asset-value-tag[data-tone="price"] { --tag-dot: var(--metric-cpu, #3885ff); }
+.asset-value-tag[data-tone="original"] { --tag-dot: var(--metric-memory, #9872ef); }
+.asset-value-tag[data-tone="remaining"] { --tag-dot: var(--status-success); }
+.asset-value-tag[data-tone="premium"] { --tag-dot: #d59b32; }
+.asset-value-tag[data-tone="monthly"] { --tag-dot: #d8669a; }
+.asset-value-tag[data-tone="expiry"] { --tag-dot: #4da8ad; }
+.assets-table th { min-width: 110px; }
+.assets-table td[data-strong] .asset-value-tag { color: var(--text-primary); }
+.cost-summary-detail-meta .asset-value-tag { font-size: 11px; padding: 4px 7px; }
+.asset-value-tag small { margin-left: 5px; font-size: 10px; color: var(--text-tertiary); }
+.assets-table .asset-value-tag .assets-expiry-reminder { display: inline-flex; align-items: center; }
 
 .cost-summary-detail-item strong {
   flex: 0 0 auto;

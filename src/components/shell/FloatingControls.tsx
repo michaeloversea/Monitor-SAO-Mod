@@ -1,4 +1,12 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useNodeStoreStatus } from "@/hooks/useNode";
+import { usePreferences } from "@/hooks/usePreferences";
+import { usePriceVisibility } from "@/hooks/usePriceVisibility";
+import { useThemeSettings } from "@/hooks/useThemeSettings";
+import { useViewMode } from "@/hooks/useViewMode";
+import { useTranslate } from "@/i18n";
+import type { Appearance, NodeViewMode } from "@/utils/themeSettings";
+import { clsx } from "clsx";
 import {
   AlertTriangle,
   ChevronLeft,
@@ -9,23 +17,16 @@ import {
   LayoutGrid,
   List,
   Monitor,
+  Moon,
   Palette,
   Settings,
   SlidersHorizontal,
   Square,
   Sun,
-  Moon,
 } from "lucide-react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { usePreferences } from "@/hooks/usePreferences";
-import { useViewMode } from "@/hooks/useViewMode";
-import { useNodeStoreStatus } from "@/hooks/useNode";
-import { useAuth } from "@/hooks/useAuth";
-import { useThemeSettings } from "@/hooks/useThemeSettings";
-import { usePriceVisibility } from "@/hooks/usePriceVisibility";
-import type { NodeViewMode } from "@/utils/themeSettings";
-import { clsx } from "clsx";
-import type { Appearance } from "@/utils/themeSettings";
+import { LanguageMenu } from "./LanguageMenu";
 
 const MetricColorPicker = lazy(() =>
   import("./MetricColorPicker").then((module) => ({ default: module.MetricColorPicker })),
@@ -60,6 +61,7 @@ export function FloatingControls({
 }: {
   onExpandedChange?: (expanded: boolean) => void;
 }) {
+  const t = useTranslate();
   const { appearance, setAppearance } = usePreferences();
   const { mode, nextMode, toggleMode } = useViewMode();
   const { data: me } = useAuth();
@@ -137,8 +139,8 @@ export function FloatingControls({
                 <button
                   type="button"
                   onClick={cycleAppearance}
-                  aria-label={`外观: ${currentAppearance.label} (点击切换为${currentAppearance.nextLabel})`}
-                  title={`外观: ${currentAppearance.label} (点击切换为${currentAppearance.nextLabel})`}
+                  aria-label={t("外观: {0} (点击切换为{1})", [t(currentAppearance.label), t(currentAppearance.nextLabel)])}
+                  title={t("外观: {0} (点击切换为{1})", [t(currentAppearance.label), t(currentAppearance.nextLabel)])}
                   tabIndex={hiddenTabIndex}
                   className={clsx(
                     "control-button grid h-9 w-9 place-items-center",
@@ -150,9 +152,9 @@ export function FloatingControls({
                 <button
                   type="button"
                   onClick={toggleMode}
-                  aria-label="切换卡片视图"
+                  aria-label={t("切换卡片视图")}
                   aria-pressed={isReducedView}
-                  title={`临时切换到${VIEW_MODE_META[nextMode].label}`}
+                  title={t("临时切换到{0}", [t(VIEW_MODE_META[nextMode].label)])}
                   tabIndex={hiddenTabIndex}
                   className={clsx(
                     "control-button grid h-9 w-9 place-items-center",
@@ -165,9 +167,9 @@ export function FloatingControls({
                   <button
                     type="button"
                     onClick={togglePriceVisibility}
-                    aria-label={isPriceVisible ? "隐藏价格与资产" : "显示价格与资产"}
+                    aria-label={isPriceVisible ? t("隐藏价格与资产") : t("显示价格与资产")}
                     aria-pressed={!isPriceVisible}
-                    title={isPriceVisible ? "临时隐藏价格与资产" : "临时显示价格与资产"}
+                    title={isPriceVisible ? t("临时隐藏价格与资产") : t("临时显示价格与资产")}
                     tabIndex={hiddenTabIndex}
                     className={clsx(
                       "control-button grid h-9 w-9 place-items-center",
@@ -184,9 +186,9 @@ export function FloatingControls({
                       setColorsMounted(true);
                       setColorsOpen((value) => !value);
                     }}
-                    aria-label="卡片配色"
+                    aria-label={t("卡片配色")}
                     aria-pressed={colorsOpen}
-                    title="卡片配色"
+                    title={t("卡片配色")}
                     tabIndex={hiddenTabIndex}
                     className={clsx(
                       "control-button grid h-9 w-9 place-items-center",
@@ -201,8 +203,8 @@ export function FloatingControls({
             {showThemeManage && (
               <Link
                 to="/?view=theme-manage"
-                aria-label="主题设置"
-                title="主题设置"
+                aria-label={t("主题设置")}
+                title={t("主题设置")}
                 tabIndex={hiddenTabIndex}
                 className="control-button grid h-9 w-9 place-items-center"
               >
@@ -212,8 +214,8 @@ export function FloatingControls({
             {showAdmin && (
               <a
                 href="/admin/"
-                aria-label={me?.logged_in ? "管理" : "后台登录"}
-                title={me?.logged_in ? "管理" : "后台登录"}
+                aria-label={me?.logged_in ? t("管理") : t("后台登录")}
+                title={me?.logged_in ? t("管理") : t("后台登录")}
                 tabIndex={hiddenTabIndex}
                 className="control-button grid h-9 w-9 place-items-center"
               >
@@ -224,16 +226,17 @@ export function FloatingControls({
           <button
             type="button"
             className="control-button floating-controls-trigger grid h-9 w-9 place-items-center"
-            aria-label={collapsed ? "展开快捷按钮" : "收起快捷按钮"}
+            aria-label={collapsed ? t("展开快捷按钮") : t("收起快捷按钮")}
             aria-expanded={!collapsed}
             onClick={toggleControls}
-            title={collapsed ? "展开快捷按钮" : "收起快捷按钮"}
+            title={collapsed ? t("展开快捷按钮") : t("收起快捷按钮")}
           >
             <ToggleIcon size={16} />
             {showSyncWarning && collapsed && (
               <span className="floating-controls-warning-dot" aria-hidden />
             )}
           </button>
+          <LanguageMenu />
         </div>
         {showColorPicker && colorsMounted && (
           <Suspense fallback={null}>
@@ -243,7 +246,7 @@ export function FloatingControls({
         {showSyncWarning && !collapsed && !colorsOpen && (
           <div className="floating-controls-sync-warning pointer-events-none flex items-center gap-2 rounded-full border border-[color-mix(in_srgb,var(--status-offline)_32%,transparent)] bg-[color-mix(in_srgb,var(--surface-a)_90%,transparent)] px-3 py-1 text-[11px] font-medium text-(--status-offline) shadow-[0_10px_25px_-18px_rgba(0,0,0,0.8)] backdrop-blur">
             <AlertTriangle size={12} />
-            <span>实时状态同步异常，当前展示的是最近缓存</span>
+            <span>{t("实时状态同步异常，当前展示的是最近缓存")}</span>
           </div>
         )}
       </div>

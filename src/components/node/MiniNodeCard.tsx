@@ -1,6 +1,12 @@
-import { MultiPingStatus } from "./MultiPingStatus";
-import { memo, useState, type CSSProperties, type ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { Flag } from "@/components/ui/Flag";
+import { OsLogo } from "@/components/ui/OsLogo";
+import { useNodeCardModel } from "@/hooks/useNodeCardModel";
+import { useLanguage, useTranslate } from "@/i18n";
+import type { NodeInfo, NodeMetrics, PingOverviewBucket, PingOverviewItem } from "@/types/komari";
+import { formatBytes, type ByteRateDisplay } from "@/utils/format";
+import { supportsFineHover } from "@/utils/mediaQuery";
+import { speedRateColor } from "@/utils/metricTone";
+import { clsx } from "clsx";
 import {
   ArrowDown,
   ArrowUp,
@@ -12,24 +18,14 @@ import {
   MemoryStick,
   Unplug,
 } from "lucide-react";
-import { clsx } from "clsx";
-import { Flag } from "@/components/ui/Flag";
-import { OsLogo } from "@/components/ui/OsLogo";
-import { IpStackBadges } from "./IpStackBadges";
-import { NodeTodayTrafficPopover } from "./NodeTodayTrafficPopover";
+import { memo, useState, type CSSProperties, type ReactNode } from "react";
+import { Link } from "react-router-dom";
 import { HealthBucketTooltip } from "./HealthBucketTooltip";
-import { useNodeCardModel } from "@/hooks/useNodeCardModel";
-import { speedRateColor } from "@/utils/metricTone";
-import { supportsFineHover } from "@/utils/mediaQuery";
-import {
-  healthBarSlotModel,
-  joinTagTitle,
-  nodeDetailLinkLabels,
-  pingEmptyLabels,
-} from "./nodeCardShared";
+import { IpStackBadges } from "./IpStackBadges";
+import { MultiPingStatus } from "./MultiPingStatus";
+import { healthBarSlotModel, joinTagTitle, nodeDetailLinkLabels, pingEmptyLabels } from "./nodeCardShared";
+import { NodeTodayTrafficPopover } from "./NodeTodayTrafficPopover";
 import { formatHealthBucketTooltip } from "./pingBucketText";
-import { formatBytes, type ByteRateDisplay } from "@/utils/format";
-import type { NodeInfo, NodeMetrics, PingOverviewItem, PingOverviewBucket } from "@/types/komari";
 
 // 迷你卡固定为巡检布局，不跟随紧凑卡的可选指标开关；数据仍走共享模型。
 const HEALTH_BAR_COUNT = 24;
@@ -46,6 +42,7 @@ function MiniHeader({
   osName: string;
   showTodayTraffic: boolean;
 }) {
+  useLanguage();
   const detailLabels = nodeDetailLinkLabels(node.name, osName);
   const detailHref = `/instance/${encodeURIComponent(node.uuid)}`;
   return (
@@ -79,12 +76,13 @@ function MiniChips({
   ipv4?: string | null;
   ipv6?: string | null;
 }) {
+  const t = useTranslate();
   if (!renewalPrice && tags.length === 0 && !ipv4 && !ipv6) return null;
   const tagTitle = joinTagTitle(tags);
   return (
     <div className="mini-node-chip-row">
       {renewalPrice && (
-        <span className="mini-node-price-tag" title={`续费价格 ${renewalPrice}`}>
+        <span className="mini-node-price-tag" title={t("续费价格 {0}", [renewalPrice])}>
           <CircleDollarSign size={11} strokeWidth={2.2} />
           {renewalPrice}
         </span>
@@ -123,6 +121,7 @@ function MiniMetricBar({
   fraction: number;
   paint: string;
 }) {
+  useLanguage();
   const clamped = Math.max(0, Math.min(1, fraction));
   const fullValue = `${valueText}${unit ?? ""}`;
   const style: MiniMetricStyle = {
@@ -154,6 +153,7 @@ function MiniVitals({
   node: MiniNode;
   loadFraction: number;
 }) {
+  const t = useTranslate();
   return (
     <div className="mini-node-vitals">
       <MiniMetricBar
@@ -166,7 +166,7 @@ function MiniVitals({
       />
       <MiniMetricBar
         icon={<MemoryStick size={12} strokeWidth={2} />}
-        label="内存"
+        label={t("内存")}
         valueText={node.ramPct.toFixed(node.ramPct >= 10 ? 0 : 1)}
         unit="%"
         fraction={node.ramPct / 100}
@@ -174,7 +174,7 @@ function MiniVitals({
       />
       <MiniMetricBar
         icon={<HardDrive size={12} strokeWidth={2} />}
-        label="磁盘"
+        label={t("磁盘")}
         valueText={node.diskPct.toFixed(node.diskPct >= 10 ? 0 : 1)}
         unit="%"
         fraction={node.diskPct / 100}
@@ -182,7 +182,7 @@ function MiniVitals({
       />
       <MiniMetricBar
         icon={<Gauge size={12} strokeWidth={2} />}
-        label="负载"
+        label={t("负载")}
         valueText={node.load1.toFixed(2)}
         fraction={loadFraction}
         paint="var(--progress-load)"
@@ -204,6 +204,7 @@ function MiniFlowRow({
   color?: string;
   title: string;
 }) {
+  useLanguage();
   return (
     <span
       className="mini-node-flow-row"
@@ -230,34 +231,35 @@ function MiniFlow({
   upRate: ByteRateDisplay;
   downRate: ByteRateDisplay;
 }) {
+  const t = useTranslate();
   return (
     <div className="mini-node-flow">
-      <div className="mini-node-flow-group" aria-label="实时网速">
+      <div className="mini-node-flow-group" aria-label={t("实时网速")}>
         <MiniFlowRow
           icon={<ArrowUp size={12} strokeWidth={2.4} />}
           value={upRate.value}
           unit={upRate.unit}
           color={speedRateColor(upRate.unit)}
-          title="实时上行"
+          title={t("实时上行")}
         />
         <MiniFlowRow
           icon={<ArrowDown size={12} strokeWidth={2.4} />}
           value={downRate.value}
           unit={downRate.unit}
           color={speedRateColor(downRate.unit)}
-          title="实时下行"
+          title={t("实时下行")}
         />
       </div>
-      <div className="mini-node-flow-group" aria-label="累计流量">
+      <div className="mini-node-flow-group" aria-label={t("累计流量")}>
         <MiniFlowRow
           icon={<ArrowUp size={12} strokeWidth={2.2} />}
           value={formatBytes(node.trafficUp)}
-          title="累计上行"
+          title={t("累计上行")}
         />
         <MiniFlowRow
           icon={<ArrowDown size={12} strokeWidth={2.2} />}
           value={formatBytes(node.trafficDown)}
-          title="累计下行"
+          title={t("累计下行")}
         />
       </div>
     </div>
@@ -271,6 +273,7 @@ function MiniHealthBars({
   buckets: PingOverviewBucket[];
   kind: "latency" | "loss";
 }) {
+  useLanguage();
   const width = Math.max(1, buckets.length * 4 - 1);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const hoveredBucket = hoveredIndex == null ? null : (buckets[hoveredIndex] ?? null);
@@ -339,6 +342,7 @@ const MiniHealth = memo(function MiniHealth({
   pingLoadingSilently?: boolean;
   pingError: boolean;
 }) {
+  const t = useTranslate();
   const { text: emptyText } = pingEmptyLabels(
     hasRealHomepagePingBinding,
     pingLoading,
@@ -351,7 +355,7 @@ const MiniHealth = memo(function MiniHealth({
       data-ping-state={ping.loadState ?? "ready"}
       title={
         pingError && (ping.lastValue != null || ping.loss != null)
-          ? "首页 Ping 刷新失败，显示上次数据"
+          ? t("首页 Ping 刷新失败，显示上次数据")
           : undefined
       }
     >
@@ -359,8 +363,7 @@ const MiniHealth = memo(function MiniHealth({
         <div className="mini-node-health-head">
           <span className="mini-node-health-label">
             <Clock3 size={12} strokeWidth={2} />
-            延迟
-          </span>
+            {t("延迟")}</span>
           <strong className="mini-node-health-value tabular" style={{ color: latencyColor }}>
             {ping.lastValue != null ? (
               <>
@@ -378,8 +381,7 @@ const MiniHealth = memo(function MiniHealth({
         <div className="mini-node-health-head">
           <span className="mini-node-health-label">
             <Unplug size={12} strokeWidth={2} />
-            丢包
-          </span>
+            {t("丢包")}</span>
           <strong className="mini-node-health-value tabular" style={{ color: lossColor }}>
             {ping.loss != null ? (
               <>
@@ -404,6 +406,7 @@ export const MiniNodeCard = memo(function MiniNodeCard({
   uuid: string;
   showTodayTraffic?: boolean;
 }) {
+  useLanguage();
   const model = useNodeCardModel(uuid, {
     pingBucketCount: HEALTH_BAR_COUNT,
     includeMultiPing: true,

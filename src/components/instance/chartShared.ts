@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useCallback, useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import type uPlot from "uplot";
 
@@ -74,12 +75,12 @@ export interface TimeRangeOption {
 }
 
 export function formatRangeLabel(hours: number): string {
-  if (hours <= 0) return "实时";
+  if (hours <= 0) return t("实时");
   if (hours % 24 === 0) {
     const days = hours / 24;
-    return `${days} 天`;
+    return t("{0} 天", [days]);
   }
-  return `${hours} 小时`;
+  return t("{0} 小时", [hours]);
 }
 
 // 官方 1.3.2 规范标准窗口：小于保留期的整档位，最后加上保留期本身
@@ -96,7 +97,7 @@ export function buildLoadTimeRangeOptions(maxHours: number | null | undefined): 
   const hoursList = [...new Set([...filteredWindows, whole])];
 
   return [
-    { label: "实时", value: 0 },
+    { label: t("实时"), value: 0 },
     ...hoursList.map((h) => ({
       label: formatRangeLabel(h),
       value: h,

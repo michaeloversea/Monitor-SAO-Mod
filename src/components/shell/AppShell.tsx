@@ -1,18 +1,23 @@
-import { useState } from "react";
-import { Outlet, useLocation } from "react-router-dom";
-import { Lock, WifiOff, RotateCw, ArrowRight } from "lucide-react";
 import { Spinner } from "@/components/ui/Spinner";
 import { useAppearance } from "@/hooks/useAppearance";
 import { useAuth } from "@/hooks/useAuth";
-import { usePublicConfig } from "@/hooks/usePublicConfig";
-import { useSiteMetadata } from "@/hooks/useSiteMetadata";
-import { readStoredSiteMetadata } from "@/hooks/useSiteMetadata";
 import { useMetricColorsSync } from "@/hooks/useMetricColors";
 import { useNodeStoreStatus } from "@/hooks/useNode";
+import { usePublicConfig } from "@/hooks/usePublicConfig";
+import { readStoredSiteMetadata, useSiteMetadata } from "@/hooks/useSiteMetadata";
+import { useThemeSettings } from "@/hooks/useThemeSettings";
+import { setDefaultLanguage, useLanguage, useTranslate } from "@/i18n";
+import { ArrowRight, Lock, RotateCw, WifiOff } from "lucide-react";
+import { useLayoutEffect, useState } from "react";
+import { Outlet, useLocation } from "react-router-dom";
+import { LanguageMenu } from "./LanguageMenu";
 
 import { HomeSkeleton } from "./HomeSkeleton";
 
 export function AppShell() {
+  useLanguage();
+  const settings = useThemeSettings();
+  useLayoutEffect(() => { if (settings.isReady) setDefaultLanguage(settings.defaultLanguage); }, [settings.isReady, settings.defaultLanguage]);
   useAppearance();
   useSiteMetadata();
   useMetricColorsSync();
@@ -89,7 +94,7 @@ export function AppShell() {
               {siteName}
             </span>
           </div>
-          <div className="flex items-center gap-2 min-w-9" />
+          <div className="flex items-center gap-2 min-w-9">{!isHomeDashboard && <LanguageMenu />}</div>
         </div>
       </header>
       <main className="app-main flex-1 px-3 pb-2 pt-6 sm:px-5 md:px-6 lg:px-8">
@@ -116,6 +121,7 @@ export function AppShell() {
 }
 
 function AccessError({ onRetry }: { onRetry: () => void }) {
+  const t = useTranslate();
   const [refreshing, setRefreshing] = useState(false);
 
   const handleRefresh = () => {
@@ -143,10 +149,9 @@ function AccessError({ onRetry }: { onRetry: () => void }) {
           <WifiOff size={22} strokeWidth={2} />
         </div>
         <div className="space-y-1.5">
-          <h2 className="access-error-title">无法读取站点配置</h2>
+          <h2 className="access-error-title">{t("无法读取站点配置")}</h2>
           <p className="access-error-desc">
-            与监控服务通信失败或接口未响应，请检查网络连接后重试。
-          </p>
+            {t("与监控服务通信失败或接口未响应，请检查网络连接后重试。")}</p>
         </div>
         <div className="access-error-actions">
           <button
@@ -160,7 +165,7 @@ function AccessError({ onRetry }: { onRetry: () => void }) {
               className={refreshing ? "animate-spin" : ""}
               aria-hidden="true"
             />
-            <span>{refreshing ? "正在刷新…" : "刷新页面"}</span>
+            <span>{refreshing ? t("正在刷新…") : t("刷新页面")}</span>
           </button>
         </div>
       </section>
@@ -169,6 +174,7 @@ function AccessError({ onRetry }: { onRetry: () => void }) {
 }
 
 function PrivateSiteGate() {
+  const t = useTranslate();
   return (
     <div className="flex min-h-[60vh] items-center justify-center py-10">
       <section className="access-error-card" role="alert">
@@ -176,14 +182,13 @@ function PrivateSiteGate() {
           <Lock size={22} strokeWidth={2} />
         </div>
         <div className="space-y-1.5">
-          <h2 className="access-error-title">站点已设为私有</h2>
+          <h2 className="access-error-title">{t("站点已设为私有")}</h2>
           <p className="access-error-desc">
-            该探针已被站长设为私有访问，登录后即可查看节点实时状态。
-          </p>
+            {t("该探针已被站长设为私有访问，登录后即可查看节点实时状态。")}</p>
         </div>
         <div className="access-error-actions">
           <a href="/admin/" className="access-error-refresh-btn">
-            <span>前往登录</span>
+            <span>{t("前往登录")}</span>
             <ArrowRight size={14} aria-hidden="true" />
           </a>
         </div>

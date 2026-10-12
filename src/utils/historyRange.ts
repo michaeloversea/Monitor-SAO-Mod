@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 interface HistoryRangeMeta {
   rangeStartMs?: number;
   rangeEndMs?: number;
@@ -51,13 +52,13 @@ function formatDuration(ms: number) {
   const hours = ms / (60 * 60 * 1000);
   if (hours >= 24) {
     const days = hours / 24;
-    return `${Number(days.toFixed(1))} 天`;
+    return t("{0} 天", [Number(days.toFixed(1))]);
   }
   if (hours >= 1) {
-    return `${Number(hours.toFixed(1))} 小时`;
+    return t("{0} 小时", [Number(hours.toFixed(1))]);
   }
   const minutes = Math.max(1, Math.round(ms / 60_000));
-  return `${minutes} 分钟`;
+  return t("{0} 分钟", [minutes]);
 }
 
 export function historyCoverageLabel(
@@ -79,6 +80,6 @@ export function historyCoverageLabel(
   );
   const ratio = requestedMs > 0 ? actualMs / requestedMs : 0;
   return ratio >= 0.98
-    ? `覆盖完整 ${formatDuration(requestedMs)}`
-    : `实际覆盖 ${formatDuration(actualMs)} / ${formatDuration(requestedMs)}`;
+    ? t("覆盖完整 {0}", [formatDuration(requestedMs)])
+    : t("实际覆盖 {0} / {1}", [formatDuration(actualMs), formatDuration(requestedMs)]);
 }

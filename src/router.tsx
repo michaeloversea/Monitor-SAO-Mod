@@ -1,11 +1,11 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
-import { lazy, Suspense, type ReactNode } from "react";
 import { AppShell } from "@/components/shell/AppShell";
 import { RouteErrorFallback } from "@/components/shell/ErrorBoundary";
 import { Spinner } from "@/components/ui/Spinner";
-import { loadAssetsPage } from "@/services/assetsPageLoader";
-import { Traffic } from "@/pages/Traffic";
 import { Home } from "@/pages/Home";
+import { Traffic } from "@/pages/Traffic";
+import { loadAssetsPage } from "@/services/assetsPageLoader";
+import { lazy, Suspense, type ReactNode } from "react";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 
 const Instance = lazy(() =>
   import("@/pages/Instance").then((m) => ({ default: m.Instance })),

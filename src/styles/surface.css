@@ -230,6 +230,13 @@
   pointer-events: auto;
 }
 
+.language-control { position: relative; pointer-events: auto; flex: 0 0 auto; }
+.language-menu { position: absolute; top: calc(100% + 8px); right: 0; z-index: 70; width: 178px; max-width: calc(100vw - 24px); padding: 5px; border: 1px solid var(--hairline); border-radius: 13px; background: var(--surface-a); box-shadow: 0 10px 32px -12px rgb(0 0 0 / 30%); }
+.language-menu button { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 9px 10px; border-radius: 8px; color: var(--text-secondary); font-size: 12px; text-align: left; }
+.language-menu button:hover, .language-menu button[aria-pressed="true"] { background: var(--surface-elev); color: var(--text-primary); }
+.language-menu button:focus-visible { outline: 2px solid var(--metric-cpu, #3885ff); outline-offset: -2px; }
+.language-menu .language-menu-default { border-top: 1px solid var(--hairline); border-radius: 0 0 8px 8px; margin-top: 3px; color: var(--text-tertiary); }
+
 .floating-controls-row {
   position: relative;
   display: flex;

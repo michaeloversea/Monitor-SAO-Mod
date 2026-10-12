@@ -1,3 +1,22 @@
+import { useNodeMeta, useNodeMetrics } from "@/hooks/useNode";
+import { usePreferences } from "@/hooks/usePreferences";
+import { useLoadRecords } from "@/hooks/useRecords";
+import { t, useLanguage, useTranslate } from "@/i18n";
+import type { LoadRecord, NodeMetrics } from "@/types/komari";
+import { formatBytes, formatTrafficRateLabel } from "@/utils/format";
+import { historyChartRangeSeconds, historyCoverageLabel } from "@/utils/historyRange";
+import { resolveLoadRecordTotals } from "@/utils/loadMetrics";
+import {
+  ArrowDown,
+  ArrowUp,
+  Cpu,
+  Gauge,
+  HardDrive,
+  MemoryStick,
+  Network,
+  RefreshCw,
+  Workflow,
+} from "lucide-react";
 import {
   memo,
   useEffect,
@@ -8,12 +27,11 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
-import UplotReact from "uplot-react";
 import type uPlot from "uplot";
-import { ArrowDown, ArrowUp, Cpu, Gauge, HardDrive, MemoryStick, Network, RefreshCw, Workflow } from "lucide-react";
-import { useLoadRecords } from "@/hooks/useRecords";
-import { useNodeMeta, useNodeMetrics } from "@/hooks/useNode";
-import { InstancePanel, InstanceChartLoading } from "./InstancePanel";
+import UplotReact from "uplot-react";
+import { ChartTooltip, SwitchToggle } from "./ChartParts";
+import { InstanceChartLoading, InstancePanel } from "./InstancePanel";
+import { downsampleAligned, fillMissingMetricPoints, interpolateMetricGaps } from "./chartData";
 import {
   buildChartTooltipHooks,
   CHART_PALETTE,
@@ -24,17 +42,6 @@ import {
   useResponsiveChartSize,
   type ChartTooltipState,
 } from "./chartShared";
-import { ChartTooltip, SwitchToggle } from "./ChartParts";
-import {
-  downsampleAligned,
-  fillMissingMetricPoints,
-  interpolateMetricGaps,
-} from "./chartData";
-import { formatBytes, formatTrafficRateLabel } from "@/utils/format";
-import { historyChartRangeSeconds, historyCoverageLabel } from "@/utils/historyRange";
-import { resolveLoadRecordTotals } from "@/utils/loadMetrics";
-import { usePreferences } from "@/hooks/usePreferences";
-import type { LoadRecord, NodeMetrics } from "@/types/komari";
 
 const LOAD_HISTORY_SAMPLE_LIMIT = 360;
 const LOAD_HISTORY_RENDER_LIMIT = 720;
@@ -124,13 +131,13 @@ function downsamplePoints(points: ChartPoint[], limit: number) {
 }
 
 function formatRangeSummary(hours: number) {
-  if (hours === 0) return "实时";
-  if (hours % 24 === 0) return `${hours / 24} 天`;
-  return `${hours} 小时`;
+  if (hours === 0) return t("实时");
+  if (hours % 24 === 0) return t("{0} 天", [hours / 24]);
+  return t("{0} 小时", [hours]);
 }
 
 function getSeriesLabel(key: string) {
-  return SERIES_LABELS[key] ?? key;
+  return t(SERIES_LABELS[key] ?? key);
 }
 
 function pointFromNode(node: NodeMetrics): ChartPoint {
@@ -291,6 +298,7 @@ const ChartCard = memo(function ChartCard({
   axisSize?: number;
   xRange?: [number, number] | null;
 }) {
+  useLanguage();
   const { w, h, ref: chartSizeRef } = useResponsiveChartSize("grid");
   const dataRef = useRef<uPlot.AlignedData>([[]]);
   const [tooltip, setTooltip] = useState<ChartTooltipState>({
@@ -390,6 +398,7 @@ export function LoadChart({
   hours: number;
   active?: boolean;
 }) {
+  const t = useTranslate();
   const queryHours = hours === 0 ? 1 : hours;
   const { data, isError, isFetching, isLoading, refetch } = useLoadRecords(
     uuid,
@@ -478,10 +487,10 @@ export function LoadChart({
   const sourceRecordCount = historyRecords.length;
   const wasDownsampled = !isRealtime && sourceRecordCount > getHistoryRenderLimit(hours);
   const sampleSummary = isRealtime
-    ? `${points.length} 个点`
+    ? t("{0} 个点", [points.length])
     : wasDownsampled
-      ? `${points.length} / ${sourceRecordCount} 个点`
-      : `${points.length} 个点`;
+      ? t("{0} / {1} 个点", [points.length, sourceRecordCount])
+      : t("{0} 个点", [points.length]);
   const coverageSummary = points.length
     ? `${formatChartCoverageTime(points[0].time)} - ${formatChartCoverageTime(points[points.length - 1].time)}`
     : "—";
@@ -498,14 +507,14 @@ export function LoadChart({
   );
 
   if (isLoading) {
-    return <InstanceChartLoading title="负载图表" />;
+    return <InstanceChartLoading title={t("负载图表")} />;
   }
 
   if (isError && !points.length) {
     return (
-      <InstancePanel title="负载图表">
+      <InstancePanel title={t("负载图表")}>
         <div className="instance-empty">
-          <span>负载历史加载失败</span>
+          <span>{t("负载历史加载失败")}</span>
           <button
             type="button"
             className="instance-toggle-button"
@@ -513,7 +522,7 @@ export function LoadChart({
             disabled={isFetching}
             aria-busy={isFetching}
           >
-            {isFetching ? "重试中" : "重试"}
+            {isFetching ? t("重试中") : t("重试")}
           </button>
         </div>
       </InstancePanel>
@@ -522,27 +531,27 @@ export function LoadChart({
 
   if (!points.length) {
     return (
-      <InstancePanel title="负载图表">
-        <div className="instance-empty">暂无负载历史数据</div>
+      <InstancePanel title={t("负载图表")}>
+        <div className="instance-empty">{t("暂无负载历史数据")}</div>
       </InstancePanel>
     );
   }
 
   return (
     <InstancePanel
-      title="负载图表"
+      title={t("负载图表")}
       aside={
         <div className="instance-chart-headmeta">
-          <div className="instance-chart-meta" aria-label="图表数据范围">
+          <div className="instance-chart-meta" aria-label={t("图表数据范围")}>
             <span title={coverageSummary}>
-              <strong>{coverageLabel ?? `覆盖 ${coverageSummary}`}</strong>
+              <strong>{coverageLabel ?? t("覆盖 {0}", [coverageSummary])}</strong>
             </span>
             <span>
-              采样 <strong>{sampleSummary}</strong>
+              {t("采样")}<strong>{sampleSummary}</strong>
             </span>
           </div>
           <SwitchToggle
-            label="断点连线"
+            label={t("断点连线")}
             active={connectNulls}
             onToggle={() => setConnectNulls((value) => !value)}
           />
@@ -554,7 +563,7 @@ export function LoadChart({
             aria-busy={isFetching}
           >
             <RefreshCw size={14} aria-hidden />
-            {isFetching ? "刷新中" : "刷新"}
+            {isFetching ? t("刷新中") : t("刷新")}
           </button>
           <span className="instance-chart-range-chip">{rangeSummary}</span>
         </div>
@@ -573,8 +582,8 @@ export function LoadChart({
           }
           note={
             !isRealtime && typeof points[points.length - 1]?.cpu_max === "number"
-              ? `峰值 ${(points[points.length - 1].cpu_max as number).toFixed(1)}%`
-              : "使用率"
+              ? t("峰值 {0}%", [(points[points.length - 1].cpu_max as number).toFixed(1)])
+              : t("使用率")
           }
           points={points}
           keys={CPU_KEYS}
@@ -588,7 +597,7 @@ export function LoadChart({
         />
         <ChartCard
           icon={<MemoryStick size={13} />}
-          title="内存"
+          title={t("内存")}
           uuid={uuid}
           value={
             isRealtime && node
@@ -601,12 +610,12 @@ export function LoadChart({
             isRealtime && node
               ? node.swapTotal
                 ? `Swap ${formatBytes(node.swapUsed)} / ${formatBytes(node.swapTotal)}`
-                : "Swap 无"
+                : t("Swap 无")
               : latestHistoryRecord?.swap == null
                 ? "Swap —"
                 : latestHistoryTotals && latestHistoryTotals.swapTotal > 0
                   ? `Swap ${formatBytes(latestHistoryRecord.swap)} / ${formatBytes(latestHistoryTotals.swapTotal)}`
-                  : "Swap 无"
+                  : t("Swap 无")
           }
           points={points}
           keys={MEMORY_KEYS}
@@ -620,7 +629,7 @@ export function LoadChart({
         />
         <ChartCard
           icon={<HardDrive size={13} />}
-          title="磁盘"
+          title={t("磁盘")}
           uuid={uuid}
           value={
             isRealtime && node
@@ -629,7 +638,7 @@ export function LoadChart({
                 ? `${formatBytes(latestHistoryRecord.disk)} / ${formatBytes(latestHistoryTotals.diskTotal)}`
                 : "—"
           }
-          note="已用空间"
+          note={t("已用空间")}
           points={points}
           keys={DISK_KEYS}
           colors={DISK_COLORS}
@@ -642,7 +651,7 @@ export function LoadChart({
         />
         <ChartCard
           icon={<Network size={13} />}
-          title="网络"
+          title={t("网络")}
           uuid={uuid}
           value={
             isRealtime && node
@@ -669,7 +678,7 @@ export function LoadChart({
         />
         <ChartCard
           icon={<Workflow size={13} />}
-          title="连接数"
+          title={t("连接数")}
           uuid={uuid}
           value={
             isRealtime && node
@@ -678,7 +687,7 @@ export function LoadChart({
                 ? `TCP ${latestHistoryRecord.connections == null ? "—" : Math.round(latestHistoryRecord.connections)} / UDP ${latestHistoryRecord.connections_udp == null ? "—" : Math.round(latestHistoryRecord.connections_udp)}`
                 : "—"
           }
-          note="连接"
+          note={t("连接")}
           points={points}
           keys={CONNECTION_KEYS}
           colors={CONNECTION_COLORS}
@@ -690,7 +699,7 @@ export function LoadChart({
         />
         <ChartCard
           icon={<Gauge size={13} />}
-          title="进程"
+          title={t("进程")}
           uuid={uuid}
           value={
             isRealtime && node
@@ -701,9 +710,9 @@ export function LoadChart({
           }
           note={
             isRealtime && node
-              ? `负载 ${node.load1.toFixed(2)} | ${node.load5.toFixed(2)} | ${node.load15.toFixed(2)}`
+              ? t("负载 {0} | {1} | {2}", [node.load1.toFixed(2), node.load5.toFixed(2), node.load15.toFixed(2)])
               : latestHistoryRecord
-                ? `负载 ${(latestHistoryRecord.load ?? 0).toFixed(2)}`
+                ? t("负载 {0}", [(latestHistoryRecord.load ?? 0).toFixed(2)])
                 : "—"
           }
           points={points}

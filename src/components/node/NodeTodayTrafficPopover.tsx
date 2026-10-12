@@ -1,3 +1,11 @@
+import { useFineHover } from "@/hooks/useMediaQuery";
+import { useNodeMetrics } from "@/hooks/useNode";
+import { useNodeTodayTraffic, type NodeTodayTrafficView } from "@/hooks/useTodayTrafficStats";
+import { useTranslate } from "@/i18n";
+import { clearNodeMetricsHistoryCache } from "@/services/api";
+import { getRawNode } from "@/services/wsStore";
+import { formatByteRateLabel, formatBytes, formatClockTime, formatClockTimeDetailed } from "@/utils/format";
+import { ArrowDown, ArrowUp, BarChart3, RefreshCw } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -10,16 +18,6 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
-import { ArrowDown, ArrowUp, BarChart3, RefreshCw } from "lucide-react";
-import {
-  useNodeTodayTraffic,
-  type NodeTodayTrafficView,
-} from "@/hooks/useTodayTrafficStats";
-import { useNodeMetrics } from "@/hooks/useNode";
-import { getRawNode } from "@/services/wsStore";
-import { useFineHover } from "@/hooks/useMediaQuery";
-import { formatBytes, formatByteRateLabel, formatClockTime, formatClockTimeDetailed } from "@/utils/format";
-import { clearNodeMetricsHistoryCache } from "@/services/api";
 import {
   consumeTriggerFocusSuppression,
   INITIAL_NODE_TODAY_TRAFFIC_POPOVER_STATE,
@@ -44,6 +42,7 @@ export function NodeTodayTrafficPopover({
   uuid: string;
   size?: number;
 }) {
+  const t = useTranslate();
   const traffic = useNodeTodayTraffic(uuid);
   const trafficAvailable = traffic.available;
   const setTrafficActive = traffic.setActive;
@@ -231,7 +230,7 @@ export function NodeTodayTrafficPopover({
         ref={triggerRef}
         type="button"
         className="node-traffic-trigger"
-        aria-label="今日流量与峰值"
+        aria-label={t("今日流量与峰值")}
         aria-haspopup="dialog"
         aria-expanded={open}
         onClick={handleClick}
@@ -248,7 +247,7 @@ export function NodeTodayTrafficPopover({
             ref={popoverRef}
             className="node-traffic-popover"
             role="dialog"
-            aria-label="今日流量与峰值"
+            aria-label={t("今日流量与峰值")}
             tabIndex={-1}
             style={
               position
@@ -269,6 +268,7 @@ export function NodeTodayTrafficPopover({
 }
 
 function TodayTrafficPopoverBody({ traffic, uuid }: { traffic: NodeTodayTrafficView; uuid: string }) {
+  const t = useTranslate();
   const {
     stat,
     isPending,
@@ -327,21 +327,20 @@ function TodayTrafficPopoverBody({ traffic, uuid }: { traffic: NodeTodayTrafficV
     displayPeakDown > 0;
 
   if (isPending && !hasAnyData) {
-    return <div className="node-traffic-popover-empty">正在加载今日流量…</div>;
+    return <div className="node-traffic-popover-empty">{t("正在加载今日流量…")}</div>;
   }
 
   if (isError && !hasAnyData) {
     return (
       <div className="node-traffic-popover-error">
-        <span>今日流量加载失败</span>
+        <span>{t("今日流量加载失败")}</span>
         <button
           type="button"
           className={`node-traffic-popover-retry${isSpinning ? " is-spinning" : ""}`}
           onClick={handleRefresh}
           disabled={isSpinning}
         >
-          重试
-        </button>
+          {t("重试")}</button>
       </div>
     );
   }
@@ -352,7 +351,7 @@ function TodayTrafficPopoverBody({ traffic, uuid }: { traffic: NodeTodayTrafficV
         {isError && (
           <TrafficRefreshError isFetching={isSpinning} refetch={handleRefresh} />
         )}
-        <div className="node-traffic-popover-empty">今日暂无采样数据</div>
+        <div className="node-traffic-popover-empty">{t("今日暂无采样数据")}</div>
       </>
     );
   }
@@ -363,27 +362,27 @@ function TodayTrafficPopoverBody({ traffic, uuid }: { traffic: NodeTodayTrafficV
         <TrafficRefreshError isFetching={isSpinning} refetch={handleRefresh} />
       )}
       <div className="node-traffic-popover-head">
-        <span>今日流量</span>
+        <span>{t("今日流量")}</span>
       </div>
       <div className="node-traffic-popover-rows">
         <PopoverRow
           icon={<span className="node-traffic-icon is-up"><ArrowUp size={12} strokeWidth={2.4} /></span>}
-          label="上行流量"
+          label={t("上行流量")}
           value={formatBytes(displayTrafficUp)}
         />
         <PopoverRow
           icon={<span className="node-traffic-icon is-down"><ArrowDown size={12} strokeWidth={2.4} /></span>}
-          label="下行流量"
+          label={t("下行流量")}
           value={formatBytes(displayTrafficDown)}
         />
       </div>
       <div className="node-traffic-popover-head is-peak">
-        <span>峰值速度</span>
+        <span>{t("峰值速度")}</span>
       </div>
       <div className="node-traffic-popover-rows">
         <PopoverRow
           icon={<span className="node-traffic-icon is-up"><ArrowUp size={12} strokeWidth={2.4} /></span>}
-          label="最高上行"
+          label={t("最高上行")}
           value={formatByteRateLabel(displayPeakUp)}
           note={
             displayPeakUp > 0 && displayPeakUpAt != null
@@ -393,7 +392,7 @@ function TodayTrafficPopoverBody({ traffic, uuid }: { traffic: NodeTodayTrafficV
         />
         <PopoverRow
           icon={<span className="node-traffic-icon is-down"><ArrowDown size={12} strokeWidth={2.4} /></span>}
-          label="最高下行"
+          label={t("最高下行")}
           value={formatByteRateLabel(displayPeakDown)}
           note={
             displayPeakDown > 0 && displayPeakDownAt != null
@@ -404,22 +403,21 @@ function TodayTrafficPopoverBody({ traffic, uuid }: { traffic: NodeTodayTrafficV
       </div>
       <div className="node-traffic-popover-foot">
         <span className="inline-flex items-center gap-1.5">
-          <span>更新 {formatClockTimeDetailed(dataUpdatedAt)}</span>
+          <span>{t("更新")}{formatClockTimeDetailed(dataUpdatedAt)}</span>
           <button
             type="button"
             className={`node-traffic-popover-refresh${isSpinning ? " is-spinning" : ""}`}
             onClick={handleRefresh}
             disabled={isSpinning}
             aria-busy={isSpinning}
-            aria-label="立即刷新今日流量"
-            title="立即刷新"
+            aria-label={t("立即刷新今日流量")}
+            title={t("立即刷新")}
           >
             <RefreshCw size={11} strokeWidth={2.2} />
           </button>
         </span>
         <Link to="/traffic" className="node-traffic-popover-link">
-          明细
-        </Link>
+          {t("明细")}</Link>
       </div>
     </>
   );
@@ -432,17 +430,18 @@ function TrafficRefreshError({
   isFetching: boolean;
   refetch: (e?: React.MouseEvent) => Promise<unknown> | void;
 }) {
+  const t = useTranslate();
   return (
     <div className="node-traffic-popover-error is-stale" role="alert">
-      <span>更新失败，当前为缓存数据</span>
+      <span>{t("更新失败，当前为缓存数据")}</span>
       <button
         type="button"
         className={`node-traffic-popover-retry${isFetching ? " is-spinning" : ""}`}
         onClick={(e) => void refetch(e)}
         disabled={isFetching}
         aria-busy={isFetching}
-        aria-label="重试更新今日流量"
-        title="重试"
+        aria-label={t("重试更新今日流量")}
+        title={t("重试")}
       >
         <RefreshCw size={11} strokeWidth={2.3} />
       </button>
@@ -461,11 +460,12 @@ function PopoverRow({
   value: string;
   note?: string;
 }) {
+  const t = useTranslate();
   return (
     <div className="node-traffic-popover-row">
       <span className="node-traffic-popover-label">
         {icon}
-        {label}
+        {t(label)}
       </span>
       <span className="node-traffic-popover-values">
         <strong className="tabular">{value}</strong>

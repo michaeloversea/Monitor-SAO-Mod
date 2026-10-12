@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import type { NodeInfo } from "@/types/komari";
 import { formatRenewalPrice } from "@/utils/billing";
 import { getExpireDaysRemaining, resolveExpireTimestamp } from "@/utils/format";
@@ -110,9 +111,9 @@ export function getRenewalReminders(
 }
 
 export function formatRenewalReminderExpiry(daysRemaining: number) {
-  if (daysRemaining < 0) return `已过期 ${Math.abs(daysRemaining)} 天`;
-  if (daysRemaining === 0) return "今日到期";
-  return `${daysRemaining} 天后到期`;
+  if (daysRemaining < 0) return t("已过期 {0} 天", [Math.abs(daysRemaining)]);
+  if (daysRemaining === 0) return t("今日到期");
+  return t("{0} 天后到期", [daysRemaining]);
 }
 
 export function getVisibleRenewalReminders(

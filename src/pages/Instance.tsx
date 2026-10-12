@@ -1,18 +1,16 @@
-import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
-import "uplot/dist/uPlot.min.css";
+import { buildLoadTimeRangeOptions, buildPingTimeRangeOptions } from "@/components/instance/chartShared";
 import { InstanceDetails } from "@/components/instance/InstanceDetails";
-import { PingChart } from "@/components/instance/PingChart";
 import { LoadChart } from "@/components/instance/LoadChart";
+import { PingChart } from "@/components/instance/PingChart";
 import { Spinner } from "@/components/ui/Spinner";
-import {
-  buildLoadTimeRangeOptions,
-  buildPingTimeRangeOptions,
-} from "@/components/instance/chartShared";
-import { usePublicConfig } from "@/hooks/usePublicConfig";
 import { useAuth } from "@/hooks/useAuth";
 import { useNodeMeta, useNodeStoreStatus } from "@/hooks/useNode";
+import { usePublicConfig } from "@/hooks/usePublicConfig";
+import { useLanguage, useTranslate } from "@/i18n";
+import { ChevronLeft } from "lucide-react";
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import "uplot/dist/uPlot.min.css";
 
 const DEFAULT_PING_HOURS = 4;
 type TimeRangeOption = ReturnType<typeof buildLoadTimeRangeOptions>[number];
@@ -26,6 +24,7 @@ function RangeSelector({
   value: number;
   onChange: (value: number) => void;
 }) {
+  useLanguage();
   return (
     <div className="instance-segmented is-scrollable">
       {ranges.map((range) => (
@@ -44,6 +43,7 @@ function RangeSelector({
 }
 
 export function Instance() {
+  const t = useTranslate();
   const { uuid } = useParams<{ uuid: string }>();
   const { data: me } = useAuth();
   const { data: config } = usePublicConfig();
@@ -59,12 +59,12 @@ export function Instance() {
   const metricRetentionHours = retentionDays > 0 ? retentionDays * 24 : 168;
 
   const loadRanges = useMemo(
-    () => buildLoadTimeRangeOptions(metricRetentionHours),
-    [metricRetentionHours],
+    () => buildLoadTimeRangeOptions(metricRetentionHours).map((range) => ({ ...range, label: t(range.label) })),
+    [metricRetentionHours, t],
   );
   const pingRanges = useMemo(
-    () => buildPingTimeRangeOptions(metricRetentionHours),
-    [metricRetentionHours],
+    () => buildPingTimeRangeOptions(metricRetentionHours).map((range) => ({ ...range, label: t(range.label) })),
+    [metricRetentionHours, t],
   );
 
   const alignCharts = useCallback(() => {
@@ -98,26 +98,25 @@ export function Instance() {
 
   if (!meta) {
     const message = storeStatus.hydrated
-      ? "找不到这个实例，它可能已被删除或链接无效。"
+      ? t("找不到这个实例，它可能已被删除或链接无效。")
       : storeStatus.nodeInfoError
-        ? "节点列表加载失败，系统正在自动重试。"
+        ? t("节点列表加载失败，系统正在自动重试。")
         : null;
     return (
       <div className="flex flex-col gap-5 py-2">
         <Link to="/" className="instance-page-back">
           <ChevronLeft size={14} />
-          返回
-        </Link>
+          {t("返回")}</Link>
         <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 text-center">
           {message ? (
             <>
               <div className="text-[15px] font-semibold text-(--text-primary)">
-                {storeStatus.hydrated ? "实例不存在" : "暂时无法加载实例"}
+                {storeStatus.hydrated ? t("实例不存在") : t("暂时无法加载实例")}
               </div>
               <p className="text-[13px] text-(--text-secondary)">{message}</p>
             </>
           ) : (
-            <Spinner size={24} label="正在加载实例" />
+            <Spinner size={24} label={t("正在加载实例")} />
           )}
         </div>
       </div>
@@ -131,8 +130,7 @@ export function Instance() {
         className="instance-page-back"
       >
         <ChevronLeft size={14} />
-        返回
-      </Link>
+        {t("返回")}</Link>
       <InstanceDetails uuid={uuid} onNodeReady={alignCharts} />
       <div ref={chartControlsRef} className="instance-chart-controls">
         <div className="instance-segmented">
@@ -144,8 +142,7 @@ export function Instance() {
               startTransition(() => setChartType("load"));
             }}
           >
-            负载
-          </button>
+            {t("负载")}</button>
           <button
             type="button"
             data-active={chartType === "ping" ? "true" : "false"}

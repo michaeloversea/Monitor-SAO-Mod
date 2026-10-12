@@ -1,7 +1,3 @@
-import { useMemo, useRef, useState } from "react";
-import UplotReact from "uplot-react";
-import type uPlot from "uplot";
-import "uplot/dist/uPlot.min.css";
 import { ChartTooltip } from "@/components/instance/ChartParts";
 import {
   buildChartTooltipHooks,
@@ -12,8 +8,13 @@ import {
   type ChartTooltipState,
 } from "@/components/instance/chartShared";
 import { usePreferences } from "@/hooks/usePreferences";
+import { useTranslate } from "@/i18n";
 import { formatByteRateLabel } from "@/utils/format";
 import type { TodayTrafficSample } from "@/utils/trafficStats";
+import { useMemo, useRef, useState } from "react";
+import type uPlot from "uplot";
+import UplotReact from "uplot-react";
+import "uplot/dist/uPlot.min.css";
 
 const UP_COLOR = CHART_PALETTE.cpu;
 const DOWN_COLOR = CHART_PALETTE.success;
@@ -23,6 +24,7 @@ function axisRate(value: number) {
 }
 
 export function TrafficRateChart({ samples }: { samples: TodayTrafficSample[] }) {
+  const t = useTranslate();
   const { resolvedAppearance } = usePreferences();
   const { w, ref: chartSizeRef } = useResponsiveChartSize("grid");
   const height = w < 560 ? 182 : 220;
@@ -52,18 +54,18 @@ export function TrafficRateChart({ samples }: { samples: TodayTrafficSample[] })
         setTooltip,
         buildRows: (index) => [
           {
-            label: "上行",
+            label: t("上行"),
             value: formatByteRateLabel(Number(dataRef.current[1]?.[index] ?? 0)),
             color: UP_COLOR,
           },
           {
-            label: "下行",
+            label: t("下行"),
             value: formatByteRateLabel(Number(dataRef.current[2]?.[index] ?? 0)),
             color: DOWN_COLOR,
           },
         ],
       }),
-    [],
+    [t],
   );
   // base options 只随断点/主题变化;宽度变化时嵌套引用保持稳定,uplot-react 才会走
   // setSize 而不是整图销毁重建(与 LoadChart/PingChart 同一模式)。
@@ -98,16 +100,16 @@ export function TrafficRateChart({ samples }: { samples: TodayTrafficSample[] })
         },
       ],
       series: [
-        { label: "时间" },
+        { label: t("时间") },
         {
-          label: "上行",
+          label: t("上行"),
           stroke: UP_COLOR,
           fill: `${UP_COLOR}12`,
           width: 1.8,
           points: { show: false },
         },
         {
-          label: "下行",
+          label: t("下行"),
           stroke: DOWN_COLOR,
           width: 1.8,
           points: { show: false },
@@ -117,7 +119,7 @@ export function TrafficRateChart({ samples }: { samples: TodayTrafficSample[] })
         init: [
           (plot) => {
             plot.root.setAttribute("role", "img");
-            plot.root.setAttribute("aria-label", "本日网络上行与下行速率折线图");
+            plot.root.setAttribute("aria-label", t("本日网络上行与下行速率折线图"));
           },
           tooltipHooks.onInit,
         ],
@@ -125,7 +127,7 @@ export function TrafficRateChart({ samples }: { samples: TodayTrafficSample[] })
         setCursor: [tooltipHooks.onSetCursor],
       },
     };
-  }, [compact, resolvedAppearance, tooltipHooks]);
+  }, [compact, resolvedAppearance, tooltipHooks, t]);
   const options = useMemo<uPlot.Options>(
     () => ({ ...baseOptions, width: w, height }) as uPlot.Options,
     [baseOptions, height, w],
@@ -134,8 +136,8 @@ export function TrafficRateChart({ samples }: { samples: TodayTrafficSample[] })
   return (
     <div className="traffic-rate-chart">
       <div className="traffic-rate-chart-legend" aria-hidden>
-        <span><i style={{ background: UP_COLOR }} />上行</span>
-        <span><i style={{ background: DOWN_COLOR }} />下行</span>
+        <span><i style={{ background: UP_COLOR }} />{t("上行")}</span>
+        <span><i style={{ background: DOWN_COLOR }} />{t("下行")}</span>
       </div>
       <div ref={chartSizeRef} className="traffic-rate-chart-canvas">
         <UplotReact options={options} data={data} />

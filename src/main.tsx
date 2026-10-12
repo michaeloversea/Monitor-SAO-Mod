@@ -1,8 +1,8 @@
+import "@fontsource-variable/inter";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "@fontsource-variable/inter";
-import "./styles/index.css";
 import { App } from "./App";
+import "./styles/index.css";
 
 const rootEl = document.getElementById("root");
 if (!rootEl) throw new Error("#root not found");

@@ -1,3 +1,4 @@
+import { useTranslate } from "@/i18n";
 import { useCallback, type ReactNode } from "react";
 import { CanvasStrip, fillRoundedRect, safeCanvasColor } from "./CanvasStrip";
 
@@ -24,6 +25,7 @@ export function MetricBar({
   redrawKey,
   paint,
 }: MetricBarProps) {
+  const t = useTranslate();
   const clamped = Math.max(0, Math.min(1, fraction));
   const activeSegments = clamped * METRIC_SEGMENT_COUNT;
 
@@ -65,7 +67,7 @@ export function MetricBar({
       <div className="flex justify-between items-center gap-3 min-w-0">
         <div className="flex items-center gap-1.5 text-(--text-secondary) flex-shrink-0">
           <span>{icon}</span>
-          <span className="text-[11px] font-medium tracking-[0.02em]">{label}</span>
+          <span className="text-[11px] font-medium tracking-[0.02em]">{t(label)}</span>
         </div>
         <div className="tabular text-[13px] text-(--text-primary) whitespace-nowrap overflow-hidden text-ellipsis max-w-full text-right">
           <span className="font-semibold">{valueText}</span>

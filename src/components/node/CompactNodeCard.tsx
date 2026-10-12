@@ -1,6 +1,22 @@
-import { memo, useRef, useState } from "react";
-import type { CSSProperties, ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { Flag } from "@/components/ui/Flag";
+import { OsLogo } from "@/components/ui/OsLogo";
+import { useNodeCardModel } from "@/hooks/useNodeCardModel";
+import { useThemeSettings } from "@/hooks/useThemeSettings";
+import { useLanguage, useTranslate } from "@/i18n";
+import type {
+  NodeInfo,
+  NodeMetrics,
+  PingOverviewBucket,
+  PingOverviewItem,
+  TrafficTrendSample,
+} from "@/types/komari";
+import type { ByteRateDisplay } from "@/utils/format";
+import { formatBytes, formatCompactOfflineDuration } from "@/utils/format";
+import { supportsFineHover } from "@/utils/mediaQuery";
+import { speedRateColor, speedRateColorFromBytes } from "@/utils/metricTone";
+import { HOMEPAGE_MULTI_PING_MIN_COUNT } from "@/utils/pingTasks";
+import type { TrafficDisplay } from "@/utils/traffic";
+import { clsx } from "clsx";
 import {
   ArrowDown,
   ArrowUp,
@@ -16,16 +32,10 @@ import {
   RefreshCw,
   Unplug,
 } from "lucide-react";
-import { clsx } from "clsx";
-import { Flag } from "@/components/ui/Flag";
-import { OsLogo } from "@/components/ui/OsLogo";
-import { useNodeCardModel } from "@/hooks/useNodeCardModel";
-import { useThemeSettings } from "@/hooks/useThemeSettings";
-import { formatBytes } from "@/utils/format";
-import { HOMEPAGE_MULTI_PING_MIN_COUNT } from "@/utils/pingTasks";
-import { speedRateColor, speedRateColorFromBytes } from "@/utils/metricTone";
-import { supportsFineHover } from "@/utils/mediaQuery";
-import { formatHealthBucketTooltip } from "./pingBucketText";
+import type { CSSProperties, ReactNode } from "react";
+import { memo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import { IpStackBadges } from "./IpStackBadges";
 import { MultiPingStatus } from "./MultiPingStatus";
 import {
   formatCompactBillingCycle,
@@ -38,18 +48,8 @@ import {
   pingEmptyLabels,
   TRAFFIC_SLIVER_RATIO,
 } from "./nodeCardShared";
-import { formatCompactOfflineDuration } from "@/utils/format";
-import { IpStackBadges } from "./IpStackBadges";
 import { NodeTodayTrafficPopover } from "./NodeTodayTrafficPopover";
-import type {
-  NodeInfo,
-  NodeMetrics,
-  PingOverviewBucket,
-  PingOverviewItem,
-  TrafficTrendSample,
-} from "@/types/komari";
-import type { ByteRateDisplay } from "@/utils/format";
-import type { TrafficDisplay } from "@/utils/traffic";
+import { formatHealthBucketTooltip } from "./pingBucketText";
 
 const TRAFFIC_DOT_COUNT = 16;
 const HEALTH_BAR_COUNT = 18;
@@ -77,6 +77,7 @@ function CompactGauge({
   color: string;
   fraction: number;
 }) {
+  useLanguage();
   // 单元素分段条:填充用一个 hard-stop 渐变到 fraction 处,再叠一个重复 mask 打出
   // 18 个段间空隙。替代了 18 个逐段 <span>(每卡 ×4 个 gauge)—— 那些 span 在每个
   // 屏外卡片上每 tick 的 reconcile + 样式重算曾是渲染开销大头。
@@ -112,6 +113,7 @@ function CompactInfoTile({
   color: string;
   children: ReactNode;
 }) {
+  useLanguage();
   const style = { "--compact-info-color": color } as CSSProperties;
 
   return (
@@ -132,6 +134,7 @@ function CompactTrafficPulse({
   up: TrafficTrendSample[];
   down: TrafficTrendSample[];
 }) {
+  useLanguage();
   const upSelected = up.slice(-TRAFFIC_DOT_COUNT);
   const downSelected = down.slice(-TRAFFIC_DOT_COUNT);
   const upPadding = Math.max(0, TRAFFIC_DOT_COUNT - upSelected.length);
@@ -181,6 +184,7 @@ function CompactInfoRow({
   unit?: string;
   color?: string;
 }) {
+  useLanguage();
   const style = color ? ({ "--compact-info-row-color": color } as CSSProperties) : undefined;
 
   return (
@@ -204,6 +208,7 @@ function HealthBars({
   buckets: PingOverviewBucket[];
   kind: "latency" | "loss";
 }) {
+  const t = useTranslate();
   const bars = buckets.slice(-HEALTH_BAR_COUNT);
   const containerRef = useRef<HTMLDivElement>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -229,7 +234,7 @@ function HealthBars({
       style={{ "--compact-health-tooltip-x": activeLeft } as CSSProperties}
       tabIndex={0}
       role="group"
-      aria-label={`${kind === "latency" ? "延迟" : "丢包"}历史${activeTooltip ? `，${activeTooltip}` : ""}，使用左右方向键查看`}
+      aria-label={t("{0}历史{1}，使用左右方向键查看", [t(kind === "latency" ? "延迟" : "丢包"), activeTooltip ? `，${activeTooltip}` : ""])}
       onFocus={() => {
         if (!supportsFineHover()) return;
         if (selectedIndex == null) selectIndex(bars.length - 1);
@@ -299,6 +304,7 @@ function CompactHealthItem({
   color: string;
   children: ReactNode;
 }) {
+  useLanguage();
   return (
     <div className="compact-node-health-item">
       <div className="compact-node-health-head">
@@ -325,6 +331,7 @@ function CompactNodeHeader({
   osName: string;
   showTodayTraffic: boolean;
 }) {
+  useLanguage();
   const detailLabels = nodeDetailLinkLabels(node.name, osName);
   return (
     <header className="compact-node-header">
@@ -368,6 +375,7 @@ function CompactNodeChips({
   ipv4?: string | null;
   ipv6?: string | null;
 }) {
+  useLanguage();
   // 完整 tag 列表挂在 lane 的 tooltip 上;chip 不带自己的 title,hover 会穿透到 lane 上 ——
   // 被裁剪 lane 折行挤出去的 tag 就靠这个保持可见,不用显示"+N"角标。
   const tagTitle = joinTagTitle(tags);
@@ -404,19 +412,20 @@ function CompactNodeVitals({
   node: CompactNode;
   loadFraction: number;
 }) {
+  const t = useTranslate();
   return (
     <div className="compact-node-vitals">
       <CompactGauge
         icon={<Cpu size={12} />}
         label="CPU"
         value={formatCompactPercent(node.cpuPct)}
-        detail={`${node.cpu_cores || 0} 核`}
+        detail={t("{0} 核", [node.cpu_cores || 0])}
         fraction={node.cpuPct / 100}
         color="var(--progress-cpu)"
       />
       <CompactGauge
         icon={<MemoryStick size={12} />}
-        label="内存"
+        label={t("内存")}
         value={formatCompactPercent(node.ramPct)}
         detail={`${formatBytes(node.ramUsed)} / ${formatBytes(node.ramTotal)}`}
         fraction={node.ramPct / 100}
@@ -424,7 +433,7 @@ function CompactNodeVitals({
       />
       <CompactGauge
         icon={<HardDrive size={12} />}
-        label="磁盘"
+        label={t("磁盘")}
         value={formatCompactPercent(node.diskPct)}
         detail={`${formatBytes(node.diskUsed)} / ${formatBytes(node.diskTotal)}`}
         fraction={node.diskPct / 100}
@@ -432,7 +441,7 @@ function CompactNodeVitals({
       />
       <CompactGauge
         icon={<Gauge size={12} />}
-        label="负载"
+        label={t("负载")}
         value={node.load1.toFixed(2)}
         detail={`${node.load5.toFixed(2)} / ${node.load15.toFixed(2)}`}
         fraction={loadFraction}
@@ -467,6 +476,7 @@ function CompactNodeInfoStrip({
   renewalPrice: string | null;
   isPriceVisible?: boolean;
 }) {
+  const t = useTranslate();
   const infoTileCount =
     1 + (showTrafficTotal ? 1 : 0) + (showBilling ? 1 : 0) + (showConnections ? 1 : 0);
 
@@ -476,7 +486,7 @@ function CompactNodeInfoStrip({
       style={{ "--compact-info-columns": infoTileCount } as CSSProperties}
     >
       <CompactInfoTile
-        label="实时速率"
+        label={t("实时速率")}
         color="var(--progress-cpu)"
       >
         <CompactInfoRow
@@ -495,7 +505,7 @@ function CompactNodeInfoStrip({
       </CompactInfoTile>
       {showTrafficTotal && (
         <CompactInfoTile
-          label="累计流量"
+          label={t("累计流量")}
           color="var(--text-primary)"
         >
           <CompactInfoRow
@@ -503,7 +513,7 @@ function CompactNodeInfoStrip({
               <ArrowUp
                 size={12}
                 strokeWidth={2.5}
-                aria-label="上行"
+                aria-label={t("上行")}
               />
             )}
             value={formatBytes(node.trafficUp)}
@@ -513,7 +523,7 @@ function CompactNodeInfoStrip({
               <ArrowDown
                 size={12}
                 strokeWidth={2.5}
-                aria-label="下行"
+                aria-label={t("下行")}
               />
             )}
             value={formatBytes(node.trafficDown)}
@@ -522,7 +532,7 @@ function CompactNodeInfoStrip({
       )}
       {showBilling && (
         <CompactInfoTile
-          label="费用到期"
+          label={t("费用到期")}
           color="var(--status-success)"
         >
           <CompactInfoRow
@@ -534,7 +544,7 @@ function CompactNodeInfoStrip({
             <CompactInfoRow
               icon={<CircleDollarSign size={12} strokeWidth={2.2} />}
               // 后端 price 为空/0/-1 都表示免费，小卡片直接写「免费」而不是留白。
-              value={renewalPrice || "免费"}
+              value={renewalPrice || t("免费")}
               color={renewalPrice ? "var(--status-success)" : "var(--text-tertiary)"}
             />
           ) : (
@@ -548,7 +558,7 @@ function CompactNodeInfoStrip({
         </CompactInfoTile>
       )}
       {showConnections && (
-        <CompactInfoTile label="连接数" color="var(--progress-network)">
+        <CompactInfoTile label={t("连接数")} color="var(--progress-network)">
           <CompactInfoRow
             icon={<Network size={12} strokeWidth={2.1} />}
             label="TCP"
@@ -575,6 +585,7 @@ function CompactTrafficBar({
   traffic: TrafficDisplay;
   uptimeLabel: string;
 }) {
+  const t = useTranslate();
   // 用量非零但极小时,下限填充"一段的 TRAFFIC_SLIVER_RATIO"(段内一道细边),而不是整段——
   // 否则低用量节点(如 0.01%)会被夸张成快 5.6%。fraction 为 0 时保持全灭。
   const fillFraction =
@@ -590,14 +601,14 @@ function CompactTrafficBar({
     <div
       className="compact-node-traffic"
       style={style}
-      title={`流量 · ${traffic.typeLabel} · ${traffic.detail}${uptimeLabel ? ` · ${uptimeLabel}` : ""}`}
+      title={t("流量 · {0} · {1}{2}", [t(traffic.typeLabel), traffic.detail, uptimeLabel ? ` · ${uptimeLabel}` : ""])}
     >
       <div className={clsx("compact-node-traffic-body", uptimeLabel && "has-uptime")}>
         {uptimeLabel ? (
           <>
             <span className="compact-node-traffic-label">
               <Database size={12} strokeWidth={2.1} />
-              <span>流量</span>
+              <span>{t("流量")}</span>
             </span>
             <div className="compact-node-gauge-track" aria-hidden />
             <span className="compact-node-traffic-uptime">{uptimeLabel}</span>
@@ -608,7 +619,7 @@ function CompactTrafficBar({
             <div className="compact-node-traffic-head">
               <span className="compact-node-traffic-label">
                 <Database size={12} strokeWidth={2.1} />
-                <span>流量</span>
+                <span>{t("流量")}</span>
               </span>
               <span className="compact-node-traffic-value">{traffic.detail}</span>
             </div>
@@ -642,6 +653,7 @@ const CompactNodeHealth = memo(function CompactNodeHealth({
   pingLoadingSilently?: boolean;
   pingError: boolean;
 }) {
+  const t = useTranslate();
   // 已绑定但无样本时显示"无样本",未绑定时显示"未配置" —— 见 pingEmptyLabels。
   const { text: emptyText } = pingEmptyLabels(
     hasRealHomepagePingBinding,
@@ -655,13 +667,13 @@ const CompactNodeHealth = memo(function CompactNodeHealth({
       data-ping-state={ping.loadState ?? "ready"}
       title={
         pingError && (ping.lastValue != null || ping.loss != null)
-          ? "首页 Ping 刷新失败，显示上次数据"
+          ? t("首页 Ping 刷新失败，显示上次数据")
           : undefined
       }
     >
       <CompactHealthItem
         icon={<Clock3 size={12} />}
-        label="延迟"
+        label={t("延迟")}
         value={ping.lastValue != null ? Math.round(ping.lastValue).toString() : emptyText}
         unit={ping.lastValue != null ? "ms" : undefined}
         color={latencyColor}
@@ -670,7 +682,7 @@ const CompactNodeHealth = memo(function CompactNodeHealth({
       </CompactHealthItem>
       <CompactHealthItem
         icon={<Unplug size={12} />}
-        label="丢包"
+        label={t("丢包")}
         value={ping.loss != null ? ping.loss.toFixed(1) : emptyText}
         unit={ping.loss != null ? "%" : undefined}
         color={lossColor}
@@ -688,6 +700,7 @@ export const CompactNodeCard = memo(function CompactNodeCard({
   uuid: string;
   showTodayTraffic?: boolean;
 }) {
+  const t = useTranslate();
   const model = useNodeCardModel(uuid, {
     pingBucketCount: HEALTH_BAR_COUNT,
     includeMultiPing: true,
@@ -733,7 +746,7 @@ export const CompactNodeCard = memo(function CompactNodeCard({
       ? formatCompactOfflineDuration(
           node.last_seen_ago,
           node.updatedAt > 0 ? node.updatedAt / 1000 : null,
-        ) || "离线"
+        ) || t("离线")
       : formatCompactUptime(node.uptime)
     : "";
 

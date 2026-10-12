@@ -2,7 +2,11 @@ import type { NodeInfo } from "@/types/komari";
 import { formatBillingCycle, normalizeBillingCycle } from "@/utils/billing";
 import { fetchWithTimeout } from "@/utils/abort";
 import { resolveExpireTimestamp } from "@/utils/format";
-import { buildNodeIdentitySet, nodeMatchesIdentitySet, normalizeNodeIdentityList } from "@/utils/nodeIdentity";
+import {
+  buildNodeIdentitySet,
+  nodeMatchesIdentitySet,
+  normalizeNodeIdentityList,
+} from "@/utils/nodeIdentity";
 
 const COST_TARGET_CURRENCY = "CNY";
 export const DEFAULT_COST_RATE_API_URL = "https://api.frankfurter.dev/v2/rates?base=USD";
@@ -280,9 +284,9 @@ function currencyCode(value: unknown) {
 function originalRenewalPrice(node: NodeInfo): string | null {
   const price = Number(node.price);
   const currency = currencyCode(node.currency);
-  if (!Number.isFinite(price) || price <= 0 || !currency || currency === COST_TARGET_CURRENCY ||
+  if (!Number.isFinite(price) || price <= 0 || !currency ||
       normalizeBillingCycle(node.billing_cycle).kind === "lifetime") return null;
-  return `${currency} ${ORIGINAL_PRICE_FORMATTER.format(price)}/${formatBillingCycle(node.billing_cycle)}`;
+  return `${currency} ${ORIGINAL_PRICE_FORMATTER.format(price)}/${formatBillingCycle(node.billing_cycle, "zh-CN")}`;
 }
 
 // 周期档位政策统一在 billing.normalizeBillingCycle;这里只取摊销天数(lifetime 为 -1)。

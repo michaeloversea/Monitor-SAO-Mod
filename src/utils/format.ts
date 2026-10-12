@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 const UNITS = ["B", "KB", "MB", "GB", "TB", "PB"] as const;
 const CLOCK_TIME_FORMATTER = new Intl.DateTimeFormat("zh-CN", {
   hour: "2-digit",
@@ -123,12 +124,12 @@ export function formatByteRateLabel(bytesPerSec: number | undefined | null): str
 export function formatUptimeDays(seconds: number): { value: string; unit: string } {
   if (!Number.isFinite(seconds) || seconds <= 0) return { value: "—", unit: "" };
   const days = seconds / 86400;
-  if (days >= 1) return { value: Math.floor(days).toString(), unit: "天" };
+  if (days >= 1) return { value: Math.floor(days).toString(), unit: t("天") };
   const hours = seconds / 3600;
-  if (hours >= 1) return { value: Math.floor(hours).toString(), unit: "小时" };
+  if (hours >= 1) return { value: Math.floor(hours).toString(), unit: t("小时") };
   // 不足 1 分钟向上取整,避免刚上线显示成「0 分钟」而 <=0 又显示「—」的口径分裂。
   const minutes = Math.max(1, Math.floor(seconds / 60));
-  return { value: minutes.toString(), unit: "分钟" };
+  return { value: minutes.toString(), unit: t("分钟") };
 }
 
 // 将 `expired_at` 解析为毫秒；空值、Go 零时和 0/-1 哨兵均表示无到期。
@@ -180,10 +181,10 @@ export function formatExpireDays(
   const days = getExpireDaysRemaining(iso, now, expiresIn);
   const tone = resolveExpireTone(days);
   if (days == null) return { value: "—", unit: "", tone };
-  if (tone === "long") return { value: "长期", unit: "", tone };
-  if (days > 0) return { value: days.toString(), unit: "天", tone };
-  if (days === 0) return { value: "今日", unit: "", tone };
-  return { value: "已过期", unit: "", tone };
+  if (tone === "long") return { value: t("长期"), unit: "", tone };
+  if (days > 0) return { value: days.toString(), unit: t("天"), tone };
+  if (days === 0) return { value: t("今日"), unit: "", tone };
+  return { value: t("已过期"), unit: "", tone };
 }
 
 function inferPlainTagColor(label: string): string {
@@ -238,13 +239,13 @@ export function formatOfflineDuration(
   }
 
   if (seconds == null) return null;
-  if (seconds < 60) return "刚刚离线";
+  if (seconds < 60) return t("刚刚离线");
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `离线 ${minutes} 分钟`;
+  if (minutes < 60) return t("离线 {0} 分钟", [minutes]);
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `离线 ${hours} 小时`;
+  if (hours < 24) return t("离线 {0} 小时", [hours]);
   const days = Math.floor(hours / 24);
-  return `离线 ${days} 天`;
+  return t("离线 {0} 天", [days]);
 }
 
 export function formatCompactOfflineDuration(
@@ -262,12 +263,12 @@ export function formatCompactOfflineDuration(
   }
 
   if (seconds == null) return null;
-  if (seconds < 60) return "刚刚离线";
+  if (seconds < 60) return t("刚刚离线");
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `离线 ${minutes}m`;
+  if (minutes < 60) return t("离线 {0}m", [minutes]);
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `离线 ${hours}h`;
+  if (hours < 24) return t("离线 {0}h", [hours]);
   const days = Math.floor(hours / 24);
-  return `离线 ${days}d`;
+  return t("离线 {0}d", [days]);
 }
 

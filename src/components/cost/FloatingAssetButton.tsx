@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect, type PointerEvent, type MouseEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useTranslate } from "@/i18n";
 import { CircleDollarSign } from "lucide-react";
+import { useEffect, useRef, useState, type MouseEvent, type PointerEvent } from "react";
+import { useNavigate } from "react-router-dom";
 
 const STORAGE_KEY = "monitor-sao:cost-ball-pos";
 
@@ -10,6 +11,7 @@ interface Position {
 }
 
 export function FloatingAssetButton() {
+  const t = useTranslate();
   const navigate = useNavigate();
   const [pos, setPos] = useState<Position | null>(() => {
     try {
@@ -136,8 +138,8 @@ export function FloatingAssetButton() {
       tabIndex={0}
       style={style}
       className={`cost-summary-ball show${isDragging ? " is-dragging" : ""}`}
-      aria-label="打开资产统计页"
-      title="资产统计（支持拖动）"
+      aria-label={t("打开资产统计页")}
+      title={t("资产统计（支持拖动）")}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}

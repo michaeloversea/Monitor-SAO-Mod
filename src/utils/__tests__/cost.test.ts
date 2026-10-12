@@ -62,7 +62,7 @@ describe("calculateCostSummary", () => {
       originalRenewalPrice: "HKD 180/季", counted: false, note: "汇率缺失",
     });
   });
-  it("omits duplicated CNY, free, invalid, ignored and one-time renewal labels", () => {
+  it("keeps CNY in the original-price column and omits free, invalid, ignored and one-time labels", () => {
     const summary = calculateCostSummary([
       node({ uuid: "cny", price: 30, currency: "RMB" }),
       node({ uuid: "default", price: 30, currency: "" }),
@@ -71,7 +71,9 @@ describe("calculateCostSummary", () => {
       node({ uuid: "skip", price: 10 }),
       node({ uuid: "once", price: 99, billing_cycle: "once" }),
     ], ["skip"], RATES);
-    expect(summary.details.every((detail) => detail.originalRenewalPrice === null)).toBe(true);
+    expect(summary.details.find((detail) => detail.uuid === "cny")?.originalRenewalPrice).toBe("CNY 30/月");
+    expect(summary.details.find((detail) => detail.uuid === "default")?.originalRenewalPrice).toBe("CNY 30/月");
+    expect(summary.details.filter((detail) => !["cny", "default"].includes(detail.uuid)).every((detail) => detail.originalRenewalPrice === null)).toBe(true);
   });
   it("scales remaining value by prepaid cycles (price is per-cycle)", () => {
     // 10 USD(=70 CNY)每 30 天一个周期,付到约 1 年后 → 还剩约 12 个周期的预付价值。

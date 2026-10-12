@@ -1,6 +1,8 @@
+import { useLanguage, useTranslate } from "@/i18n";
 import type { ChartTooltipState } from "./chartShared";
 
 export function ChartTooltip({ tooltip }: { tooltip: ChartTooltipState }) {
+  useLanguage();
   if (!tooltip.show) return null;
   return (
     <div
@@ -35,6 +37,7 @@ export function SwitchToggle({
   onToggle: () => void;
   title?: string;
 }) {
+  const t = useTranslate();
   return (
     <button
       type="button"
@@ -48,7 +51,7 @@ export function SwitchToggle({
       <span className="instance-switch-track" aria-hidden>
         <span className="instance-switch-thumb" />
       </span>
-      <span className="instance-switch-state">{active ? "开启" : "关闭"}</span>
+      <span className="instance-switch-state">{active ? t("开启") : t("关闭")}</span>
     </button>
   );
 }

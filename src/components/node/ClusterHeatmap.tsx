@@ -1,13 +1,9 @@
-import { useState, useRef, useMemo, useEffect, useCallback } from "react";
 import { Flag } from "@/components/ui/Flag";
-import { formatByteRateLabel } from "@/utils/format";
-import {
-  GRID_COLUMNS,
-  MIN_RACK_ROWS,
-  DEFAULT_PATTERN_SET,
-  getPatternPixelSet,
-} from "@/utils/matrixPatterns";
+import { t, useTranslate } from "@/i18n";
 import type { HomeNodeSummary } from "@/services/wsStore";
+import { formatByteRateLabel } from "@/utils/format";
+import { DEFAULT_PATTERN_SET, getPatternPixelSet, GRID_COLUMNS, MIN_RACK_ROWS } from "@/utils/matrixPatterns";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export const SAO_PIXEL_INDICES = DEFAULT_PATTERN_SET;
 
@@ -64,7 +60,7 @@ export function resolveNodeThroughputStatus(node: HomeNodeSummary): {
     return {
       status: "offline",
       statusClass: "is-offline",
-      badgeText: "离线",
+      badgeText: t("离线"),
       badgeClass: "is-offline",
     };
   }
@@ -72,7 +68,7 @@ export function resolveNodeThroughputStatus(node: HomeNodeSummary): {
     return {
       status: "unknown",
       statusClass: "is-unknown",
-      badgeText: "未知",
+      badgeText: t("未知"),
       badgeClass: "is-unknown",
     };
   }
@@ -82,7 +78,7 @@ export function resolveNodeThroughputStatus(node: HomeNodeSummary): {
     return {
       status: "high",
       statusClass: "is-high-load",
-      badgeText: "高吞吐",
+      badgeText: t("高吞吐"),
       badgeClass: "is-warning",
     };
   }
@@ -90,14 +86,14 @@ export function resolveNodeThroughputStatus(node: HomeNodeSummary): {
     return {
       status: "active",
       statusClass: "is-medium-load",
-      badgeText: "活跃传输",
+      badgeText: t("活跃传输"),
       badgeClass: "is-active",
     };
   }
   return {
     status: "idle",
     statusClass: "is-low-load",
-    badgeText: "空闲待机",
+    badgeText: t("空闲待机"),
     badgeClass: "is-idle",
   };
 }
@@ -114,6 +110,7 @@ export function ClusterHeatmap({
   bootAnimation = true,
   customPattern = null,
 }: ClusterHeatmapProps) {
+  const t = useTranslate();
   const [hoverInfo, setHoverInfo] = useState<HoverState | null>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -395,7 +392,7 @@ export function ClusterHeatmap({
     const coords = calcTooltipCoords(target);
     if (!coords) return;
     setHoverInfo({
-      name: `机位插槽 #${slot.slotNumber}`,
+      name: t("机位插槽 #{0}", [slot.slotNumber]),
       x: coords.x,
       y: coords.y,
       placement: coords.placement,
@@ -408,7 +405,7 @@ export function ClusterHeatmap({
     const coords = calcTooltipCoords(target);
     if (!coords) return;
     setHoverInfo({
-      name: `机位插槽 #${slotIndex}`,
+      name: t("机位插槽 #{0}", [slotIndex]),
       x: coords.x,
       y: coords.y,
       placement: coords.placement,
@@ -547,18 +544,18 @@ export function ClusterHeatmap({
       <div className="mao-progress-section-header">
         <div className="flex items-baseline gap-1.5 min-w-0">
           <span className="mao-progress-big-num">{onlinePct.toFixed(0)}%</span>
-          <span className="mao-progress-unit-label">在线率</span>
+          <span className="mao-progress-unit-label">{t("在线率")}</span>
         </div>
         <div className="flex items-center gap-2">
           {highThroughputCount > 0 && (
             <div className="mao-progress-tag-box text-right">
-              <span className="mao-progress-tag-label text-(--status-warning)">高吞吐</span>
-              <span className="mao-progress-tag-val">{highThroughputCount} 台</span>
+              <span className="mao-progress-tag-label text-(--status-warning)">{t("高吞吐")}</span>
+              <span className="mao-progress-tag-val">{highThroughputCount} {t("台")}</span>
             </div>
           )}
           <div className="mao-progress-tag-box text-right">
-            <span className="mao-progress-tag-label">离线服务器</span>
-            <span className="mao-progress-tag-val">{offlineNodes} 台</span>
+            <span className="mao-progress-tag-label">{t("离线服务器")}</span>
+            <span className="mao-progress-tag-val">{offlineNodes} {t("台")}</span>
           </div>
         </div>
       </div>
@@ -574,7 +571,7 @@ export function ClusterHeatmap({
         <div
           className={`mao-heatmap-grid${bootPhase !== "idle" ? " is-booting" : ""}${isScrollable ? " is-scrollable" : ""}`}
           role="grid"
-          aria-label="服务器集群机架热力矩阵"
+          aria-label={t("服务器集群机架热力矩阵")}
         >
           {/* 已接入的真实节点 */}
           {nodes.map((node, idx) => {
@@ -608,10 +605,10 @@ export function ClusterHeatmap({
                       : "is-low-load";
                 const badgeText =
                   slot.status === "high"
-                    ? "高吞吐"
+                    ? t("高吞吐")
                     : slot.status === "active"
-                      ? "活跃传输"
-                      : "空闲待机";
+                      ? t("活跃传输")
+                      : t("空闲待机");
                 const bootClass = getBootAnimationClass(idx);
                 const isActive = activeKey === `mock-${slot.slotNumber}`;
 
@@ -623,7 +620,7 @@ export function ClusterHeatmap({
                     onClick={(e) => !isBooting && handleMockSlotClick(e, slot)}
                     onMouseEnter={(e) => !isBooting && handleMockSlotMouseEnter(e, slot)}
                     onMouseLeave={handleCellMouseLeave}
-                    aria-label={`机架模拟槽位 #${slot.slotNumber}: ${badgeText}`}
+                    aria-label={t("机架模拟槽位 #{0}: {1}", [slot.slotNumber, badgeText])}
                   />
                 );
               })
@@ -640,7 +637,7 @@ export function ClusterHeatmap({
                     onClick={(e) => !isBooting && handleEmptySlotClick(e, slotNumber)}
                     onMouseEnter={(e) => !isBooting && handleEmptySlotMouseEnter(e, slotNumber)}
                     onMouseLeave={handleCellMouseLeave}
-                    aria-label={`机架空槽 #${slotNumber}`}
+                    aria-label={t("机架空槽 #{0}", [slotNumber])}
                   />
                 );
               })}
@@ -660,8 +657,7 @@ export function ClusterHeatmap({
                 <div className="mao-tooltip-header">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-blue-500/15 text-blue-600 dark:text-blue-300 border border-blue-500/30">
-                      模拟机位
-                    </span>
+                      {t("模拟机位")}</span>
                     <span className="mao-tooltip-name">{hoverInfo.name}</span>
                   </div>
                   <span
@@ -674,10 +670,10 @@ export function ClusterHeatmap({
                     }`}
                   >
                     {hoverInfo.mockSlot.status === "high"
-                      ? "高吞吐"
+                      ? t("高吞吐")
                       : hoverInfo.mockSlot.status === "active"
-                        ? "活跃传输"
-                        : "空闲待机"}
+                        ? t("活跃传输")
+                        : t("空闲待机")}
                   </span>
                 </div>
 
@@ -687,11 +683,11 @@ export function ClusterHeatmap({
                     <span className="val">{hoverInfo.mockSlot.cpuPct}%</span>
                   </div>
                   <div className="mao-tooltip-stat-item">
-                    <span className="label">内存</span>
+                    <span className="label">{t("内存")}</span>
                     <span className="val">{hoverInfo.mockSlot.ramPct}%</span>
                   </div>
                   <div className="mao-tooltip-stat-item">
-                    <span className="label">实时带宽</span>
+                    <span className="label">{t("实时带宽")}</span>
                     <span className="val">
                       ↑ {formatByteRateLabel(hoverInfo.mockSlot.netUp)} · ↓{" "}
                       {formatByteRateLabel(hoverInfo.mockSlot.netDown)}
@@ -699,15 +695,14 @@ export function ClusterHeatmap({
                   </div>
                 </div>
                 <div className="mao-tooltip-tip text-(--text-tertiary)">
-                  <span>模拟数据填充展示 · 待接入实际服务器</span>
+                  <span>{t("模拟数据填充展示 · 待接入实际服务器")}</span>
                 </div>
               </>
             ) : hoverInfo.isEmpty ? (
               <div className="mao-tooltip-empty-content">
                 <span className="font-semibold">{hoverInfo.name}</span>
                 <span className="text-[10px] text-(--text-muted) block mt-0.5">
-                  空置机位 · 待接入服务器
-                </span>
+                  {t("空置机位 · 待接入服务器")}</span>
               </div>
             ) : (
               <>
@@ -734,7 +729,7 @@ export function ClusterHeatmap({
                       <span className="val">{(hoverInfo.node.cpuPct ?? 0).toFixed(0)}%</span>
                     </div>
                     <div className="mao-tooltip-stat-item">
-                      <span className="label">内存</span>
+                      <span className="label">{t("内存")}</span>
                       <span className="val">
                         {hoverInfo.node.ramTotal > 0
                           ? `${((hoverInfo.node.ramUsed / hoverInfo.node.ramTotal) * 100).toFixed(0)}%`
@@ -742,7 +737,7 @@ export function ClusterHeatmap({
                       </span>
                     </div>
                     <div className="mao-tooltip-stat-item">
-                      <span className="label">实时带宽</span>
+                      <span className="label">{t("实时带宽")}</span>
                       <span className="val">
                         ↑ {formatByteRateLabel(hoverInfo.node.netUp)} · ↓{" "}
                         {formatByteRateLabel(hoverInfo.node.netDown)}
@@ -751,14 +746,13 @@ export function ClusterHeatmap({
                   </div>
                 ) : (
                   <div className="mao-tooltip-offline-hint">
-                    此服务器已失联，请及时排查处理。
-                  </div>
+                    {t("此服务器已失联，请及时排查处理。")}</div>
                 )}
                 <div className="mao-tooltip-tip">
                   <span>
                     {tooltipTrigger === "touch"
-                      ? "再次点击方块直达节点卡片"
-                      : "点击方块直达节点卡片"}
+                      ? t("再次点击方块直达节点卡片")
+                      : t("点击方块直达节点卡片")}
                   </span>
                   <span aria-hidden="true">↗</span>
                 </div>
@@ -771,29 +765,29 @@ export function ClusterHeatmap({
       {/* 底部信息与微型图例 */}
       <div className="mao-progress-section-footer">
         <div className="flex items-center gap-2">
-          <span>在线 {onlineNodes} 台</span>
+          <span>{t("在线")} {onlineNodes} {t("台")}</span>
           <div className="mao-legend-colors" aria-hidden="true">
-            <span className="mao-legend-text">空闲</span>
+            <span className="mao-legend-text">{t("空闲")}</span>
             <span
               className="mao-legend-box is-low-load"
-              title={colorTheme === "eva" ? "初号机紫 (< 500 KB/s)" : "空闲待机 (< 500 KB/s)"}
+              title={colorTheme === "eva" ? t("初号机紫 (< 500 KB/s)") : t("空闲待机 (< 500 KB/s)")}
             />
             <span
               className="mao-legend-box is-medium-load"
               title={
                 colorTheme === "eva"
-                  ? "荧光激活绿 (500 KB/s ~ 5 MB/s)"
-                  : "活跃传输 (500 KB/s ~ 5 MB/s)"
+                  ? t("荧光激活绿 (500 KB/s ~ 5 MB/s)")
+                  : t("活跃传输 (500 KB/s ~ 5 MB/s)")
               }
             />
             <span
               className="mao-legend-box is-high-load"
-              title={colorTheme === "eva" ? "装甲警告橙 (≥ 5 MB/s)" : "高吞吐 (≥ 5 MB/s)"}
+              title={colorTheme === "eva" ? t("装甲警告橙 (≥ 5 MB/s)") : t("高吞吐 (≥ 5 MB/s)")}
             />
-            <span className="mao-legend-text">高吞吐</span>
+            <span className="mao-legend-text">{t("高吞吐")}</span>
           </div>
         </div>
-        <span>总计 {totalNodes} 台 · 机架 {totalSlots} 槽</span>
+        <span>{t("总计")} {totalNodes} {t("台 · 机架")} {totalSlots} {t("槽")}</span>
       </div>
     </div>
   );

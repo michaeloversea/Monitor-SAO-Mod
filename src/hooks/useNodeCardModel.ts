@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useTranslate } from "@/i18n";
 import { useFakePingFallback } from "@/hooks/useFakePing";
 import { useHourlyClock, useMinuteClock } from "@/hooks/useClock";
 import { useNodeCardSnapshots } from "@/hooks/useNode";
@@ -13,24 +14,11 @@ import { usePriceVisibility } from "@/hooks/usePriceVisibility";
 import type { HomepagePingDisplayLine, HomepagePingLine } from "@/types/komari";
 import { formatCompactRenewalPrice, formatRenewalPrice } from "@/utils/billing";
 import { getExpireTextColor } from "@/utils/expireStatus";
-import {
-  formatBytes,
-  formatByteRate,
-  formatExpireDays,
-  formatUptimeDays,
-  parseTags,
-} from "@/utils/format";
-import {
-  latencyHeatColor,
-  lossHeatColor,
-  trafficUsageColor,
-} from "@/utils/metricTone";
+import { formatBytes, formatByteRate, formatExpireDays, formatUptimeDays, parseTags } from "@/utils/format";
+import { latencyHeatColor, lossHeatColor, trafficUsageColor } from "@/utils/metricTone";
 import { resolveTrafficUsage, trafficTypeLabel, type TrafficDisplay } from "@/utils/traffic";
 import { resolveOsInfo } from "@/components/ui/OsLogo";
-import {
-  hasHomepagePingTaskBinding,
-  resolveHomepagePingSelections,
-} from "@/utils/pingTasks";
+import { hasHomepagePingTaskBinding, resolveHomepagePingSelections } from "@/utils/pingTasks";
 
 interface NodeCardModelOptions {
   pingBucketCount?: number;
@@ -52,6 +40,7 @@ export function useNodeCardModel(
   }: NodeCardModelOptions = {},
 ) {
   const { meta, metrics, trafficTrend } = useNodeCardSnapshots(uuid);
+  const t = useTranslate();
   const {
     showCardGroup,
     fakePingForUnbound,
@@ -164,12 +153,13 @@ export function useNodeCardModel(
         : !subtitle && group
           ? [{ label: group, color: "gray" }]
           : [];
+    const expire = formatExpireDays(meta.expired_at, now, meta.expires_in);
     return {
       tags: filteredTags,
       footerTags,
       compactFooterTags: footerTags,
       subtitle,
-      expire: formatExpireDays(meta.expired_at, now, meta.expires_in),
+      expire: { ...expire, value: t(expire.value), unit: t(expire.unit) },
       expireColor: getExpireTextColor(meta.expired_at, now, meta.expires_in),
       isPriceVisible,
       renewalPrice: isPriceVisible ? formatRenewalPrice(meta) : null,
@@ -177,7 +167,7 @@ export function useNodeCardModel(
       osName: resolveOsInfo(meta.os).name,
       loadBaseline: meta.cpu_cores > 0 ? meta.cpu_cores : 4,
     };
-  }, [isPriceVisible, meta, now, showCardGroup]);
+  }, [isPriceVisible, meta, now, showCardGroup, t]);
 
   // ping 派生的颜色只在 ping item 变化时才变。
   const pingModel = useMemo(

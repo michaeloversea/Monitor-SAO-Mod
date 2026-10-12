@@ -1,21 +1,22 @@
-import { MultiPingStatus } from "./MultiPingStatus";
-import { memo, useCallback, useState } from "react";
-import { Link } from "react-router-dom";
-import { ArrowDown, ArrowUp, CircleDollarSign } from "lucide-react";
-import { clsx } from "clsx";
 import { Flag } from "@/components/ui/Flag";
 import { OsLogo } from "@/components/ui/OsLogo";
+import { useMetricColorsVersion } from "@/hooks/useMetricColors";
 import { useNodeCardModel } from "@/hooks/useNodeCardModel";
 import { usePreferences } from "@/hooks/usePreferences";
-import { useMetricColorsVersion } from "@/hooks/useMetricColors";
+import { t, useLanguage, useTranslate } from "@/i18n";
+import type { PingOverviewTaskLoadState } from "@/types/komari";
 import { formatBytes } from "@/utils/format";
 import { speedRateColor } from "@/utils/metricTone";
+import { clsx } from "clsx";
+import { ArrowDown, ArrowUp, CircleDollarSign } from "lucide-react";
+import { memo, useCallback, useState } from "react";
+import { Link } from "react-router-dom";
 import { CanvasStrip, fillRoundedRect, safeCanvasColor } from "./CanvasStrip";
-import { LatencyBars } from "./LatencyBars";
 import { HealthBucketTooltip } from "./HealthBucketTooltip";
+import { LatencyBars } from "./LatencyBars";
+import { MultiPingStatus } from "./MultiPingStatus";
 import { formatOsLabel, joinTagTitle, nodeDetailLinkLabels } from "./nodeCardShared";
 import { formatHealthBucketTooltip } from "./pingBucketText";
-import type { PingOverviewTaskLoadState } from "@/types/komari";
 
 const GAUGE_SEGMENTS = 14;
 // 列表网络列的延迟柱数:比卡片(24)少,配窄列宽,柱子仍清晰可读。
@@ -47,20 +48,20 @@ export function formatListPingStatus(
   silentLoading = false,
 ) {
   const roundedLatency = latency == null ? null : Math.round(latency);
-  const value = roundedLatency == null ? null : `${roundedLatency} 毫秒`;
+  const value = roundedLatency == null ? null : t("{0} 毫秒", [roundedLatency]);
   if (value != null) {
     if (state === "error") {
       return {
         visibleText: `${roundedLatency}`,
-        title: "首页 Ping 刷新失败，显示上次数据",
-        ariaText: `${value}，首页 Ping 刷新失败，显示上次数据`,
+        title: t("首页 Ping 刷新失败，显示上次数据"),
+        ariaText: t("{0}，首页 Ping 刷新失败，显示上次数据", [value]),
       };
     }
     if (state === "pending") {
       return {
         visibleText: `${roundedLatency}`,
-        title: "首页 Ping 正在刷新，显示上次数据",
-        ariaText: `${value}，首页 Ping 正在刷新，显示上次数据`,
+        title: t("首页 Ping 正在刷新，显示上次数据"),
+        ariaText: t("{0}，首页 Ping 正在刷新，显示上次数据", [value]),
       };
     }
     return {
@@ -73,28 +74,28 @@ export function formatListPingStatus(
   switch (state) {
     case "unconfigured":
       return {
-        visibleText: "未配置",
-        title: "未配置首页 Ping",
-        ariaText: "未配置首页 Ping",
+        visibleText: t("未配置"),
+        title: t("未配置首页 Ping"),
+        ariaText: t("未配置首页 Ping"),
       };
     case "pending":
-      if (silentLoading) return { visibleText: "—", title: "", ariaText: "暂无延迟数据" };
+      if (silentLoading) return { visibleText: "—", title: "", ariaText: t("暂无延迟数据") };
       return {
-        visibleText: "加载中",
-        title: "正在加载首页 Ping",
-        ariaText: "首页 Ping 加载中",
+        visibleText: t("加载中"),
+        title: t("正在加载首页 Ping"),
+        ariaText: t("首页 Ping 加载中"),
       };
     case "error":
       return {
-        visibleText: "加载失败",
-        title: "首页 Ping 加载失败",
-        ariaText: "首页 Ping 加载失败",
+        visibleText: t("加载失败"),
+        title: t("首页 Ping 加载失败"),
+        ariaText: t("首页 Ping 加载失败"),
       };
     default:
       return {
-        visibleText: "无样本",
-        title: "暂无有效 Ping 样本",
-        ariaText: "无样本",
+        visibleText: t("无样本"),
+        title: t("暂无有效 Ping 样本"),
+        ariaText: t("无样本"),
       };
   }
 }
@@ -113,6 +114,7 @@ function ListGauge({
   redrawKey: string;
   unit?: string;
 }) {
+  useLanguage();
   const activeSegments = clamp01(fraction) * GAUGE_SEGMENTS;
   const draw = useCallback(
     (ctx: CanvasRenderingContext2D, width: number, height: number) => {
@@ -159,6 +161,7 @@ function StackLine({
   unit?: string;
   color?: string;
 }) {
+  useLanguage();
   return (
     <span className="node-list-line" style={color ? { color } : undefined}>
       {icon && <span className="node-list-line-icon">{icon}</span>}
@@ -190,6 +193,7 @@ function ListLatency({
   redrawKey: string;
   pingLoadingSilently?: boolean;
 }) {
+  const t = useTranslate();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const state = resolveListPingState(
     loadState,
@@ -206,7 +210,7 @@ function ListLatency({
     <div
       className="node-list-latency"
       data-ping-state={state}
-      aria-label={`网络延迟 ${status.ariaText}`}
+      aria-label={t("网络延迟 {0}", [status.ariaText])}
     >
       <span
         className="node-list-latency-value tabular"
@@ -230,6 +234,7 @@ function ListLatency({
 }
 
 const NodeRow = memo(function NodeRow({ uuid }: { uuid: string }) {
+  const t = useTranslate();
   const { resolvedAppearance } = usePreferences();
   const colorsVersion = useMetricColorsVersion();
   const redrawKey = `${resolvedAppearance}:${colorsVersion}`;
@@ -272,19 +277,19 @@ const NodeRow = memo(function NodeRow({ uuid }: { uuid: string }) {
   const usedPct = `${Math.round(clamp01(traffic.fraction) * 100)}%`;
   const rowLabel = [
     node.name,
-    `系统 ${formatOsLabel(osName, node.os)}`,
+    t("系统 {0}", [formatOsLabel(osName, node.os)]),
     `CPU ${pctText(node.cpuPct)}`,
-    `内存 ${pctText(node.ramPct)}`,
-    `磁盘 ${pctText(node.diskPct)}`,
-    `负载 ${node.load1.toFixed(2)}`,
-    `上行 ${upRate.value}${upRate.unit}`,
-    `下行 ${downRate.value}${downRate.unit}`,
-    `流量使用 ${usedPct}`,
-    `网络延迟 ${listPingStatus.ariaText}`,
-    node.online === true ? "在线" : node.online === false ? "离线" : "状态未知",
-    `运行 ${uptime.value}${uptime.unit}`,
-    `到期 ${expire.value}${expire.unit}`,
-    "查看详情",
+    t("内存 {0}", [pctText(node.ramPct)]),
+    t("磁盘 {0}", [pctText(node.diskPct)]),
+    t("负载 {0}", [node.load1.toFixed(2)]),
+    t("上行 {0}{1}", [upRate.value, upRate.unit]),
+    t("下行 {0}{1}", [downRate.value, downRate.unit]),
+    t("流量使用 {0}", [usedPct]),
+    t("网络延迟 {0}", [listPingStatus.ariaText]),
+    node.online === true ? t("在线") : node.online === false ? t("离线") : t("状态未知"),
+    t("运行 {0}{1}", [uptime.value, uptime.unit]),
+    t("到期 {0}{1}", [expire.value, expire.unit]),
+    t("查看详情"),
   ].join("，");
 
   return (
@@ -370,7 +375,7 @@ const NodeRow = memo(function NodeRow({ uuid }: { uuid: string }) {
 
       <div
         className="node-list-cell col-traffic"
-        title={`剩余 ${traffic.remainingLabel} · ${traffic.detail}`}
+        title={t("剩余 {0} · {1}", [traffic.remainingLabel, traffic.detail])}
       >
         <div className="node-list-traffic-rows">
           <StackLine icon={<ArrowUp size={11} strokeWidth={2.1} />} value={formatBytes(node.trafficUp)} />
@@ -403,20 +408,21 @@ const NodeRow = memo(function NodeRow({ uuid }: { uuid: string }) {
 });
 
 export function NodeListView({ uuids }: { uuids: string[] }) {
+  const t = useTranslate();
   return (
     <div className="node-list-scroll">
       <div className="node-list">
         <div className="node-list-row node-list-head" aria-hidden>
-          <div className="node-list-cell node-list-node">服务器</div>
-          <div className="node-list-cell col-os">系统</div>
+          <div className="node-list-cell node-list-node">{t("服务器")}</div>
+          <div className="node-list-cell col-os">{t("系统")}</div>
           <div className="node-list-cell col-metric">CPU</div>
-          <div className="node-list-cell col-metric">内存</div>
-          <div className="node-list-cell col-metric">磁盘</div>
-          <div className="node-list-cell col-load">负载</div>
-          <div className="node-list-cell col-live">实时</div>
-          <div className="node-list-cell col-traffic">流量</div>
-          <div className="node-list-cell col-net">网络</div>
-          <div className="node-list-cell col-life">在线 / 到期</div>
+          <div className="node-list-cell col-metric">{t("内存")}</div>
+          <div className="node-list-cell col-metric">{t("磁盘")}</div>
+          <div className="node-list-cell col-load">{t("负载")}</div>
+          <div className="node-list-cell col-live">{t("实时")}</div>
+          <div className="node-list-cell col-traffic">{t("流量")}</div>
+          <div className="node-list-cell col-net">{t("网络")}</div>
+          <div className="node-list-cell col-life">{t("在线 / 到期")}</div>
         </div>
         {uuids.map((uuid) => (
           <NodeRow key={uuid} uuid={uuid} />

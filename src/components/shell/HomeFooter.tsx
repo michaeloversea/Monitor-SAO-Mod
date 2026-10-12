@@ -1,9 +1,11 @@
+import { useTranslate } from "@/i18n";
+import { ExternalLink, GitBranch } from "lucide-react";
 import manifest from "../../../theme.json";
-import { GitBranch, ExternalLink } from "lucide-react";
 
 export function HomeFooter() {
+  const t = useTranslate();
   return (
-    <footer className="home-site-footer" aria-label="主题版本与仓库链接">
+    <footer className="home-site-footer" aria-label={t("主题版本与仓库链接")}>
       <div className="home-footer-capsule">
         {/* 左侧呼吸点与主题标识 */}
         <div className="home-footer-brand">
@@ -14,7 +16,7 @@ export function HomeFooter() {
         <span className="home-footer-divider" aria-hidden="true" />
 
         {/* 版本芯片 */}
-        <span className="home-footer-version" title={`主题版本 v${manifest.version}`}>
+        <span className="home-footer-version" title={t("主题版本 v{0}", [manifest.version])}>
           <GitBranch size={10} className="home-footer-branch-icon" aria-hidden="true" />
           <span>v{manifest.version}</span>
         </span>
@@ -27,7 +29,7 @@ export function HomeFooter() {
           target="_blank"
           rel="noopener noreferrer"
           className="home-footer-github"
-          title="前往 GitHub 仓库"
+          title={t("前往 GitHub 仓库")}
         >
           <svg
             className="home-footer-github-icon"

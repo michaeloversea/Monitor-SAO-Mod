@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useTranslate } from "@/i18n";
 import { getDisplayRegionCode } from "@/utils/geo";
+import { useState } from "react";
 
 // 更换旗帜资源时递增目录版本，避免浏览器/CDN 沿用同地址的旧 SVG。
 const FLAG_ASSET_ROOT = "/assets/flags-rect-v1";
@@ -10,6 +11,7 @@ interface FlagProps {
 }
 
 export function Flag({ region, size = 14 }: FlagProps) {
+  const t = useTranslate();
   const value = region?.trim() ?? "";
   const flagCode = getDisplayRegionCode(value);
   const [failure, setFailure] = useState({ code: flagCode, stage: 0 });
@@ -31,7 +33,7 @@ export function Flag({ region, size = 14 }: FlagProps) {
     );
   }
 
-  const alt = `地区旗帜: ${flagCode}`;
+  const alt = t("地区旗帜: {0}", [flagCode]);
 
   if (failStage >= 2) {
     return (

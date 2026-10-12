@@ -1,12 +1,30 @@
-import { resolvePingYRange } from "./pingChartScale";
-import { PingLossBands, type PingPlotGeometry, type PingLossBandHover, type PingLossBandRow } from "./PingLossBands";
-import { buildLossBandBuckets, indexPingLossSamples, pingLossAtTime, formatLossBandValue } from "./lossBandData";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import UplotReact from "uplot-react";
-import type uPlot from "uplot";
-import { Eye, EyeOff, RefreshCw } from "lucide-react";
+import { usePreferences } from "@/hooks/usePreferences";
 import { usePingRecords } from "@/hooks/useRecords";
-import { InstancePanel, InstanceChartLoading } from "./InstancePanel";
+import { t as translate, useTranslate } from "@/i18n";
+import type { PingRecord, PingTaskStats } from "@/types/komari";
+import { historyChartRangeSeconds, historyCoverageLabel } from "@/utils/historyRange";
+import { latencyHeatColor, lossHeatColor } from "@/utils/metricTone";
+import { resolvePingChartInterval, resolvePingSampleCounts } from "@/utils/pingMetrics";
+import { Eye, EyeOff, RefreshCw } from "lucide-react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import type uPlot from "uplot";
+import UplotReact from "uplot-react";
+import { ChartTooltip, SwitchToggle } from "./ChartParts";
+import { InstanceChartLoading, InstancePanel } from "./InstancePanel";
+import {
+  PingLossBands,
+  type PingLossBandHover,
+  type PingLossBandRow,
+  type PingPlotGeometry,
+} from "./PingLossBands";
+import type { TimedMetricPoint } from "./chartData";
+import {
+  cutPeakValues,
+  detectTypicalIntervalSeconds,
+  downsampleAligned,
+  insertMetricGapSentinels,
+  smoothByCount,
+} from "./chartData";
 import {
   buildChartTooltipHooks,
   colorForSeries,
@@ -17,20 +35,13 @@ import {
   useResponsiveChartSize,
   type ChartTooltipState,
 } from "./chartShared";
-import { ChartTooltip, SwitchToggle } from "./ChartParts";
 import {
-  cutPeakValues,
-  detectTypicalIntervalSeconds,
-  downsampleAligned,
-  insertMetricGapSentinels,
-  smoothByCount,
-} from "./chartData";
-import { latencyHeatColor, lossHeatColor } from "@/utils/metricTone";
-import { historyChartRangeSeconds, historyCoverageLabel } from "@/utils/historyRange";
-import { resolvePingChartInterval, resolvePingSampleCounts } from "@/utils/pingMetrics";
-import { usePreferences } from "@/hooks/usePreferences";
-import type { PingRecord, PingTaskStats } from "@/types/komari";
-import type { TimedMetricPoint } from "./chartData";
+  buildLossBandBuckets,
+  formatLossBandValue,
+  indexPingLossSamples,
+  pingLossAtTime,
+} from "./lossBandData";
+import { resolvePingYRange } from "./pingChartScale";
 
 interface WeightedLatency {
   value: number;
@@ -113,6 +124,7 @@ export function PingChart({
   hours: number;
   active?: boolean;
 }) {
+  const t = useTranslate();
   const {
     data,
     isError,
@@ -177,12 +189,12 @@ export function PingChart({
   const taskLabels = useMemo(() => {
     const counts = new Map<string, number>();
     for (const task of tasks) {
-      const label = task.name || `任务 #${task.id}`;
+      const label = task.name || `Ping #${task.id}`;
       counts.set(label, (counts.get(label) ?? 0) + 1);
     }
     return new Map(
       tasks.map((task) => {
-        const baseLabel = task.name || `任务 #${task.id}`;
+        const baseLabel = task.name || `Ping #${task.id}`;
         const label = (counts.get(baseLabel) ?? 0) > 1 ? `${baseLabel} #${task.id}` : baseLabel;
         return [task.id, label] as const;
       }),
@@ -212,7 +224,7 @@ export function PingChart({
       const group = grouped.get(record.task_id) ?? [];
       group.push(record); grouped.set(record.task_id, group);
     }
-    return visibleTasks.map((task) => ({ taskId: task.id, label: taskLabels.get(task.id) ?? `任务 #${task.id}`,
+    return visibleTasks.map((task) => ({ taskId: task.id, label: taskLabels.get(task.id) ?? `Ping #${task.id}`,
       color: taskColors.get(task.id) ?? "var(--text-secondary)",
       buckets: buildLossBandBuckets(grouped.get(task.id) ?? [], plotGeometry.start, plotGeometry.end,
         resolvePingChartInterval(data?.intervalSeconds, task.interval), Math.max(60, Math.round(plotGeometry.width / 4))) }));
@@ -380,8 +392,9 @@ export function PingChart({
   const coverageLabel = useMemo(() => {
     const times = chart?.[0];
     if (!times?.length) return null;
-    return historyCoverageLabel(coverageMeta, times[0], times[times.length - 1]);
-  }, [chart, coverageMeta]);
+    const label = historyCoverageLabel(coverageMeta, times[0], times[times.length - 1]);
+    return label ? t(label) : null;
+  }, [chart, coverageMeta, t]);
 
   const yRange = useMemo<[number, number]>(() => chart
     ? resolvePingYRange(chart, tasks.map((task) => task.id), new Set()) : [0, 100], [chart, tasks]);
@@ -401,7 +414,7 @@ export function PingChart({
             const raw = chartRef.current[taskIndex + 1]?.[idx] as number | null | undefined;
             return {
               taskId: task.id,
-              label: taskLabels.get(task.id) ?? `任务 #${task.id}`,
+              label: taskLabels.get(task.id) ?? `Ping #${task.id}`,
               raw: typeof raw === "number" && Number.isFinite(raw) ? raw : null,
               color: taskColors.get(task.id) ?? colorForSeries(taskIndex, tasks.length),
             };
@@ -447,7 +460,7 @@ export function PingChart({
       series: [
         { label: "time" },
         ...tasks.map((task, index) => ({
-          label: taskLabels.get(task.id) ?? `任务 #${task.id}`,
+          label: taskLabels.get(task.id) ?? `Ping #${task.id}`,
           stroke: taskColors.get(task.id) ?? colorForSeries(index, tasks.length),
           width: 1.7,
           spanGaps: connectNulls,
@@ -462,7 +475,7 @@ export function PingChart({
         init: [
           (u) => {
             u.root.setAttribute("role", "img");
-            u.root.setAttribute("aria-label", `Ping 延迟历史图表，共 ${tasks.length} 条线路`);
+            u.root.setAttribute("aria-label", translate("Ping 延迟历史图表，共 {0} 条线路", [tasks.length]));
           },
           tooltipHooks.onInit,
         ],
@@ -476,6 +489,10 @@ export function PingChart({
     () => (baseOptions ? { ...baseOptions, width: w, height: h } : null),
     [baseOptions, w, h],
   );
+
+  useLayoutEffect(() => {
+    plotRef.current?.root.setAttribute("aria-label", t("Ping 延迟历史图表，共 {0} 条线路", [tasks.length]));
+  }, [t, tasks.length]);
 
   const taskStats = useMemo(() => {
     const grouped = new Map<number, PingRecord[]>();
@@ -551,14 +568,14 @@ export function PingChart({
   };
 
   if (isLoading) {
-    return <InstanceChartLoading title="Ping 图表" />;
+    return <InstanceChartLoading title={t("Ping 图表")} />;
   }
 
   if (isError && !data?.records.length) {
     return (
-      <InstancePanel title="Ping 图表">
+      <InstancePanel title={t("Ping 图表")}>
         <div className="instance-empty">
-          <span>延迟历史加载失败</span>
+          <span>{t("延迟历史加载失败")}</span>
           <button
             type="button"
             className="instance-toggle-button"
@@ -566,7 +583,7 @@ export function PingChart({
             disabled={isFetching}
             aria-busy={isFetching}
           >
-            {isFetching ? "重试中" : "重试"}
+            {isFetching ? t("重试中") : t("重试")}
           </button>
         </div>
       </InstancePanel>
@@ -575,32 +592,32 @@ export function PingChart({
 
   if (!data?.records.length) {
     return (
-      <InstancePanel title="Ping 图表">
-        <div className="instance-empty">暂无延迟记录</div>
+      <InstancePanel title={t("Ping 图表")}>
+        <div className="instance-empty">{t("暂无延迟记录")}</div>
       </InstancePanel>
     );
   }
 
   return (
-    <InstancePanel title="Ping 图表" description={coverageLabel ?? undefined}>
+    <InstancePanel title={t("Ping 图表")} description={coverageLabel ?? undefined}>
       <div className="instance-ping-toolbar">
-        <SwitchToggle label="丢包色带" active={showLossBands} onToggle={() => setShowLossBands((value) => !value)}
-          title="按各线路原始返回桶显示丢包率：绿 0%、黄绿 <5%、黄 <20%、橙 <50%、红 <100%、深红 100%；灰色表示未采样。色带与时间轴对齐，不受削峰平滑或断点连线影响。" />
+        <SwitchToggle label={t("丢包色带")} active={showLossBands} onToggle={() => setShowLossBands((value) => !value)}
+          title={t("按各线路原始返回桶显示丢包率：绿 0%、黄绿 <5%、黄 <20%、橙 <50%、红 <100%、深红 100%；灰色表示未采样。色带与时间轴对齐，不受削峰平滑或断点连线影响。")} />
         <SwitchToggle
-          label="削峰平滑"
+          label={t("削峰平滑")}
           active={cutPeak}
           onToggle={() => setCutPeak((value) => !value)}
-          title="对尖峰值做轻度平滑，仅影响图线显示"
+          title={t("对尖峰值做轻度平滑，仅影响图线显示")}
         />
         <SwitchToggle
-          label="断点连线"
+          label={t("断点连线")}
           active={connectNulls}
           onToggle={() => setConnectNulls((value) => !value)}
-          title="关闭：如实显示中断/丢包断点；开启：跨过所有空缺连成完整曲线（更好看，但看不出掉线）。注：偶尔漏一两次采样的小空缺始终自动桥接，不受此开关影响。"
+          title={t("关闭：如实显示中断/丢包断点；开启：跨过所有空缺连成完整曲线（更好看，但看不出掉线）。注：偶尔漏一两次采样的小空缺始终自动桥接，不受此开关影响。")}
         />
         <button type="button" className="instance-toggle-button" onClick={toggleAll}>
           {hiddenTasks.size === 0 ? <EyeOff size={14} aria-hidden /> : <Eye size={14} aria-hidden />}
-          {hiddenTasks.size === 0 ? "隐藏全部" : "显示全部"}
+          {hiddenTasks.size === 0 ? t("隐藏全部") : t("显示全部")}
         </button>
         <button
           type="button"
@@ -610,7 +627,7 @@ export function PingChart({
           aria-busy={isFetching}
         >
           <RefreshCw size={14} aria-hidden />
-          {isFetching ? "刷新中" : isError ? "刷新失败，重试" : "刷新"}
+          {isFetching ? t("刷新中") : isError ? t("刷新失败，重试") : t("刷新")}
         </button>
       </div>
 
@@ -627,14 +644,14 @@ export function PingChart({
               onClick={() => toggleTask(task.id)}
               style={{ borderColor: visible ? task.color : "var(--border-subtle)" }}
               title={[
-                taskLabels.get(task.id) ?? `任务 #${task.id}`,
-                `当前 ${task.latest != null ? `${task.latest.toFixed(1)} ms` : "—"} | 均值 ${task.avg != null ? `${task.avg.toFixed(1)} ms` : "—"} | 丢包 ${task.loss.toFixed(1)}%`,
-                `p99 ${task.p99 != null ? `${task.p99.toFixed(0)} ms` : "—"} | 抖动 ${task.volatility != null ? task.volatility.toFixed(2) : "—"}`,
-                `min ${task.min != null ? `${task.min.toFixed(0)} ms` : "—"} | max ${task.max != null ? `${task.max.toFixed(0)} ms` : "—"} | 样本 ${task.total ?? 0} | 间隔 ${task.interval}s`,
+                taskLabels.get(task.id) ?? `Ping #${task.id}`,
+                t("当前 {0} | 均值 {1} | 丢包 {2}%", [task.latest != null ? `${task.latest.toFixed(1)} ms` : "—", task.avg != null ? `${task.avg.toFixed(1)} ms` : "—", task.loss.toFixed(1)]),
+                t("p99 {0} | 抖动 {1}", [task.p99 != null ? `${task.p99.toFixed(0)} ms` : "—", task.volatility != null ? task.volatility.toFixed(2) : "—"]),
+                t("min {0} | max {1} | 样本 {2} | 间隔 {3}s", [task.min != null ? `${task.min.toFixed(0)} ms` : "—", task.max != null ? `${task.max.toFixed(0)} ms` : "—", task.total ?? 0, task.interval]),
               ].join("\n")}
             >
               <span className="instance-ping-task-dot" style={{ background: task.color }} aria-hidden />
-              <span className="instance-ping-task-name">{taskLabels.get(task.id) ?? `任务 #${task.id}`}</span>
+              <span className="instance-ping-task-name">{taskLabels.get(task.id) ?? `Ping #${task.id}`}</span>
               <span
                 className="instance-ping-task-primary"
                 style={{
@@ -672,10 +689,10 @@ export function PingChart({
                 onDelete={onPlotDelete}
               />
               <ChartTooltip tooltip={visibleTasks.length && !bandTooltip ? displayedTooltip : { ...displayedTooltip, show: false }} />
-              {visibleTasks.length === 0 && <div className="instance-ping-all-hidden">当前已隐藏全部线路，点击上方按钮可恢复显示</div>}
+              {visibleTasks.length === 0 && <div className="instance-ping-all-hidden">{t("当前已隐藏全部线路，点击上方按钮可恢复显示")}</div>}
             </>
           ) : (
-            <div className="instance-empty">当前已隐藏全部线路，点击上方按钮可恢复显示</div>
+            <div className="instance-empty">{t("当前已隐藏全部线路，点击上方按钮可恢复显示")}</div>
           )}
         </div>
       </div>

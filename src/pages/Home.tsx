@@ -1,18 +1,20 @@
-import { lazy, Suspense, useEffect, useState } from "react";
-import { Link, Navigate, useSearchParams } from "react-router-dom";
-import { HomeFooter } from "@/components/shell/HomeFooter";
 import { NodeGrid } from "@/components/node/NodeGrid";
 import { FloatingControls } from "@/components/shell/FloatingControls";
+import { HomeFooter } from "@/components/shell/HomeFooter";
 import { Spinner } from "@/components/ui/Spinner";
 import { useAuth } from "@/hooks/useAuth";
 import { useNodeStoreStatus } from "@/hooks/useNode";
 import { useThemeSettings } from "@/hooks/useThemeSettings";
+import { useLanguage, useTranslate } from "@/i18n";
+import { lazy, Suspense, useEffect, useState } from "react";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 
 const ThemeManage = lazy(() =>
   import("@/pages/ThemeManage").then((module) => ({ default: module.ThemeManage })),
 );
 
 function HomeDashboard() {
+  useLanguage();
   const [controlsExpanded, setControlsExpanded] = useState(false);
   const themeSettings = useThemeSettings();
   const { hydrated: storeHydrated } = useNodeStoreStatus();
@@ -37,6 +39,7 @@ function HomeDashboard() {
 }
 
 export function Home() {
+  const t = useTranslate();
   const [searchParams, setSearchParams] = useSearchParams();
   const windowView =
     typeof window !== "undefined"
@@ -98,10 +101,9 @@ export function Home() {
         <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
           <div className="space-y-2">
             <div className="text-[15px] font-semibold text-(--text-primary)">
-              无法确认当前登录状态
-            </div>
+              {t("无法确认当前登录状态")}</div>
             <p className="max-w-lg text-[13px] text-(--text-secondary)">
-              {authError instanceof Error ? authError.message : "请稍后重试。"}
+              {authError instanceof Error ? authError.message : t("请稍后重试。")}
             </p>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-2">
@@ -112,11 +114,9 @@ export function Home() {
               }}
               className="control-button px-4 py-2 text-[13px] font-medium"
             >
-              重试
-            </button>
+              {t("重试")}</button>
             <Link to="/" className="control-button px-4 py-2 text-[13px] font-medium">
-              返回首页
-            </Link>
+              {t("返回首页")}</Link>
           </div>
         </div>
       );

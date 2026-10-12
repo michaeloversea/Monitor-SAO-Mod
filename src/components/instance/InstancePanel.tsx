@@ -1,6 +1,7 @@
-import type { ReactNode } from "react";
-import { clsx } from "clsx";
 import { Spinner } from "@/components/ui/Spinner";
+import { useLanguage, useTranslate } from "@/i18n";
+import { clsx } from "clsx";
+import type { ReactNode } from "react";
 
 export function InstancePanel({
   id,
@@ -21,6 +22,7 @@ export function InstancePanel({
   children: ReactNode;
   className?: string;
 }) {
+  useLanguage();
   return (
     <section id={id} className={clsx("instance-panel", kicker != null && "has-kicker", className)}>
       <header className="instance-panel-header">
@@ -40,11 +42,12 @@ export function InstancePanel({
 }
 
 export function InstanceChartLoading({ title }: { title: string }) {
+  const t = useTranslate();
   return (
     <InstancePanel title={title}>
       <div className="instance-chart-loading" aria-busy>
         <Spinner size={26} label="" />
-        <span>加载中…</span>
+        <span>{t("加载中…")}</span>
       </div>
     </InstancePanel>
   );

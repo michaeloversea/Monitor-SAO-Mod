@@ -1,12 +1,7 @@
+import type { PingOverviewBucket } from "@/types/komari";
 import { useCallback, useMemo } from "react";
 import { CanvasStrip, fillRoundedRect, safeCanvasColor } from "./CanvasStrip";
-import {
-  getBarGeometry,
-  getBarSlot,
-  healthBarInteractionModel,
-  healthBarSlotModel,
-} from "./nodeCardShared";
-import type { PingOverviewBucket } from "@/types/komari";
+import { getBarGeometry, getBarSlot, healthBarInteractionModel, healthBarSlotModel } from "./nodeCardShared";
 
 interface LatencyBarsProps {
   buckets: PingOverviewBucket[];

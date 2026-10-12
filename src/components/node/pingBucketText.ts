@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import type { PingOverviewBucket } from "@/types/komari";
 import { trimFixed } from "@/utils/format";
 
@@ -22,7 +23,7 @@ function formatPingBucketWindow(bucket: PingOverviewBucket | null) {
 function formatLatencyBucketSummary(bucket: PingOverviewBucket | null) {
   if (!bucket) return "—";
   if (bucket.value != null) return `${trimFixed(bucket.value, 1)} ms`;
-  return bucket.total > 0 ? "失败" : "无样本";
+  return bucket.total > 0 ? t("失败") : t("无样本");
 }
 
 function formatLossBucketSummary(
@@ -30,7 +31,7 @@ function formatLossBucketSummary(
   separator = " ",
 ) {
   if (!bucket) return "—";
-  if (bucket.total <= 0 || bucket.loss == null) return "无样本";
+  if (bucket.total <= 0 || bucket.loss == null) return t("无样本");
   return `${trimFixed(bucket.loss, 1)}%${separator}${bucket.lost}/${bucket.total}`;
 }
 

@@ -1,6 +1,6 @@
-import type { ComponentPropsWithoutRef } from "react";
-import { ChevronDown } from "lucide-react";
 import { clsx } from "clsx";
+import { ChevronDown } from "lucide-react";
+import type { ComponentPropsWithoutRef } from "react";
 
 export function SettingSelect({
   wrapperClassName,

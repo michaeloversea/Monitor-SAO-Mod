@@ -1,5 +1,6 @@
-import { memo, useId, useLayoutEffect, useRef, type PointerEvent, type KeyboardEvent } from "react";
-import { lossBandColor, lossBandBucketAtTime, type LossBandBucket } from "./lossBandData";
+import { useTranslate } from "@/i18n";
+import { memo, useId, useLayoutEffect, useRef, type KeyboardEvent, type PointerEvent } from "react";
+import { lossBandBucketAtTime, lossBandColor, type LossBandBucket } from "./lossBandData";
 
 export interface PingPlotGeometry { left: number; width: number; start: number; end: number }
 export interface PingLossBandRow { taskId: number; label: string; color: string; buckets: LossBandBucket[] }
@@ -13,6 +14,7 @@ export const PingLossBands = memo(function PingLossBands({ visible, rows, geomet
   onHover: (hover: PingLossBandHover) => void;
   onLeave: () => void;
 }) {
+  const t = useTranslate();
   const rootRef = useRef<HTMLDivElement>(null);
   const clipId = useId().replace(/:/g, "");
   const clearCell = (svg: SVGSVGElement) => { delete svg.dataset.activeCell; };
@@ -56,13 +58,13 @@ export const PingLossBands = memo(function PingLossBands({ visible, rows, geomet
     highlightCell(svg, row, fraction);
     pointAt(row, fraction, svg.getBoundingClientRect().bottom);
   };
-  return <div ref={rootRef} className="instance-ping-loss-bands" hidden={!visible || !geometry || !rows.length} aria-label="各线路丢包色带"
+  return <div ref={rootRef} className="instance-ping-loss-bands" hidden={!visible || !geometry || !rows.length} aria-label={t("各线路丢包色带")}
     onPointerLeave={() => { rootRef.current?.querySelectorAll("svg").forEach(clearCell); onLeave(); }}>
-    <p className="setting-hint mb-2">丢包色带：绿 0% · 黄绿 &lt;5% · 黄 &lt;20% · 橙 &lt;50% · 红 &lt;100% · 深红 100% · 灰色未采样（历史聚合可能平均短时峰值）</p>
+    <p className="setting-hint mb-2">{t("丢包色带：绿 0% · 黄绿 <5% · 黄 <20% · 橙 <50% · 红 <100% · 深红 100% · 灰色未采样（历史聚合可能平均短时峰值）")}</p>
     {rows.map((row) => <div key={row.taskId} className="instance-ping-loss-band-row" style={{ marginLeft: geometry?.left, width: geometry?.width }}>
       <span className="instance-ping-loss-band-label" title={row.label}>{row.label}</span>
       <svg viewBox={`0 0 ${row.buckets.length} 6`} preserveAspectRatio="none" role="img" tabIndex={0}
-        aria-label={`${row.label} 丢包色带，左右方向键查看，Escape 关闭提示`}
+        aria-label={t("{0} 丢包色带，左右方向键查看，Escape 关闭提示", [row.label])}
         onPointerMove={(event) => pointer(event, row)} onPointerDown={(event) => pointer(event, row)} onKeyDown={(event) => keyboard(event, row)}
         onPointerLeave={(event) => { clearCell(event.currentTarget); onLeave(); }}
         onFocus={(event) => {

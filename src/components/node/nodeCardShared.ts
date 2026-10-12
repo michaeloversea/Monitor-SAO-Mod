@@ -1,6 +1,13 @@
+import { t } from "@/i18n";
 // 大卡与紧凑卡共享的格式化和命中逻辑。
 
-import { formatUptimeDays, trimFixed } from "@/utils/format";
+// 大卡与紧凑卡共享的格式化和命中逻辑。
+// 大卡与紧凑卡共享的格式化和命中逻辑。
+// 大卡与紧凑卡共享的格式化和命中逻辑。
+import {
+  formatUptimeDays,
+  trimFixed,
+} from "@/utils/format";
 import { latencyHeatColor, lossHeatColor } from "@/utils/metricTone";
 import type { PingOverviewBucket } from "@/types/komari";
 
@@ -18,8 +25,8 @@ export function formatCompactPercent(value: number) {
 
 /** 卡片到期文案:"余 X天";无到期时 "余 --"。 */
 export function formatCompactExpire({ value, unit }: { value: string; unit: string }) {
-  if (value === "—") return "余 --";
-  return unit ? `余 ${value}${unit}` : value;
+  if (value === "—") return t("余 --");
+  return unit ? t("余 {0}{1}", [value, unit]) : value;
 }
 
 import { CHINESE_YEAR_PAY_NAMES, normalizeBillingCycle } from "@/utils/billing";
@@ -29,23 +36,23 @@ export function formatCompactBillingCycle(
   billingCycle: string | number | null | undefined,
   price?: number,
 ): string {
-  if (price === -1) return "免费";
+  if (price === -1) return t("免费");
   const cycle = normalizeBillingCycle(billingCycle);
   switch (cycle.kind) {
     case "lifetime":
-      return "一次性付费";
+      return t("一次性付费");
     case "month":
-      return "月付";
+      return t("月付");
     case "quarter":
-      return "季付";
+      return t("季付");
     case "halfYear":
-      return "半年付";
+      return t("半年付");
     case "year":
-      return CHINESE_YEAR_PAY_NAMES[cycle.years ?? 1] || `${cycle.years}年付`;
+      return t(CHINESE_YEAR_PAY_NAMES[cycle.years ?? 1] || t("{0}年付", [cycle.years]));
     case "days":
-      return `${cycle.days}天`;
+      return t("{0}天", [cycle.days]);
     default:
-      return "年付";
+      return t("年付");
   }
 }
 
@@ -53,7 +60,7 @@ export function formatCompactBillingCycle(
 export function formatCompactUptime(seconds: number) {
   if (!Number.isFinite(seconds) || seconds <= 0) return "";
   const uptime = formatUptimeDays(seconds);
-  return `在线：${uptime.value}${uptime.unit}`;
+  return t("在线：{0}{1}", [uptime.value, uptime.unit]);
 }
 
 /** 区分已绑定但无样本与未配置 Ping。 */
@@ -65,14 +72,14 @@ export function pingEmptyLabels(
 ): { title: string; text: string } {
   if (hasHomepagePingBinding && pingLoading) {
     if (silentLoading) return { title: "", text: "—" };
-    return { title: "正在加载首页 Ping", text: "加载中" };
+    return { title: t("正在加载首页 Ping"), text: t("加载中") };
   }
   if (hasHomepagePingBinding && pingError) {
-    return { title: "首页 Ping 加载失败", text: "加载失败" };
+    return { title: t("首页 Ping 加载失败"), text: t("加载失败") };
   }
   return hasHomepagePingBinding
-    ? { title: "暂无有效样本", text: "无样本" }
-    : { title: "未配置首页 Ping", text: "未配置" };
+    ? { title: t("暂无有效样本"), text: t("无样本") }
+    : { title: t("未配置首页 Ping"), text: t("未配置") };
 }
 
 /** 生成“Debian 12”这类简短系统标签。 */
@@ -85,8 +92,8 @@ export function formatOsLabel(osName: string, rawOs?: string | null): string {
 /** 节点卡片头部"查看实例详情"链接的 title 和 aria-label。 */
 export function nodeDetailLinkLabels(name: string, osName: string) {
   return {
-    title: `${osName} · 查看详情`,
-    ariaLabel: `查看 ${name} 详情，系统 ${osName}`,
+    title: t("{0} · 查看详情", [osName]),
+    ariaLabel: t("查看 {0} 详情，系统 {1}", [name, osName]),
   };
 }
 

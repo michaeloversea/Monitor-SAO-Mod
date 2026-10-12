@@ -1,6 +1,7 @@
+import { readViewModeHint, useViewMode } from "@/hooks/useViewMode";
+import { t, useTranslate } from "@/i18n";
 import { Component, useEffect, type CSSProperties, type ErrorInfo, type ReactNode } from "react";
 import { isRouteErrorResponse, useRouteError } from "react-router-dom";
-import { readViewModeHint, useViewMode } from "@/hooks/useViewMode";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -13,7 +14,7 @@ interface ErrorBoundaryState {
 function getErrorMessage(error: unknown) {
   if (error instanceof Error && error.message) return error.message;
   if (typeof error === "string" && error.trim()) return error;
-  return "页面渲染时发生异常";
+  return t("页面渲染时发生异常");
 }
 
 // 只取 path 和 view 标记,不带完整 query/hash:以后这些里可能夹带 token,
@@ -66,7 +67,7 @@ const preStyle: CSSProperties = {
 };
 
 function ErrorFallback({
-  title = "页面出错了",
+  title = t("页面出错了"),
   message,
   diagnostics,
 }: {
@@ -74,6 +75,7 @@ function ErrorFallback({
   message?: string;
   diagnostics?: string;
 }) {
+  const t = useTranslate();
   return (
     <div className="theme-error-shell">
       <section className="theme-error-card" role="alert">
@@ -81,31 +83,27 @@ function ErrorFallback({
           <p className="theme-error-kicker">LuminaPlus</p>
           <h1 className="theme-error-title">{title}</h1>
           <p className="theme-error-message">
-            {message || "可以刷新页面，或返回首页重新进入。"}
+            {message || t("可以刷新页面，或返回首页重新进入。")}
           </p>
         </div>
         {diagnostics && (
           <details style={{ fontSize: "12px", color: "var(--text-tertiary)" }}>
             <summary style={{ cursor: "pointer", userSelect: "none" }}>
-              诊断信息（反馈时请一并截图或复制）
-            </summary>
+              {t("诊断信息（反馈时请一并截图或复制）")}</summary>
             <pre style={preStyle}>{diagnostics}</pre>
             <button
               type="button"
               className="theme-error-button"
               onClick={() => void copyDiagnostics(diagnostics)}
             >
-              复制诊断信息
-            </button>
+              {t("复制诊断信息")}</button>
           </details>
         )}
         <div className="theme-error-actions">
           <button type="button" className="theme-error-button is-primary" onClick={reloadPage}>
-            刷新
-          </button>
+            {t("刷新")}</button>
           <a href="/" className="theme-error-button">
-            返回首页
-          </a>
+            {t("返回首页")}</a>
         </div>
       </section>
     </div>
@@ -142,6 +140,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 }
 
 export function RouteErrorFallback() {
+  const t = useTranslate();
   const error = useRouteError();
   // error element 渲染在 providers 内部,所以这里 hook 可用,拿到的是崩溃那棵树实际用的最终 view mode
   const { mode, device } = useViewMode();
@@ -154,8 +153,8 @@ export function RouteErrorFallback() {
   if (isRouteErrorResponse(error)) {
     return (
       <ErrorFallback
-        title={`${error.status} ${error.statusText || "路由错误"}`}
-        message={typeof error.data === "string" ? error.data : "当前路由加载失败。"}
+        title={`${error.status} ${error.statusText || t("路由错误")}`}
+        message={typeof error.data === "string" ? error.data : t("当前路由加载失败。")}
         diagnostics={diagnostics}
       />
     );

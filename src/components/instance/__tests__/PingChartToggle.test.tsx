@@ -1,9 +1,13 @@
 // @vitest-environment jsdom
+// @vitest-environment jsdom
+// @vitest-environment jsdom
+// @vitest-environment jsdom
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { PingRecordsResponse } from "@/types/komari";
 import { PingChart } from "../PingChart";
+import { setLanguage } from "@/i18n";
 
 const fixture = vi.hoisted(() => ({
   data: { count: 2, intervalSeconds: 60, records: [
@@ -58,7 +62,7 @@ vi.mock("uplot-react", async () => {
   } };
 });
 
-afterEach(() => { vi.unstubAllGlobals(); });
+afterEach(() => { setLanguage(null); vi.unstubAllGlobals(); });
 describe("丢包色带独立显隐", () => {
   it("色带、单线、隐藏全部开关不更新曲线 options/data 或重建实例", async () => {
     vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
@@ -87,6 +91,11 @@ describe("丢包色带独立显隐", () => {
     await act(async () => showAll.click());
     expect(fixture.seriesUpdates.at(-1)).toEqual([1, true]);
     expect(band.hidden).toBe(false);
+    expect(fixture.options).toBe(optionsBefore);
+    expect(fixture.dataRef).toBe(dataBefore);
+    expect([fixture.creations, fixture.destructions, fixture.optionUpdates, fixture.dataUpdates]).toEqual(counts);
+    await act(async () => setLanguage("en"));
+    expect(container.textContent).toContain("Loss bands");
     expect(fixture.options).toBe(optionsBefore);
     expect(fixture.dataRef).toBe(dataBefore);
     expect([fixture.creations, fixture.destructions, fixture.optionUpdates, fixture.dataUpdates]).toEqual(counts);

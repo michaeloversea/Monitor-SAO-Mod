@@ -1,4 +1,5 @@
 import type { ThemeSettings, UserMatrixPreset } from "@/types/komari";
+import { isLanguage, type Language } from "@/i18n";
 import {
   DEFAULT_COST_RATE_API_URL,
   normalizeCostIgnoredNodes,
@@ -29,6 +30,7 @@ export type ClusterOverviewMode = "classic" | "nodes";
 export type MatrixColorTheme = "default" | "eva";
 
 export interface ResolvedThemeSettings {
+  defaultLanguage: Language;
   defaultAppearance: Appearance;
   desktopNodeViewMode: NodeViewMode;
   mobileNodeViewMode: NodeViewMode;
@@ -80,6 +82,7 @@ export interface ResolvedThemeSettings {
 
 /** 后端 theme.json 中声明的官方配置字段清单 */
 export const THEME_CONFIG_KEYS = [
+  "defaultLanguage",
   "defaultAppearance",
   "desktopNodeViewMode",
   "mobileNodeViewMode",
@@ -122,6 +125,7 @@ export const THEME_CONFIG_KEYS = [
 export const THEME_CONFIG_KEYS_SET: ReadonlySet<string> = new Set<string>(THEME_CONFIG_KEYS);
 
 export const DEFAULT_THEME_SETTINGS: ResolvedThemeSettings = {
+  defaultLanguage: "zh-CN",
   defaultAppearance: "system",
   desktopNodeViewMode: "large",
   mobileNodeViewMode: "compact",
@@ -305,6 +309,7 @@ export function normalizeThemeSettings(
   );
   return {
     defaultAppearance: normalizeAppearance(settings?.defaultAppearance),
+    defaultLanguage: isLanguage(settings?.defaultLanguage) ? settings.defaultLanguage : "zh-CN",
     desktopNodeViewMode: normalizeNodeViewMode(
       settings?.desktopNodeViewMode,
       DEFAULT_THEME_SETTINGS.desktopNodeViewMode,

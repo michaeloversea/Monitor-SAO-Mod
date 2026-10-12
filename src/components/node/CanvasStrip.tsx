@@ -1,12 +1,5 @@
-import {
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type PointerEvent,
-} from "react";
 import { supportsFineHover } from "@/utils/mediaQuery";
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type PointerEvent } from "react";
 
 export interface CanvasStripInteraction {
   hoverIndex: number | null;

@@ -1,16 +1,3 @@
-import { useCallback } from "react";
-import {
-  Cpu,
-  MemoryStick,
-  HardDrive,
-  Gauge,
-  Database,
-  Zap,
-  ArrowUp,
-  ArrowDown,
-  RotateCcw,
-} from "lucide-react";
-import { usePreferences } from "@/hooks/usePreferences";
 import {
   DEFAULT_METRIC_COLORS,
   METRIC_COLOR_GROUPS,
@@ -18,6 +5,20 @@ import {
   useMetricColorsEditor,
   type MetricColorKey,
 } from "@/hooks/useMetricColors";
+import { usePreferences } from "@/hooks/usePreferences";
+import { useTranslate } from "@/i18n";
+import {
+  ArrowDown,
+  ArrowUp,
+  Cpu,
+  Database,
+  Gauge,
+  HardDrive,
+  MemoryStick,
+  RotateCcw,
+  Zap,
+} from "lucide-react";
+import { useCallback } from "react";
 
 const ICONS: Record<MetricColorKey, typeof Cpu> = {
   cpu: Cpu,
@@ -34,6 +35,7 @@ const ICONS: Record<MetricColorKey, typeof Cpu> = {
 };
 
 export function MetricColorPicker({ hidden = false }: { hidden?: boolean }) {
+  const t = useTranslate();
   const {
     colors,
     setColor,
@@ -55,24 +57,23 @@ export function MetricColorPicker({ hidden = false }: { hidden?: boolean }) {
     <div
       className="metric-color-picker"
       role="group"
-      aria-label="卡片配色"
+      aria-label={t("卡片配色")}
       hidden={hidden}
     >
       <div className="metric-color-picker-head">
-        <span>配色自定义</span>
+        <span>{t("配色自定义")}</span>
         <button
           type="button"
           className="metric-color-reset-all"
           onClick={() => resetAll()}
           disabled={!hasAny}
         >
-          全部重置
-        </button>
+          {t("全部重置")}</button>
       </div>
-      {saveError && <div className="metric-color-error">保存失败（请确认已登录管理员）</div>}
+      {saveError && <div className="metric-color-error">{t("保存失败（请确认已登录管理员）")}</div>}
       {METRIC_COLOR_GROUPS.map((group) => (
         <div className="metric-color-group" key={group.id}>
-          <div className="metric-color-group-title">{group.label}</div>
+          <div className="metric-color-group-title">{t(group.label)}</div>
           <div className="metric-color-list">
             {METRIC_COLOR_META.filter((item) => item.group === group.id).map(({ key, label }) => {
               const Icon = ICONS[key];
@@ -80,13 +81,13 @@ export function MetricColorPicker({ hidden = false }: { hidden?: boolean }) {
               return (
                 <div className="metric-color-row" key={key}>
                   <Icon size={14} className="metric-color-icon" />
-                  <span className="metric-color-name">{label}</span>
+                  <span className="metric-color-name">{t(label)}</span>
                   <label className="metric-color-swatch" style={{ background: valueOf(key) }}>
                     <input
                       type="color"
                       value={valueOf(key)}
                       onChange={(event) => setColor(key, event.target.value)}
-                      aria-label={`${label} 颜色`}
+                      aria-label={t("{0} 颜色", [t(label)])}
                     />
                   </label>
                   <button
@@ -94,8 +95,8 @@ export function MetricColorPicker({ hidden = false }: { hidden?: boolean }) {
                     className="metric-color-reset"
                     onClick={() => resetColor(key)}
                     disabled={!overridden}
-                    aria-label={`恢复 ${label} 默认色`}
-                    title="恢复默认"
+                    aria-label={t("恢复 {0} 默认色", [t(label)])}
+                    title={t("恢复默认")}
                   >
                     <RotateCcw size={13} />
                   </button>

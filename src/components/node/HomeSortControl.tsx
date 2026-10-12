@@ -1,15 +1,17 @@
-import { useEffect, useId, useRef, useState } from "react";
-import { ArrowDownWideNarrow, ArrowUpNarrowWide } from "lucide-react";
+import type { HomeSortControlState } from "@/hooks/useHomeSort";
+import { useLanguage, useTranslate } from "@/i18n";
 import {
   HOME_SORT_FIELDS,
   HOME_SORT_FIELD_LABELS,
   type HomeSortDirection,
   type HomeSortField,
 } from "@/utils/homeSort";
-import type { HomeSortControlState } from "@/hooks/useHomeSort";
+import { ArrowDownWideNarrow, ArrowUpNarrowWide } from "lucide-react";
+import { useEffect, useId, useRef, useState } from "react";
 
 // 单个图标同时表达排序与方向。
 function SortIcon({ direction, size = 14 }: { direction: HomeSortDirection; size?: number }) {
+  useLanguage();
   return direction === "asc" ? (
     <ArrowUpNarrowWide size={size} aria-hidden />
   ) : (
@@ -19,6 +21,7 @@ function SortIcon({ direction, size = 14 }: { direction: HomeSortDirection; size
 
 // 选择当前维度会翻转方向，选择其他维度会采用该维度的自然方向。
 export function HomeSortControl({ state }: { state: HomeSortControlState }) {
+  const t = useTranslate();
   const { field, direction, setField, toggleDirection } = state;
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -57,15 +60,15 @@ export function HomeSortControl({ state }: { state: HomeSortControlState }) {
         aria-haspopup="true"
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
-        aria-label={`排序方式，当前${HOME_SORT_FIELD_LABELS[field]}${direction === "asc" ? "升序" : "降序"}`}
-        title={`排序：${HOME_SORT_FIELD_LABELS[field]}（${direction === "asc" ? "升序" : "降序"}）`}
+        aria-label={t("排序方式，当前{0}{1}", [t(HOME_SORT_FIELD_LABELS[field]), t(direction === "asc" ? "升序" : "降序")])}
+        title={t("排序：{0}（{1}）", [t(HOME_SORT_FIELD_LABELS[field]), t(direction === "asc" ? "升序" : "降序")])}
         onClick={() => setOpen((value) => !value)}
       >
         <SortIcon direction={direction} />
-        <span>{HOME_SORT_FIELD_LABELS[field]}</span>
+        <span>{t(HOME_SORT_FIELD_LABELS[field])}</span>
       </button>
       {open && (
-        <div id={panelId} className="home-sort-panel" role="group" aria-label="排序方式">
+        <div id={panelId} className="home-sort-panel" role="group" aria-label={t("排序方式")}>
           {HOME_SORT_FIELDS.map((option) => {
             const active = option === field;
             return (
@@ -77,7 +80,7 @@ export function HomeSortControl({ state }: { state: HomeSortControlState }) {
                 className="home-sort-item"
                 onClick={() => select(option)}
               >
-                <span className="home-sort-item-label">{HOME_SORT_FIELD_LABELS[option]}</span>
+                <span className="home-sort-item-label">{t(HOME_SORT_FIELD_LABELS[option])}</span>
                 {active && <SortIcon direction={direction} size={15} />}
               </button>
             );
