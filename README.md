@@ -1,6 +1,12 @@
 # Monitor-SAO · JKSR Modded
 
-本 Mod 基于 [WAOR/Monitor-SAO](https://github.com/WAOR/Monitor-SAO)，**仅支持极简探针（Monitor）**。当前版本 `v1.2.2`，主题短名保持 `sao`，升级沿用已有站点设置。
+本 Mod 基于 [WAOR/Monitor-SAO](https://github.com/WAOR/Monitor-SAO)，**仅支持极简探针（Monitor）**。当前版本 `v1.2.3`，主题短名保持 `sao`，升级沿用已有站点设置。
+
+## v1.2.3
+
+修正首页带宽图表的方向标题：英文为 **Upload / Download**，简体中文为 **上行 / 下行**，移除多余的「网络」字样。生产 JS 使用新的内容哈希资源 URL；保留 v1.2.2 的布局改进与已有站点配置。
+
+验证：424 项测试、ESLint、TypeScript、生产构建与安装包结构校验通过。
 
 ## v1.2.2
 

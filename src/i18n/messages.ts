@@ -280,10 +280,6 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
     "en": "Uploaded traffic",
     "zh-TW": "上行流量"
   },
-  "上行网络": {
-    "en": "Upload",
-    "zh-TW": "上傳"
-  },
   "下午好": {
     "en": "Good afternoon",
     "zh-TW": "下午好"
@@ -307,10 +303,6 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   "下行流量": {
     "en": "Downloaded traffic",
     "zh-TW": "下行流量"
-  },
-  "下行网络": {
-    "en": "Network",
-    "zh-TW": "下載"
   },
   "下载": {
     "en": "Download",

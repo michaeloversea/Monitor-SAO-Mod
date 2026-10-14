@@ -439,7 +439,7 @@ export function OverviewTrafficChart({
 
       <div className="mao-realtime-charts-grid">
         <SingleTrafficCard
-          title={t("上行网络")}
+          title={t("上行")}
           direction="up"
           rate={netUp}
           color="#3b82f6"
@@ -448,7 +448,7 @@ export function OverviewTrafficChart({
           haloRgba="rgba(59, 130, 246, 0.25)"
         />
         <SingleTrafficCard
-          title={t("下行网络")}
+          title={t("下行")}
           direction="down"
           rate={netDown}
           color="#2f9e65"
