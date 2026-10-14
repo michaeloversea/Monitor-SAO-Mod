@@ -1,4 +1,5 @@
 import type { NodeInfo } from "@/types/theme";
+import { getExpireDaysRemaining } from "@/utils/format";
 
 const MIB = 1024 * 1024;
 const GIB = 1024 * MIB;
@@ -757,6 +758,8 @@ export function installDevMockApi() {
             name: node.name,
             group: node.group,
             sort: node.weight,
+            expires_at: node.expired_at,
+            expires_in: getExpireDaysRemaining(node.expired_at),
             public: true,
             online,
             country: node.region,

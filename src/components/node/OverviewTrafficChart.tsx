@@ -428,7 +428,7 @@ export function OverviewTrafficChart({
   return (
     <div className="mao-progress-section mao-network-section">
       <div className="mao-progress-section-header">
-        <div className="flex items-baseline gap-1.5 min-w-0">
+        <div className="flex flex-wrap items-baseline gap-1.5 min-w-0">
           <span className="mao-progress-big-num">
             {totalRate.value}
           </span>

@@ -23,7 +23,7 @@ afterEach(() => {
 it("uses the site default until a visitor chooses a language, then can follow the default again", () => {
   setDefaultLanguage("zh-TW"); setLanguage(null);
   expect(getLanguage()).toBe("zh-TW");
-  expect(t("语言设置")).toBe("語言設置");
+  expect(t("语言设置")).toBe("語言設定");
   setLanguage("en"); setDefaultLanguage("zh-CN");
   expect(getLanguage()).toBe("en");
   expect(document.documentElement.lang).toBe("en");
@@ -71,7 +71,7 @@ it("updates the menu across tabs and supports keyboard dismissal and returning t
       localStorage.setItem("monitor-sao:language", "zh-TW");
       window.dispatchEvent(new StorageEvent("storage", { key: "monitor-sao:language" }));
     });
-    expect(container.querySelector("button")?.getAttribute("aria-label")).toBe("語言設置");
+    expect(container.querySelector("button")?.getAttribute("aria-label")).toBe("語言設定");
     await act(async () => container.querySelector<HTMLButtonElement>("button")!.click());
     await act(async () => document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" })));
     expect(container.querySelector(".language-menu")).toBeNull();
@@ -94,4 +94,16 @@ it("translates the settings UI while preserving node and task names", async () =
     expect(container.querySelector(".node-ping-task-tag")?.textContent).toBe("延迟");
     expect(container.textContent).not.toContain("自定义（指定线路与顺序）");
   } finally { await act(async () => root.unmount()); }
+});
+
+it("uses Taiwan UI terminology while preserving server and task names in parameters", () => {
+  setLanguage("zh-TW");
+  expect(t("服务器")).toBe("伺服器");
+  expect(t("磁盘")).toBe("硬碟");
+  expect(t("内存")).toBe("記憶體");
+  expect(t("默认语言")).toBe("預設語言");
+  expect(t("刷新")).toBe("重新整理");
+  expect(t("保存设置")).toBe("儲存設定");
+  expect(t("服务器矩阵与实时监控")).toBe("伺服器矩陣與即時監控");
+  expect(t("{0} 信息", ["服务器 / 磁盘 <example>"])).toBe("服务器 / 磁盘 <example> 資訊");
 });

@@ -1,4 +1,4 @@
-import { t } from "@/i18n";
+import { getLanguage, t } from "@/i18n";
 // 大卡与紧凑卡共享的格式化和命中逻辑。
 
 // 大卡与紧凑卡共享的格式化和命中逻辑。
@@ -23,13 +23,14 @@ export function formatCompactPercent(value: number) {
   return `${trimFixed(value, 1)}%`;
 }
 
-/** 卡片到期文案:"余 X天";无到期时 "余 --"。 */
+/** 紧凑卡片只显示天数；英文缩写避免遮住真正的到期数字。 */
 export function formatCompactExpire({ value, unit }: { value: string; unit: string }) {
-  if (value === "—") return t("余 --");
-  return unit ? t("余 {0}{1}", [value, unit]) : value;
+  if (value === "—") return "--";
+  if (!unit) return value;
+  return getLanguage() === "en" ? `${value} d` : `${value}${unit}`;
 }
 
-import { CHINESE_YEAR_PAY_NAMES, normalizeBillingCycle } from "@/utils/billing";
+import { CHINESE_YEAR_PAY_NAMES, formatCompactBillingCycleText, normalizeBillingCycle } from "@/utils/billing";
 
 /** 格式化紧凑卡片隐藏价格时的精简账单周期（完全对齐 极简探针后台设计）。 */
 export function formatCompactBillingCycle(
@@ -37,6 +38,7 @@ export function formatCompactBillingCycle(
   price?: number,
 ): string {
   if (price === -1) return t("免费");
+  if (getLanguage() === "en") return formatCompactBillingCycleText(billingCycle);
   const cycle = normalizeBillingCycle(billingCycle);
   switch (cycle.kind) {
     case "lifetime":

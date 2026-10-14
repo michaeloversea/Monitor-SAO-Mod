@@ -74,11 +74,11 @@ describe("healthBarSlotModel", () => {
 
 describe("formatCompactExpire", () => {
   it("formats standard days correctly", () => {
-    expect(formatCompactExpire({ value: "30", unit: "天" })).toBe("余 30天");
+    expect(formatCompactExpire({ value: "30", unit: "天" })).toBe("30天");
   });
 
   it("handles missing expiration sentinel", () => {
-    expect(formatCompactExpire({ value: "—", unit: "" })).toBe("余 --");
+    expect(formatCompactExpire({ value: "—", unit: "" })).toBe("--");
   });
 });
 

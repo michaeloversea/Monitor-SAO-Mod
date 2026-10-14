@@ -589,11 +589,6 @@ function HomeOverviewCards({
                 <Activity size={17} className="text-(--text-primary)" />
                 <span>{t("集群状态")}</span>
               </h3>
-              <p className="mao-progress-subtitle">
-                {clusterOverviewMode === "classic"
-                  ? t("服务器在线率与实时网络吞吐")
-                  : t("全节点实时负载与机架全景")}
-              </p>
             </div>
             <div className="flex items-center gap-2 flex-wrap justify-end">
               <span className={`mao-status-pill ${isAllHealthy ? "is-healthy" : "is-warning"}`}>
@@ -774,7 +769,8 @@ function RegionTabs({
   const t = useTranslate();
   return (
     <section className="home-region-bar" aria-label={t("地区筛选")}>
-      <div className="home-region-chips" role="group">
+      <div className="home-region-chips" role="group"
+        style={{ "--region-count-digits": Math.max(1, ...regions.map(({ count }) => String(count).length)) } as CSSProperties}>
         {regions.map(({ code, count }) => {
           const active = selectedRegion === code;
           return (
@@ -1284,8 +1280,6 @@ export function NodeGrid() {
             </div>
             <div className="mao-section-title-wrap">
               <h2 className="mao-section-title">{t("服务器矩阵与实时监控")}</h2>
-              <p className="mao-section-sub">
-                {t("实时监控服务器负载、资源占用、网络吞吐与在线状态。")}</p>
             </div>
           </div>
         )}

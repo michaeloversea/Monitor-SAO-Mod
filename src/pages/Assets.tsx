@@ -316,7 +316,7 @@ export function Assets() {
             </dl>
           </section>
 
-          <div className="assets-section-head">
+          <div className="assets-section-head has-sort-tools">
             <span className="assets-eyebrow">{t("明细")}</span>
             <span className="assets-count">{detailRows.length} {t("台")}</span>
             {renewalReminders.length > 0 && (

@@ -6,7 +6,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   " · 刷新失败，显示上次数据": {
     "en": " · Refresh failed; showing previous data",
-    "zh-TW": " · 刷新失敗，顯示上次數據"
+    "zh-TW": " · 重新整理失敗，顯示上次資料"
   },
   "(已停用)": {
     "en": "(disabled)",
@@ -14,7 +14,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "(暂无保存的预设，绘制后点击「存为预设」)": {
     "en": "(No saved presets. Draw a pattern and select Save preset.)",
-    "zh-TW": "(暫無保存的預設，繪制後點擊「存為預設」)"
+    "zh-TW": "(暫無儲存的預設，繪制後點選「存為預設」)"
   },
   "+ 添加展示线路": {
     "en": "+ Add displayed route",
@@ -50,7 +50,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "SAO 主题设置": {
     "en": "SAO theme settings",
-    "zh-TW": "SAO 主題設置"
+    "zh-TW": "SAO 主題設定"
   },
   "Swap 无": {
     "en": "No swap",
@@ -58,15 +58,15 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "TCP 连接": {
     "en": "TCP connections",
-    "zh-TW": "TCP 連接"
+    "zh-TW": "TCP 連線"
   },
   "TCP 连接: {0} · UDP 连接: {1}": {
     "en": "TCP connections: {0} · UDP connections: {1}",
-    "zh-TW": "TCP 連接: {0} · UDP 連接: {1}"
+    "zh-TW": "TCP 連線: {0} · UDP 連線: {1}"
   },
   "UDP 连接": {
     "en": "UDP connections",
-    "zh-TW": "UDP 連接"
+    "zh-TW": "UDP 連線"
   },
   "min {0} | max {1} | 样本 {2} | 间隔 {3}s": {
     "en": "min {0} | max {1} | samples {2} | interval {3}s",
@@ -90,7 +90,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "{0} · 延迟 {1} · 丢包 {2}{3}": {
     "en": "{0} · latency {1} · loss {2}{3}",
-    "zh-TW": "{0} · 延遲 {1} · 丟包 {2}{3}"
+    "zh-TW": "{0} · 延遲 {1} · 封包遺失 {2}{3}"
   },
   "{0} · 查看详情": {
     "en": "{0} · View details",
@@ -98,11 +98,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "{0} 丢包色带，左右方向键查看，Escape 关闭提示": {
     "en": "{0} packet loss band. Use arrow keys to inspect and Escape to close.",
-    "zh-TW": "{0} 丟包色帶，左右方向鍵查看，Escape 關閉提示"
+    "zh-TW": "{0} 封包遺失色帶，左右方向鍵查看，Escape 關閉提示"
   },
   "{0} 个任务": {
     "en": "{0} tasks",
-    "zh-TW": "{0} 個任務"
+    "zh-TW": "{0} 個工作"
   },
   "{0} 个点": {
     "en": "{0} points",
@@ -114,7 +114,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "{0} 信息": {
     "en": "{0} details",
-    "zh-TW": "{0} 信息"
+    "zh-TW": "{0} 資訊"
   },
   "{0} 分钟": {
     "en": "{0} minutes",
@@ -122,11 +122,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "{0} 台在线服务器": {
     "en": "{0} online servers",
-    "zh-TW": "{0} 台在線服務器"
+    "zh-TW": "{0} 台線上伺服器"
   },
   "{0} 台服务器将在 {1} 天内到期": {
-    "en": "{0} servers expire within {1} days",
-    "zh-TW": "{0} 台服務器將在 {1} 天內到期"
+    "en": "{0} due within {1}d",
+    "zh-TW": "{0} 台伺服器將在 {1} 天內到期"
   },
   "{0} 台设备即将到期": {
     "en": "{0} servers expiring soon",
@@ -202,11 +202,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "{0}，首页 Ping 刷新失败，显示上次数据": {
     "en": "{0}: homepage Ping refresh failed; showing previous data",
-    "zh-TW": "{0}，首頁 Ping 刷新失敗，顯示上次數據"
+    "zh-TW": "{0}，首頁 Ping 重新整理失敗，顯示上次資料"
   },
   "{0}，首页 Ping 正在刷新，显示上次数据": {
     "en": "{0}: homepage Ping refreshing; showing previous data",
-    "zh-TW": "{0}，首頁 Ping 正在刷新，顯示上次數據"
+    "zh-TW": "{0}，首頁 Ping 正在重新整理，顯示上次資料"
   },
   "· 摊": {
     "en": "· amortized",
@@ -254,7 +254,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "上方展示节点在线率与状态条，下方展示实时上下行带宽双曲线图，适用于全面综合监控。": {
     "en": "Online status above, live upload and download charts below, for an overall view.",
-    "zh-TW": "上方展示節點在線率與狀態條，下方展示實時上下行帶寬雙曲線圖，適用於全面綜合監控。"
+    "zh-TW": "上方展示節點上線率與狀態條，下方展示即時上下行頻寬雙曲線圖，適用於全面綜合監控。"
   },
   "上移 {0}": {
     "en": "Move {0} up",
@@ -281,8 +281,8 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
     "zh-TW": "上行流量"
   },
   "上行网络": {
-    "en": "Upload network",
-    "zh-TW": "上行網絡"
+    "en": "Upload",
+    "zh-TW": "上傳"
   },
   "下午好": {
     "en": "Good afternoon",
@@ -309,8 +309,8 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
     "zh-TW": "下行流量"
   },
   "下行网络": {
-    "en": "Download network",
-    "zh-TW": "下行網絡"
+    "en": "Network",
+    "zh-TW": "下載"
   },
   "下载": {
     "en": "Download",
@@ -318,23 +318,23 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "与监控服务通信失败或接口未响应，请检查网络连接后重试。": {
     "en": "The monitoring service could not be reached. Check your connection and try again.",
-    "zh-TW": "與監控服務通信失敗或接口未響應，請檢查網絡連接後重試。"
+    "zh-TW": "與監控服務通信失敗或介面未響應，請檢查網路連線後重試。"
   },
   "丢包": {
     "en": "Packet loss",
-    "zh-TW": "丟包"
+    "zh-TW": "封包遺失"
   },
   "丢包率": {
     "en": "Loss rate",
-    "zh-TW": "丟包率"
+    "zh-TW": "封包遺失率"
   },
   "丢包色带": {
     "en": "Loss bands",
-    "zh-TW": "丟包色帶"
+    "zh-TW": "封包遺失色帶"
   },
   "丢包色带：绿 0% · 黄绿 <5% · 黄 <20% · 橙 <50% · 红 <100% · 深红 100% · 灰色未采样（历史聚合可能平均短时峰值）": {
     "en": "Loss bands: green 0% · yellow-green <5% · yellow <20% · orange <50% · red <100% · dark red 100% · gray unsampled (historical aggregation can average brief peaks)",
-    "zh-TW": "丟包色帶：綠 0% · 黃綠 <5% · 黃 <20% · 橙 <50% · 紅 <100% · 深紅 100% · 灰色未採樣（歷史聚合可能平均短時峰值）"
+    "zh-TW": "封包遺失色帶：綠 0% · 黃綠 <5% · 黃 <20% · 橙 <50% · 紅 <100% · 深紅 100% · 灰色未取樣（歷史聚合可能平均短時峰值）"
   },
   "两年": {
     "en": "2 years",
@@ -346,7 +346,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "个当前节点列表中不存在的设置（ID：": {
     "en": " settings for nodes no longer in the current list (IDs:",
-    "zh-TW": "個當前節點列表中不存在的設置（ID："
+    "zh-TW": "個目前節點列表中不存在的設定（ID："
   },
   "个节点": {
     "en": " nodes",
@@ -378,19 +378,19 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "主题版本与仓库链接": {
     "en": "Theme version and repository",
-    "zh-TW": "主題版本與倉庫鏈接"
+    "zh-TW": "主題版本與倉庫連結"
   },
   "主题设置": {
     "en": "Theme settings",
-    "zh-TW": "主題設置"
+    "zh-TW": "主題設定"
   },
   "主题设置已保存": {
     "en": "Theme settings saved",
-    "zh-TW": "主題設置已保存"
+    "zh-TW": "主題設定已儲存"
   },
   "主题设置已重置": {
     "en": "Theme settings reset",
-    "zh-TW": "主題設置已重置"
+    "zh-TW": "主題設定已重置"
   },
   "二手买入溢价/折价固化": {
     "en": "Acquisition premium or discount",
@@ -430,7 +430,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "今日暂无采样数据": {
     "en": "No samples today",
-    "zh-TW": "今日暫無採樣數據"
+    "zh-TW": "今日暫無採樣資料"
   },
   "今日流量": {
     "en": "Today's traffic",
@@ -442,7 +442,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "今日流量加载失败": {
     "en": "Could not load today's traffic",
-    "zh-TW": "今日流量加載失敗"
+    "zh-TW": "今日流量載入失敗"
   },
   "今日流量汇总": {
     "en": "Today's traffic summary",
@@ -470,19 +470,19 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "任务 #": {
     "en": "Task #",
-    "zh-TW": "任務 #"
+    "zh-TW": "工作 #"
   },
   "任务 #{0}": {
     "en": "Task #{0}",
-    "zh-TW": "任務 #{0}"
+    "zh-TW": "工作 #{0}"
   },
   "任务 #{0}（已删除或不可用）": {
     "en": "Task #{0} (deleted or unavailable)",
-    "zh-TW": "任務 #{0}（已刪除或不可用）"
+    "zh-TW": "工作 #{0}（已刪除或不可用）"
   },
   "任务列表读取失败，请刷新重试。": {
     "en": "Could not load tasks. Refresh to retry.",
-    "zh-TW": "任務列表讀取失敗，請刷新重試。"
+    "zh-TW": "工作列表讀取失敗，請重新整理重試。"
   },
   "低速": {
     "en": "Low speed",
@@ -506,31 +506,31 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "使用站点默认": {
     "en": "Use site default",
-    "zh-TW": "使用站點默認"
+    "zh-TW": "使用網站預設語言"
   },
   "保存": {
     "en": "Save",
-    "zh-TW": "保存"
+    "zh-TW": "儲存"
   },
   "保存中": {
     "en": "Saving",
-    "zh-TW": "保存中"
+    "zh-TW": "儲存中"
   },
   "保存失败": {
     "en": "Save failed",
-    "zh-TW": "保存失敗"
+    "zh-TW": "儲存失敗"
   },
   "保存失败（请确认已登录管理员）": {
     "en": "Save failed (check administrator sign-in)",
-    "zh-TW": "保存失敗（請確認已登錄管理員）"
+    "zh-TW": "儲存失敗（請確認已登錄管理員）"
   },
   "保存失败：管理员未登录或凭据已失效": {
     "en": "Save failed: administrator is signed out or credentials expired",
-    "zh-TW": "保存失敗：管理員未登錄或憑據已失效"
+    "zh-TW": "儲存失敗：管理員未登錄或憑據已失效"
   },
   "保存设置": {
     "en": "Save settings",
-    "zh-TW": "保存設置"
+    "zh-TW": "儲存設定"
   },
   "保密": {
     "en": "Private",
@@ -558,27 +558,23 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "全局延迟展示设置": {
     "en": "Global latency display",
-    "zh-TW": "全局延遲展示設置"
+    "zh-TW": "全域延遲展示設定"
   },
   "全站实时带宽评级: {0}": {
     "en": "Site bandwidth rating: {0}",
-    "zh-TW": "全站實時帶寬評級: {0}"
+    "zh-TW": "全站即時頻寬評級：{0}"
   },
   "全站服务器运行健康，系统资源与网络指标持续监控中。": {
     "en": "All servers are healthy. Resources and network metrics are being monitored.",
-    "zh-TW": "全站服務器運行健康，系統資源與網絡指標持續監控中。"
+    "zh-TW": "全站伺服器運行健康，系統資源與網路指標持續監控中。"
   },
   "全站服务器运行良好，网络状态与系统负载数据持续采集中。": {
     "en": "All servers are running normally. Network and system metrics are being collected.",
-    "zh-TW": "全站服務器運行良好，網絡狀態與系統負載數據持續採集中。"
+    "zh-TW": "全站伺服器運行良好，網路狀態與系統負載資料持續採集中。"
   },
   "全节点出入站累计": {
-    "en": "Total uploaded and downloaded",
+    "en": "Total traffic",
     "zh-TW": "全節點出入站累計"
-  },
-  "全节点实时负载与机架全景": {
-    "en": "Live node load and rack overview",
-    "zh-TW": "全節點實時負載與機架全景"
   },
   "全选可用": {
     "en": "Select all available",
@@ -614,27 +610,27 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "关闭：如实显示中断/丢包断点；开启：跨过所有空缺连成完整曲线（更好看，但看不出掉线）。注：偶尔漏一两次采样的小空缺始终自动桥接，不受此开关影响。": {
     "en": "Off: show outages and missing samples. On: connect all gaps, which hides outages. Brief gaps of one or two samples are always bridged automatically.",
-    "zh-TW": "關閉：如實顯示中斷/丟包斷點；開啓：跨過所有空缺連成完整曲線（更好看，但看不出掉線）。注：偶爾漏一兩次採樣的小空缺始終自動橋接，不受此開關影響。"
+    "zh-TW": "關閉：如實顯示中斷/封包遺失斷點；開啓：跨過所有空缺連成完整曲線（更好看，但看不出掉線）。注：偶爾漏一兩次採樣的小空缺始終自動橋接，不受此開關影響。"
   },
   "其他任务（需后台关联后才有数据）": {
     "en": "Other tasks (associate them in the dashboard to collect data)",
-    "zh-TW": "其他任務（需後台關聯後才有數據）"
+    "zh-TW": "其他工作（需後台關聯後才有資料）"
   },
   "内存": {
     "en": "Memory",
-    "zh-TW": "內存"
+    "zh-TW": "記憶體"
   },
   "内存 {0}": {
     "en": "Memory {0}",
-    "zh-TW": "內存 {0}"
+    "zh-TW": "記憶體 {0}"
   },
   "内存用量": {
     "en": "Memory usage",
-    "zh-TW": "內存用量"
+    "zh-TW": "記憶體用量"
   },
   "再次点击方块直达节点卡片": {
     "en": "Select the cell again to open its server card",
-    "zh-TW": "再次點擊方塊直達節點卡片"
+    "zh-TW": "再次點選方塊直達節點卡片"
   },
   "出站": {
     "en": "Outbound",
@@ -642,11 +638,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "分组": {
     "en": "Groups",
-    "zh-TW": "分組"
+    "zh-TW": "群組"
   },
   "分组展示顺序": {
     "en": "Group display order",
-    "zh-TW": "分組展示順序"
+    "zh-TW": "群組展示順序"
   },
   "分钟": {
     "en": "min",
@@ -662,15 +658,15 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "切换卡片视图": {
     "en": "Switch card view",
-    "zh-TW": "切換卡片視圖"
+    "zh-TW": "切換卡片檢視"
   },
   "切换服务器": {
     "en": "Switch server",
-    "zh-TW": "切換服務器"
+    "zh-TW": "切換伺服器"
   },
   "列在此处的节点将不会在首页及总览中展示。当前已生效": {
     "en": "These nodes are hidden from the homepage and overview. Currently active:",
-    "zh-TW": "列在此處的節點將不會在首頁及總覽中展示。當前已生效"
+    "zh-TW": "列在此處的節點將不會在首頁及總覽中展示。目前已生效"
   },
   "列表": {
     "en": "List",
@@ -678,7 +674,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "列表视图": {
     "en": "List view",
-    "zh-TW": "列表視圖"
+    "zh-TW": "列表檢視"
   },
   "刚刚离线": {
     "en": "Just went offline",
@@ -706,31 +702,31 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "刷新": {
     "en": "Refresh",
-    "zh-TW": "刷新"
+    "zh-TW": "重新整理"
   },
   "刷新中": {
     "en": "Refreshing",
-    "zh-TW": "刷新中"
+    "zh-TW": "重新整理中"
   },
   "刷新今日流量": {
     "en": "Refresh today's traffic",
-    "zh-TW": "刷新今日流量"
+    "zh-TW": "重新整理今日流量"
   },
   "刷新今日流量统计": {
     "en": "Refresh today's traffic statistics",
-    "zh-TW": "刷新今日流量統計"
+    "zh-TW": "重新整理今日流量統計"
   },
   "刷新失败，重试": {
     "en": "Refresh failed; retry",
-    "zh-TW": "刷新失敗，重試"
+    "zh-TW": "重新整理失敗，重試"
   },
   "刷新汇率与统计": {
     "en": "Refresh exchange rates and statistics",
-    "zh-TW": "刷新匯率與統計"
+    "zh-TW": "重新整理匯率與統計"
   },
   "刷新页面": {
     "en": "Reload page",
-    "zh-TW": "刷新頁面"
+    "zh-TW": "重新整理頁面"
   },
   "削峰平滑": {
     "en": "Smooth peaks",
@@ -742,7 +738,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "前往后台 Ping 管理创建任务": {
     "en": "Create tasks in dashboard Ping management",
-    "zh-TW": "前往後台 Ping 管理創建任務"
+    "zh-TW": "前往後台 Ping 管理創建工作"
   },
   "前往登录": {
     "en": "Sign in",
@@ -766,15 +762,15 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "加载中": {
     "en": "Loading",
-    "zh-TW": "加載中"
+    "zh-TW": "載入中"
   },
   "加载中…": {
     "en": "Loading…",
-    "zh-TW": "加載中…"
+    "zh-TW": "載入中…"
   },
   "加载失败": {
     "en": "Load failed",
-    "zh-TW": "加載失敗"
+    "zh-TW": "載入失敗"
   },
   "动效预览": {
     "en": "Animation preview",
@@ -782,11 +778,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "升序": {
     "en": "Ascending",
-    "zh-TW": "升序"
+    "zh-TW": "遞增"
   },
   "升序 (ASC)": {
     "en": "Ascending (ASC)",
-    "zh-TW": "升序 (ASC)"
+    "zh-TW": "遞增 (ASC)"
   },
   "半年": {
     "en": "6 months",
@@ -806,11 +802,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "卡片上显示哪些信息与悬浮窗": {
     "en": "Card metrics and popovers",
-    "zh-TW": "卡片上顯示哪些信息與懸浮窗"
+    "zh-TW": "卡片上顯示哪些資訊與懸浮窗"
   },
   "卡片展示内容": {
     "en": "Card content",
-    "zh-TW": "卡片展示內容"
+    "zh-TW": "卡片顯示內容"
   },
   "卡片扩展入口与访客权限": {
     "en": "Card controls and visitor access",
@@ -842,7 +838,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "可以刷新页面，或返回首页重新进入。": {
     "en": "Reload the page or return home and try again.",
-    "zh-TW": "可以刷新頁面，或返回首頁重新進入。"
+    "zh-TW": "可以重新整理頁面，或返回首頁重新進入。"
   },
   "台": {
     "en": " servers",
@@ -862,11 +858,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "台临期服务器": {
     "en": " expiring servers",
-    "zh-TW": "台臨期服務器"
+    "zh-TW": "台臨期伺服器"
   },
   "台服务器将在": {
     "en": " servers will expire in",
-    "zh-TW": "台服務器將在"
+    "zh-TW": "台伺服器將在"
   },
   "台溢价": {
     "en": " with premiums",
@@ -874,11 +870,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "右上角集群状态": {
     "en": "Cluster status at top right",
-    "zh-TW": "右上角集群狀態"
+    "zh-TW": "右上角叢集狀態"
   },
   "各线路丢包色带": {
     "en": "Per-route packet loss bands",
-    "zh-TW": "各線路丟包色帶"
+    "zh-TW": "各線路封包遺失色帶"
   },
   "名称": {
     "en": "Name",
@@ -906,11 +902,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "图表数据范围": {
     "en": "Chart data range",
-    "zh-TW": "圖表數據範圍"
+    "zh-TW": "圖表資料範圍"
   },
   "在卡片列表上方展示分组 Tab 快速筛选。": {
     "en": "Show group filter tabs above the cards.",
-    "zh-TW": "在卡片列表上方展示分組 Tab 快速篩選。"
+    "zh-TW": "在卡片列表上方展示群組 Tab 快速篩選。"
   },
   "在卡片列表上方展示国旗地区快捷标签。": {
     "en": "Show region filters with flags above the cards.",
@@ -918,47 +914,47 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "在卡片副标题处标明其所属分组。": {
     "en": "Show the server's group below its title.",
-    "zh-TW": "在卡片副標題處標明其所屬分組。"
+    "zh-TW": "在卡片副標題顯示所屬群組。"
   },
   "在卡片网络区域标注实时活跃连接统计。": {
     "en": "Show live TCP and UDP connection counts on cards.",
-    "zh-TW": "在卡片網絡區域標注實時活躍連接統計。"
+    "zh-TW": "在卡片網路區域標示即時活躍連線統計。"
   },
   "在紧凑视图中保留周期标注。": {
     "en": "Keep the billing cycle in compact cards.",
-    "zh-TW": "在緊湊視圖中保留週期標注。"
+    "zh-TW": "在精簡檢視中顯示計費週期。"
   },
   "在紧凑视图中展示月度或累计出入站流量。": {
     "en": "Show monthly or total traffic in compact cards.",
-    "zh-TW": "在緊湊視圖中展示月度或累計出入站流量。"
+    "zh-TW": "在精簡檢視中顯示每月或累計的上傳與下載流量。"
   },
   "在紧凑视图中展示系统运行时间。": {
     "en": "Show uptime in compact cards.",
-    "zh-TW": "在緊湊視圖中展示系統運行時間。"
+    "zh-TW": "在精簡檢視中顯示系統運作時間。"
   },
   "在线": {
     "en": "Online",
-    "zh-TW": "在線"
+    "zh-TW": "線上"
   },
   "在线 / 到期": {
     "en": "Uptime / expiry",
-    "zh-TW": "在線 / 到期"
+    "zh-TW": "線上 / 到期"
   },
   "在线: {0} 台 ({1}%) · 离线: {2} 台": {
     "en": "Online: {0} ({1}%) · Offline: {2}",
-    "zh-TW": "在線: {0} 台 ({1}%) · 離線: {2} 台"
+    "zh-TW": "線上: {0} 台 ({1}%) · 離線: {2} 台"
   },
   "在线率": {
     "en": "Online rate",
-    "zh-TW": "在線率"
+    "zh-TW": "上線率"
   },
   "在线：{0}{1}": {
     "en": "Uptime: {0} {1}",
-    "zh-TW": "在線：{0}{1}"
+    "zh-TW": "已運作：{0}{1}"
   },
   "在节点卡片上显示扩展统计按钮，点击或悬停可查看当日出入站流量与峰值带宽。": {
     "en": "Show a card control for today's traffic and peak bandwidth on hover or click.",
-    "zh-TW": "在節點卡片上顯示擴展統計按鈕，點擊或懸停可查看當日出入站流量與峰值帶寬。"
+    "zh-TW": "在節點卡片上顯示擴展統計按鈕，點選或懸停可查看當日出入站流量與峰值頻寬。"
   },
   "在首页今日流量卡片右上角显示进入流量统计页的图表按钮。若希望未登录访客也能看到该按钮，请同步开启下方的「向访客显示流量入口按钮」。": {
     "en": "Show traffic navigation on the homepage traffic card. To allow visitors, also enable visitor traffic navigation below.",
@@ -974,7 +970,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "在首页顶部显示实时带宽、平均负载、内存用量、硬盘用量、今日流量与资产看板。": {
     "en": "Show live bandwidth, average load, memory, disk, today's traffic and assets at the top of the homepage.",
-    "zh-TW": "在首頁頂部顯示實時帶寬、平均負載、內存用量、硬盤用量、今日流量與資產看板。"
+    "zh-TW": "在首頁頂部顯示即時頻寬、平均負載、記憶體用量、硬盤用量、今日流量與資產看板。"
   },
   "地区旗帜: {0}": {
     "en": "Region flag: {0}",
@@ -990,7 +986,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "复制诊断信息": {
     "en": "Copy diagnostics",
-    "zh-TW": "複製診斷信息"
+    "zh-TW": "複製診斷資訊"
   },
   "外观": {
     "en": "Appearance",
@@ -998,11 +994,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "外观: {0} (点击切换为{1})": {
     "en": "Appearance: {0} (switch to {1})",
-    "zh-TW": "外觀: {0} (點擊切換為{1})"
+    "zh-TW": "外觀: {0} (點選切換為{1})"
   },
   "外观、视图、总览与排序": {
     "en": "Appearance, views, overview and sorting",
-    "zh-TW": "外觀、視圖、總覽與排序"
+    "zh-TW": "外觀、檢視、總覽與排序"
   },
   "多线路与逐节点指定": {
     "en": "Multiple routes and per-node selection",
@@ -1010,7 +1006,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "多线路延迟与丢包": {
     "en": "Multi-route latency and loss",
-    "zh-TW": "多線路延遲與丟包"
+    "zh-TW": "多線路延遲與封包遺失"
   },
   "多线路槽位展示列表": {
     "en": "Global route slots",
@@ -1018,7 +1014,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "多线路模式 (并列展示三网/自定义线路)": {
     "en": "Multiple routes (parallel tasks)",
-    "zh-TW": "多線路模式 (並列展示三網/自定義線路)"
+    "zh-TW": "多線路模式 (並列展示三網/自訂線路)"
   },
   "夜深了": {
     "en": "Good evening",
@@ -1026,7 +1022,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "夜间全站服务器运行平稳，各项指标持续实时监控中。": {
     "en": "Servers are running steadily overnight. Live monitoring continues.",
-    "zh-TW": "夜間全站服務器運行平穩，各項指標持續實時監控中。"
+    "zh-TW": "夜間全站伺服器運行平穩，各項指標持續即時監控中。"
   },
   "大卡片": {
     "en": "Large cards",
@@ -1034,7 +1030,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "大视图": {
     "en": "Large view",
-    "zh-TW": "大視圖"
+    "zh-TW": "大檢視"
   },
   "天": {
     "en": "days",
@@ -1070,11 +1066,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "定制大卡片、小卡片和列表模式下呈现的具体指标。": {
     "en": "Choose the metrics shown in large cards, compact cards and list views.",
-    "zh-TW": "定制大卡片、小卡片和列表模式下呈現的具體指標。"
+    "zh-TW": "選擇大卡片、小卡片與列表檢視中要顯示的指標。"
   },
   "定制方块热力矩阵的主题色阶。EVA 初号机版采用标志性机体紫、荧光绿、警告橙与暴走红。": {
     "en": "Customize rack heatmap colors. EVA uses purple, fluorescent green, warning orange and red.",
-    "zh-TW": "定制方塊熱力矩陣的主題色階。EVA 初號機版採用標誌性機體紫、螢光綠、警告橙與暴走紅。"
+    "zh-TW": "自訂方塊熱力矩陣的主題色階。EVA 初號機版採用標誌性機體紫、螢光綠、警告橙與暴走紅。"
   },
   "实例不存在": {
     "en": "Instance not found",
@@ -1082,59 +1078,55 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "实例信息": {
     "en": "Instance details",
-    "zh-TW": "實例信息"
+    "zh-TW": "實例資訊"
   },
   "实时": {
     "en": "Live",
-    "zh-TW": "實時"
+    "zh-TW": "即時"
   },
   "实时上行": {
     "en": "Live upload",
-    "zh-TW": "實時上行"
+    "zh-TW": "即時上行"
   },
   "实时下行": {
     "en": "Live download",
-    "zh-TW": "實時下行"
+    "zh-TW": "即時下行"
   },
   "实时带宽": {
     "en": "Live bandwidth",
-    "zh-TW": "實時帶寬"
+    "zh-TW": "即時頻寬"
   },
   "实时带宽徽章": {
     "en": "Live bandwidth badge",
-    "zh-TW": "實時帶寬徽章"
+    "zh-TW": "即時頻寬徽章"
   },
   "实时总带宽": {
-    "en": "Total live bandwidth",
-    "zh-TW": "實時總帶寬"
+    "en": "Total",
+    "zh-TW": "總計"
   },
   "实时汇率折算": {
-    "en": "Live currency conversion",
-    "zh-TW": "實時匯率折算"
+    "en": "Live FX",
+    "zh-TW": "即時匯率折算"
   },
   "实时汇率接口 API URL": {
     "en": "Exchange rate API URL",
-    "zh-TW": "實時匯率接口 API URL"
+    "zh-TW": "即時匯率介面 API URL"
   },
   "实时状态同步异常，当前展示的是最近缓存": {
     "en": "Live updates unavailable; showing the most recent cached data",
-    "zh-TW": "實時狀態同步異常，當前展示的是最近緩存"
-  },
-  "实时监控服务器负载、资源占用、网络吞吐与在线状态。": {
-    "en": "Monitor server load, resource usage, network throughput and online status.",
-    "zh-TW": "實時監控服務器負載、資源佔用、網絡吞吐與在線狀態。"
+    "zh-TW": "即時狀態同步異常，目前展示的是最近快取"
   },
   "实时网络": {
     "en": "Live network",
-    "zh-TW": "實時網絡"
+    "zh-TW": "即時網路"
   },
   "实时网速": {
     "en": "Live network speed",
-    "zh-TW": "實時網速"
+    "zh-TW": "即時網速"
   },
   "实时速率": {
     "en": "Live rate",
-    "zh-TW": "實時速率"
+    "zh-TW": "即時速率"
   },
   "实际剩余价值": {
     "en": "Actual remaining value",
@@ -1166,7 +1158,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "将当前画布设计保存为用户预设（保存至云端，跨设备不丢）": {
     "en": "Save this canvas as a preset on the server, available across devices",
-    "zh-TW": "將當前畫布設計保存為用戶預設（保存至雲端，跨設備不丟）"
+    "zh-TW": "將目前畫布設計儲存為使用者預設（儲存至雲端，跨設備不丟）"
   },
   "小卡片": {
     "en": "Compact cards",
@@ -1174,7 +1166,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "小卡片显示在线时长": {
     "en": "Show uptime in compact cards",
-    "zh-TW": "小卡片顯示在線時長"
+    "zh-TW": "小卡片顯示線上時長"
   },
   "小卡片显示累计流量": {
     "en": "Show total traffic in compact cards",
@@ -1190,11 +1182,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "小视图": {
     "en": "Compact view",
-    "zh-TW": "小視圖"
+    "zh-TW": "小檢視"
   },
   "尚未连接到任何节点": {
     "en": "No nodes connected yet",
-    "zh-TW": "尚未連接到任何節點"
+    "zh-TW": "尚未連線到任何節點"
   },
   "展开快捷按钮": {
     "en": "Expand quick controls",
@@ -1222,11 +1214,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "已将点阵图案应用到首页并保存生效": {
     "en": "Pattern applied to homepage and saved",
-    "zh-TW": "已將點陣圖案應用到首頁並保存生效"
+    "zh-TW": "已將點陣圖案應用到首頁並儲存生效"
   },
   "已应用到画板，请点击右上角保存": {
     "en": "Applied to the canvas; save using the button at top right",
-    "zh-TW": "已應用到畫板，請點擊右上角保存"
+    "zh-TW": "已應用到畫板，請點選右上角儲存"
   },
   "已开启自动续费": {
     "en": "Automatic renewal on",
@@ -1298,7 +1290,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "延迟历史加载失败": {
     "en": "Could not load latency history",
-    "zh-TW": "延遲歷史加載失敗"
+    "zh-TW": "延遲歷史載入失敗"
   },
   "开启": {
     "en": "On",
@@ -1310,47 +1302,47 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "开启后，机架方格矩阵中未接入服务器的闲置插槽将使用模拟数据填满，并在运行期间周期性随机变幻「空闲待机」、「活跃传输」与「高吞吐」状态及吞吐速率，令机架方格更显生机灵动。": {
     "en": "Fill unused rack slots with simulated idle, active and high-throughput data.",
-    "zh-TW": "開啓後，機架方格矩陣中未接入服務器的閒置插槽將使用模擬數據填滿，並在運行期間週期性隨機變幻「空閒待機」、「活躍傳輸」與「高吞吐」狀態及吞吐速率，令機架方格更顯生機靈動。"
+    "zh-TW": "開啓後，機架方格矩陣中未接入伺服器的閒置插槽將使用模擬資料填滿，並在運行期間週期性隨機變幻「空閒待機」、「活躍傳輸」與「高吞吐」狀態及吞吐速率，令機架方格更顯生機靈動。"
   },
   "开启后，进入首页时方格矩阵将播放光束横扫显现专属点阵文字并呼吸三下后切入实时集群数据；关闭后直接呈现真实节点。": {
     "en": "Play the opening scan and three pulses before showing live rack data. Turn off to show live nodes immediately.",
-    "zh-TW": "開啓後，進入首頁時方格矩陣將播放光束橫掃顯現專屬點陣文字並呼吸三下後切入實時集群數據；關閉後直接呈現真實節點。"
+    "zh-TW": "開啓後，進入首頁時方格矩陣將播放光束橫掃顯現專屬點陣文字並呼吸三下後切入即時叢集資料；關閉後直接呈現真實節點。"
   },
   "当前 {0} | 均值 {1} | 丢包 {2}%": {
     "en": "Current {0} | Average {1} | Loss {2}%",
-    "zh-TW": "當前 {0} | 均值 {1} | 丟包 {2}%"
+    "zh-TW": "目前 {0} | 均值 {1} | 封包遺失 {2}%"
   },
   "当前为空：自动展示每台服务器关联的检测任务。可以直接保存。": {
     "en": "Empty: automatically show tasks associated with each server. You can save this state.",
-    "zh-TW": "當前為空：自動展示每台服務器關聯的檢測任務。可以直接保存。"
+    "zh-TW": "目前為空：自動展示每台伺服器關聯的檢測工作。可以直接儲存。"
   },
   "当前已隐藏全部线路，点击上方按钮可恢复显示": {
     "en": "All routes hidden. Use the buttons above to show them again.",
-    "zh-TW": "當前已隱藏全部線路，點擊上方按鈕可恢復顯示"
+    "zh-TW": "目前已隱藏全部線路，點選上方按鈕可恢復顯示"
   },
   "当前所有服务器运行平稳，系统负载与核心指标持续采集中。": {
     "en": "All servers are running steadily. System metrics are being collected.",
-    "zh-TW": "當前所有服務器運行平穩，系統負載與核心指標持續採集中。"
+    "zh-TW": "目前所有伺服器運行平穩，系統負載與核心指標持續採集中。"
   },
   "当前有 {0} 台服务器临近到期，请留意续费维护。": {
     "en": "{0} servers are approaching expiry. Check their renewals.",
-    "zh-TW": "當前有 {0} 台服務器臨近到期，請留意續費維護。"
+    "zh-TW": "目前有 {0} 台伺服器臨近到期，請留意續費維護。"
   },
   "当前画板有未应用的改动，点击应用到首页并同步云端": {
     "en": "The canvas has unapplied changes. Apply to homepage to save them to the server.",
-    "zh-TW": "當前畫板有未應用的改動，點擊應用到首頁並同步雲端"
+    "zh-TW": "目前畫板有未應用的改動，點選應用到首頁並同步雲端"
   },
   "当前画板设计与首页一致": {
     "en": "The canvas matches the homepage",
-    "zh-TW": "當前畫板設計與首頁一致"
+    "zh-TW": "目前畫板設計與首頁一致"
   },
   "当前路由加载失败。": {
     "en": "Could not load this route.",
-    "zh-TW": "當前路由加載失敗。"
+    "zh-TW": "目前路由載入失敗。"
   },
   "当前还没有可用于首页展示的 Ping 任务。": {
     "en": "No Ping tasks are available for homepage display yet.",
-    "zh-TW": "當前還沒有可用於首頁展示的 Ping 任務。"
+    "zh-TW": "目前還沒有可用於首頁展示的 Ping 工作。"
   },
   "忽略计算费用的节点": {
     "en": "Nodes excluded from cost calculations",
@@ -1374,19 +1366,19 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "恢复 {0} 默认色": {
     "en": "Restore {0} default color",
-    "zh-TW": "恢復 {0} 默認色"
+    "zh-TW": "恢復 {0} 預設色"
   },
   "恢复默认": {
     "en": "Restore defaults",
-    "zh-TW": "恢復默認"
+    "zh-TW": "恢復預設"
   },
   "您的服务器已全部离线，请及时排查网络与连接状态。": {
     "en": "All servers are offline. Check network connections.",
-    "zh-TW": "您的服務器已全部離線，請及時排查網絡與連接狀態。"
+    "zh-TW": "您的伺服器已全部離線，請及時排查網路與連線狀態。"
   },
   "所有服务器运行稳定，系统负载与网络吞吐持续监控中。": {
     "en": "All servers are stable. Load and network monitoring continues.",
-    "zh-TW": "所有服務器運行穩定，系統負載與網絡吞吐持續監控中。"
+    "zh-TW": "所有伺服器運行穩定，系統負載與網路吞吐持續監控中。"
   },
   "所有节点「收购溢价」的加总（正数=溢价多花钱，负数=折价少花钱），只反映溢价本身的赚亏，不叠加到剩余价值/年化/月均里": {
     "en": "Sum of acquisition premiums: positive means a premium, negative means a discount. This does not alter remaining value, annual or monthly expenditure.",
@@ -1402,7 +1394,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "找不到这个实例，它可能已被删除或链接无效。": {
     "en": "This instance may have been deleted or the link is invalid.",
-    "zh-TW": "找不到這個實例，它可能已被刪除或鏈接無效。"
+    "zh-TW": "找不到這個實例，它可能已被刪除或連結無效。"
   },
   "指标卡片底部": {
     "en": "Bottom of metric cards",
@@ -1410,15 +1402,15 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "按各线路原始返回桶显示丢包率：绿 0%、黄绿 <5%、黄 <20%、橙 <50%、红 <100%、深红 100%；灰色表示未采样。色带与时间轴对齐，不受削峰平滑或断点连线影响。": {
     "en": "Loss bands use original time buckets: green 0%, yellow-green <5%, yellow <20%, orange <50%, red <100%, dark red 100%; gray is unsampled. Bands follow the time axis independently of smoothing and gap connections.",
-    "zh-TW": "按各線路原始返回桶顯示丟包率：綠 0%、黃綠 <5%、黃 <20%、橙 <50%、紅 <100%、深紅 100%；灰色表示未採樣。色帶與時間軸對齊，不受削峰平滑或斷點連線影響。"
+    "zh-TW": "按各線路原始返回桶顯示封包遺失率：綠 0%、黃綠 <5%、黃 <20%、橙 <50%、紅 <100%、深紅 100%；灰色表示未取樣。色帶與時間軸對齊，不受削峰平滑或斷點連線影響。"
   },
   "按各节点账单价格折算的剩余价值，不含收购溢价": {
     "en": "Remaining value converted from node billing prices, excluding acquisition premiums",
-    "zh-TW": "按各節點賬單價格折算的剩餘價值，不含收購溢價"
+    "zh-TW": "按各節點帳單價格折算的剩餘價值，不含收購溢價"
   },
   "按稳定节点 ID/UUID 保存，节点改名不影响设置。自动模式忽略旧单线路绑定，并随该节点返回的任务变化更新。自定义保留选定顺序，已删除或不再关联的任务显示无样本。": {
     "en": "Saved by stable node ID/UUID, independent of renaming. Automatic mode ignores old single-route bindings. Custom mode preserves task order; deleted or unassociated tasks have no samples.",
-    "zh-TW": "按穩定節點 ID/UUID 保存，節點改名不影響設置。自動模式忽略舊單線路綁定，並隨該節點返回的任務變化更新。自定義保留選定順序，已刪除或不再關聯的任務顯示無樣本。"
+    "zh-TW": "設定依固定的節點 ID/UUID 儲存，變更節點名稱不會影響設定。自動模式會略過舊版單線路綁定，並依節點回傳的檢測工作更新。自訂模式保留所選順序；已刪除或不再關聯的工作會顯示無取樣資料。"
   },
   "排序": {
     "en": "Sort",
@@ -1434,11 +1426,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "排序方式，当前{0}{1}": {
     "en": "Sort order, currently {0}, {1}",
-    "zh-TW": "排序方式，當前{0}{1}"
+    "zh-TW": "排序方式，目前{0}{1}"
   },
   "排序规则与默认选中": {
     "en": "Sorting rules and defaults",
-    "zh-TW": "排序規則與默認選中"
+    "zh-TW": "排序方式與預設選項"
   },
   "排序：{0}（{1}）": {
     "en": "Sort: {0} ({1})",
@@ -1450,15 +1442,15 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "搜索 Ping 任务": {
     "en": "Search Ping tasks",
-    "zh-TW": "搜索 Ping 任務"
+    "zh-TW": "搜索 Ping 工作"
   },
   "搜索 Ping 任务名称 / ID / 类型 / 目标": {
     "en": "Search task name / ID / type / target",
-    "zh-TW": "搜索 Ping 任務名稱 / ID / 類型 / 目標"
+    "zh-TW": "搜索 Ping 工作名稱 / ID / 類型 / 目標"
   },
   "搜索服务器名称 / ID": {
     "en": "Search server name / ID",
-    "zh-TW": "搜索服務器名稱 / ID"
+    "zh-TW": "搜索伺服器名稱 / ID"
   },
   "搜索节点": {
     "en": "Search nodes",
@@ -1466,7 +1458,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "搜索节点名称 / UUID / 分组 / 地区": {
     "en": "Search name / UUID / group / region",
-    "zh-TW": "搜索節點名稱 / UUID / 分組 / 地區"
+    "zh-TW": "搜索節點名稱 / UUID / 群組 / 地區"
   },
   "搜索节点录入收购价…": {
     "en": "Search nodes to record acquisition price…",
@@ -1474,7 +1466,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "搜索逐服务器线路": {
     "en": "Search per-server routes",
-    "zh-TW": "搜索逐服務器線路"
+    "zh-TW": "搜索逐伺服器線路"
   },
   "摊销 {0} 个月（收购日 → 到期日；无到期按已持有）": {
     "en": "Amortized over {0} months (acquisition to expiry; elapsed holding time if no expiry)",
@@ -1498,7 +1490,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "收购日期：修改后会按当前价格、周期、到期日和汇率回算该日剩余价值，重新计算并固化溢价": {
     "en": "Changing the acquisition date recalculates and fixes the premium using price, billing cycle, expiry and exchange rates at that date.",
-    "zh-TW": "收購日期：修改後會按當前價格、週期、到期日和匯率回算該日剩餘價值，重新計算並固化溢價"
+    "zh-TW": "收購日期：修改後會按目前價格、週期、到期日和匯率回算該日剩餘價值，重新計算並固化溢價"
   },
   "收购溢价（正数=多花钱溢价买入，负数=折价买入）": {
     "en": "Acquisition premium: positive for a premium, negative for a discount",
@@ -1514,7 +1506,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "整屏展示机架式方格矩阵，专注排查每台机器的负载与健康状态，适用于节点排查与大集群。": {
     "en": "Show a rack heatmap for examining individual server load and health, useful for large clusters.",
-    "zh-TW": "整屏展示機架式方格矩陣，專注排查每台機器的負載與健康狀態，適用於節點排查與大集群。"
+    "zh-TW": "整屏展示機架式方格矩陣，專注排查每台機器的負載與健康狀態，適用於節點排查與大叢集。"
   },
   "断点连线": {
     "en": "Connect gaps",
@@ -1526,7 +1518,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "方格矩阵设置": {
     "en": "Rack matrix settings",
-    "zh-TW": "方格矩陣設置"
+    "zh-TW": "方格矩陣設定"
   },
   "无": {
     "en": "None",
@@ -1534,19 +1526,19 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "无数据": {
     "en": "No data",
-    "zh-TW": "無數據"
+    "zh-TW": "無資料"
   },
   "无样本": {
     "en": "No samples",
-    "zh-TW": "無樣本"
+    "zh-TW": "無取樣資料"
   },
   "无法确认当前登录状态": {
     "en": "Could not confirm sign-in status",
-    "zh-TW": "無法確認當前登錄狀態"
+    "zh-TW": "無法確認目前登錄狀態"
   },
   "无法读取主题配置": {
     "en": "Could not read theme settings",
-    "zh-TW": "無法讀取主題配置"
+    "zh-TW": "無法讀取主題設定"
   },
   "无法读取今日流量统计": {
     "en": "Could not read today's traffic",
@@ -1554,11 +1546,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "无法读取后台 Ping 任务或节点列表:": {
     "en": "Could not read dashboard tasks or nodes:",
-    "zh-TW": "無法讀取後台 Ping 任務或節點列表:"
+    "zh-TW": "無法讀取後台 Ping 工作或節點列表:"
   },
   "无法读取站点配置": {
     "en": "Could not read site settings",
-    "zh-TW": "無法讀取站點配置"
+    "zh-TW": "無法讀取站點設定"
   },
   "日期": {
     "en": "Date",
@@ -1586,7 +1578,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "显示 TCP/UDP 连接数": {
     "en": "Show TCP/UDP connections",
-    "zh-TW": "顯示 TCP/UDP 連接數"
+    "zh-TW": "顯示 TCP/UDP 連線數"
   },
   "显示今日流量页入口按钮": {
     "en": "Show today's traffic shortcut",
@@ -1602,11 +1594,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "显示分组筛选栏": {
     "en": "Show group filters",
-    "zh-TW": "顯示分組篩選欄"
+    "zh-TW": "顯示群組篩選欄"
   },
   "显示在右上角「集群状态」卡片顶部标题栏（状态健康旁），以呼吸灯徽章实时反馈集群总吞吐负荷。": {
     "en": "A live cluster bandwidth badge beside the health indicator at the top right.",
-    "zh-TW": "顯示在右上角「集群狀態」卡片頂部標題欄（狀態健康旁），以呼吸燈徽章實時反饋集群總吞吐負荷。"
+    "zh-TW": "顯示在右上角「叢集狀態」卡片頂部標題欄（狀態健康旁），以呼吸燈徽章即時反饋叢集總吞吐負荷。"
   },
   "显示在首页「今日流量」指标卡片右下角，依据全节点当日出入站总量划分等级。": {
     "en": "Shown on today's traffic card, with tiers based on all nodes' daily upload and download.",
@@ -1626,7 +1618,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "显示节点分组标签": {
     "en": "Show node group labels",
-    "zh-TW": "顯示節點分組標籤"
+    "zh-TW": "顯示節點群組標籤"
   },
   "显示资产看板悬浮按钮": {
     "en": "Show floating asset shortcut",
@@ -1646,7 +1638,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "暂无匹配的服务器。": {
     "en": "No matching servers.",
-    "zh-TW": "暫無匹配的服務器。"
+    "zh-TW": "暫無匹配的伺服器。"
   },
   "暂无可用汇率": {
     "en": "No exchange rates available",
@@ -1654,7 +1646,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "暂无在线服务器": {
     "en": "No servers online",
-    "zh-TW": "暫無在線服務器"
+    "zh-TW": "暫無線上伺服器"
   },
   "暂无峰值": {
     "en": "No peaks",
@@ -1662,7 +1654,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "暂无延迟数据": {
     "en": "No latency data",
-    "zh-TW": "暫無延遲數據"
+    "zh-TW": "暫無延遲資料"
   },
   "暂无延迟记录": {
     "en": "No latency records",
@@ -1682,19 +1674,19 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "暂无节点数据": {
     "en": "No node data",
-    "zh-TW": "暫無節點數據"
+    "zh-TW": "暫無節點資料"
   },
   "暂无负载历史数据": {
     "en": "No load history",
-    "zh-TW": "暫無負載歷史數據"
+    "zh-TW": "暫無負載歷史資料"
   },
   "暂时无法加载实例": {
     "en": "Could not load this instance",
-    "zh-TW": "暫時無法加載實例"
+    "zh-TW": "暫時無法載入實例"
   },
   "暂未检测到在线服务器，等待节点客户端数据上报。": {
     "en": "No servers online yet. Waiting for agent reports.",
-    "zh-TW": "暫未檢測到在線服務器，等待節點客戶端數據上報。"
+    "zh-TW": "尚無伺服器上線，等待節點用戶端回報資料。"
   },
   "更新": {
     "en": "Updated",
@@ -1702,7 +1694,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "更新失败，当前为缓存数据": {
     "en": "Update failed; showing cached data",
-    "zh-TW": "更新失敗，當前為緩存數據"
+    "zh-TW": "更新失敗，目前為快取資料"
   },
   "最后上报": {
     "en": "Last report",
@@ -1710,7 +1702,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "最多保存 {0} 个自定义预设，请先删除不需要的预设。": {
     "en": "Up to {0} custom presets. Delete an unused preset first.",
-    "zh-TW": "最多保存 {0} 個自定義預設，請先刪除不需要的預設。"
+    "zh-TW": "最多儲存 {0} 個自訂預設，請先刪除不需要的預設。"
   },
   "最近更新": {
     "en": "Last updated",
@@ -1750,39 +1742,35 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "服务器": {
     "en": "Server",
-    "zh-TW": "服務器"
+    "zh-TW": "伺服器"
   },
   "服务器 {0}: {1}": {
     "en": "Server {0}: {1}",
-    "zh-TW": "服務器 {0}: {1}"
+    "zh-TW": "伺服器 {0}: {1}"
   },
   "服务器分组": {
     "en": "Server groups",
-    "zh-TW": "服務器分組"
+    "zh-TW": "伺服器群組"
   },
   "服务器列表读取失败，请刷新重试；已保存设置仍保留。": {
     "en": "Could not load servers. Refresh to retry; saved settings are retained.",
-    "zh-TW": "服務器列表讀取失敗，請刷新重試；已保存設置仍保留。"
-  },
-  "服务器在线率与实时网络吞吐": {
-    "en": "Server availability and live network throughput",
-    "zh-TW": "服務器在線率與實時網絡吞吐"
+    "zh-TW": "伺服器列表讀取失敗，請重新整理重試；已儲存設定仍保留。"
   },
   "服务器矩阵与实时监控": {
     "en": "Server matrix and live monitoring",
-    "zh-TW": "服務器矩陣與實時監控"
+    "zh-TW": "伺服器矩陣與即時監控"
   },
   "服务器集群": {
     "en": "Server cluster",
-    "zh-TW": "服務器集群"
+    "zh-TW": "伺服器叢集"
   },
   "服务器集群与监控列表": {
     "en": "Server cluster and monitoring list",
-    "zh-TW": "服務器集群與監控列表"
+    "zh-TW": "伺服器叢集與監控列表"
   },
   "服务器集群机架热力矩阵": {
     "en": "Server rack heatmap",
-    "zh-TW": "服務器集群機架熱力矩陣"
+    "zh-TW": "伺服器叢集機架熱力矩陣"
   },
   "未关联该节点": {
     "en": "Not associated with this node",
@@ -1790,7 +1778,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "未分组": {
     "en": "Ungrouped",
-    "zh-TW": "未分組"
+    "zh-TW": "未群組"
   },
   "未填写目标": {
     "en": "No target entered",
@@ -1814,26 +1802,26 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "未设置分组": {
     "en": "No group",
-    "zh-TW": "未設置分組"
+    "zh-TW": "未設定群組"
   },
   "未连接": {
     "en": "Disconnected",
-    "zh-TW": "未連接"
+    "zh-TW": "未連線"
   },
   "未选择语言的访客使用此设置；首页语言按钮可覆盖站点默认。": {
     "en": "Visitors without a language preference use this setting. The homepage language button overrides it.",
-    "zh-TW": "未選擇語言的訪客使用此設置；首頁語言按鈕可覆蓋站點默認。"
+    "zh-TW": "未選擇語言的訪客會使用此設定；也可從首頁的語言按鈕自行切換。"
   },
   "未配置": {
     "en": "Not configured",
-    "zh-TW": "未配置"
+    "zh-TW": "未設定"
   },
   "未配置首页 Ping": {
     "en": "Homepage Ping not configured",
-    "zh-TW": "未配置首頁 Ping"
+    "zh-TW": "未設定首頁 Ping"
   },
   "本周期不再提醒": {
-    "en": "Dismiss until next billing cycle",
+    "en": "Dismiss cycle",
     "zh-TW": "本週期不再提醒"
   },
   "本日暂无速率采样": {
@@ -1842,15 +1830,15 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "本日网络上下行": {
     "en": "Today's upload and download",
-    "zh-TW": "本日網絡上下行"
+    "zh-TW": "本日網路上下行"
   },
   "本日网络上下行明细": {
     "en": "Today's upload and download details",
-    "zh-TW": "本日網絡上下行明細"
+    "zh-TW": "本日網路上下行明細"
   },
   "本日网络上行与下行速率折线图": {
     "en": "Today's upload and download rate chart",
-    "zh-TW": "本日網絡上行與下行速率折線圖"
+    "zh-TW": "本日網路上行與下行速率折線圖"
   },
   "机位插槽 #{0}": {
     "en": "Rack slot #{0}",
@@ -1894,11 +1882,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "桌面端默认": {
     "en": "Desktop default",
-    "zh-TW": "桌面端默認"
+    "zh-TW": "桌面版預設"
   },
   "检测到 {0} 台服务器处于离线状态，请及时排查处理。": {
     "en": "Offline servers: {0}. Check their connections.",
-    "zh-TW": "檢測到 {0} 台服務器處於離線狀態，請及時排查處理。"
+    "zh-TW": "有 {0} 台伺服器離線，請檢查連線。"
   },
   "槽": {
     "en": " slots",
@@ -1910,11 +1898,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "模拟数据填充展示 · 待接入实际服务器": {
     "en": "Simulated preview · awaiting real servers",
-    "zh-TW": "模擬數據填充展示 · 待接入實際服務器"
+    "zh-TW": "模擬資料填充展示 · 待接入實際伺服器"
   },
   "模拟数据填充空闲机位插槽": {
     "en": "Fill unused rack slots with simulated data",
-    "zh-TW": "模擬數據填充空閒機位插槽"
+    "zh-TW": "模擬資料填充空閒機位插槽"
   },
   "模拟机位": {
     "en": "Simulated slot",
@@ -1922,19 +1910,19 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "正在刷新…": {
     "en": "Refreshing…",
-    "zh-TW": "正在刷新…"
+    "zh-TW": "正在重新整理…"
   },
   "正在加载今日流量…": {
     "en": "Loading today's traffic…",
-    "zh-TW": "正在加載今日流量…"
+    "zh-TW": "正在載入今日流量…"
   },
   "正在加载实例": {
     "en": "Loading instance",
-    "zh-TW": "正在加載實例"
+    "zh-TW": "正在載入實例"
   },
   "正在加载首页 Ping": {
     "en": "Loading homepage Ping",
-    "zh-TW": "正在加載首頁 Ping"
+    "zh-TW": "正在載入首頁 Ping"
   },
   "正在等待后端自动重试": {
     "en": "Waiting for automatic retry",
@@ -1942,11 +1930,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "正在读取服务器…": {
     "en": "Loading servers…",
-    "zh-TW": "正在讀取服務器…"
+    "zh-TW": "正在讀取伺服器…"
   },
   "正在读取检测任务…": {
     "en": "Loading detection tasks…",
-    "zh-TW": "正在讀取檢測任務…"
+    "zh-TW": "正在讀取檢測工作…"
   },
   "正序": {
     "en": "Ascending",
@@ -1954,7 +1942,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "此服务器已失联，请及时排查处理。": {
     "en": "This server is unreachable. Check its connection.",
-    "zh-TW": "此服務器已失聯，請及時排查處理。"
+    "zh-TW": "此伺服器已失聯，請及時排查處理。"
   },
   "每行一个节点 UUID 或名称，计入资产时不摊销其成本。": {
     "en": "One node UUID or name per line; include its asset value without amortizing its cost.",
@@ -1974,11 +1962,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "汇率获取失败，点击右上角刷新重试": {
     "en": "Could not fetch exchange rates. Use refresh at top right to retry.",
-    "zh-TW": "匯率獲取失敗，點擊右上角刷新重試"
+    "zh-TW": "匯率獲取失敗，點選右上角重新整理重試"
   },
   "没有匹配的 Ping 任务。": {
     "en": "No matching Ping tasks.",
-    "zh-TW": "沒有匹配的 Ping 任務。"
+    "zh-TW": "沒有匹配的 Ping 工作。"
   },
   "没有匹配的节点。": {
     "en": "No matching nodes.",
@@ -1994,7 +1982,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "活跃连接": {
     "en": "Active connections",
-    "zh-TW": "活躍連接"
+    "zh-TW": "活躍連線"
   },
   "流量": {
     "en": "Traffic",
@@ -2014,7 +2002,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "流量阈值 · {0}": {
     "en": "Traffic limit · {0}",
-    "zh-TW": "流量閾值 · {0}"
+    "zh-TW": "流量門檻 · {0}"
   },
   "浅色": {
     "en": "Light",
@@ -2030,7 +2018,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "清理这些设置": {
     "en": "Remove these settings",
-    "zh-TW": "清理這些設置"
+    "zh-TW": "清理這些設定"
   },
   "清空": {
     "en": "Clear",
@@ -2038,7 +2026,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "清空当前画布": {
     "en": "Clear canvas",
-    "zh-TW": "清空當前畫布"
+    "zh-TW": "清空目前畫布"
   },
   "清空槽位": {
     "en": "Clear slots",
@@ -2070,11 +2058,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "点击快速修改管理员昵称": {
     "en": "Edit administrator nickname",
-    "zh-TW": "點擊快速修改管理員暱稱"
+    "zh-TW": "點選快速修改管理員暱稱"
   },
   "点击方块直达节点卡片": {
     "en": "Select a cell to open its server card",
-    "zh-TW": "點擊方塊直達節點卡片"
+    "zh-TW": "點選方塊直達節點卡片"
   },
   "点阵开屏图案绘制画布": {
     "en": "Opening dot-matrix canvas",
@@ -2094,15 +2082,15 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "用户预设:": {
     "en": "User presets:",
-    "zh-TW": "用戶預設:"
+    "zh-TW": "使用者預設:"
   },
   "用户预设已更新并保存生效": {
     "en": "User presets updated and saved",
-    "zh-TW": "用戶預設已更新並保存生效"
+    "zh-TW": "使用者預設已更新並儲存生效"
   },
   "留空使用官方默认免费公共汇率接口。": {
     "en": "Leave blank to use the default free exchange rate API.",
-    "zh-TW": "留空使用官方默認免費公共匯率接口。"
+    "zh-TW": "留空使用官方預設免費公共匯率介面。"
   },
   "监控总览": {
     "en": "Monitoring overview",
@@ -2122,15 +2110,15 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "确定删除用户预设「{0}」吗？": {
     "en": "Delete preset \"{0}\"?",
-    "zh-TW": "確定刪除用戶預設「{0}」嗎？"
+    "zh-TW": "確定刪除使用者預設「{0}」嗎？"
   },
   "磁盘": {
     "en": "Disk",
-    "zh-TW": "磁盤"
+    "zh-TW": "硬碟"
   },
   "磁盘 {0}": {
     "en": "Disk {0}",
-    "zh-TW": "磁盤 {0}"
+    "zh-TW": "硬碟 {0}"
   },
   "离线": {
     "en": "Offline",
@@ -2166,15 +2154,15 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "离线服务器": {
     "en": "Offline servers",
-    "zh-TW": "離線服務器"
+    "zh-TW": "離線伺服器"
   },
   "移动端默认": {
     "en": "Mobile default",
-    "zh-TW": "移動端默認"
+    "zh-TW": "行動版預設"
   },
   "空置机位 · 待接入服务器": {
     "en": "Empty slot · awaiting a server",
-    "zh-TW": "空置機位 · 待接入服務器"
+    "zh-TW": "空置機位 · 待接入伺服器"
   },
   "空闲": {
     "en": "Idle",
@@ -2190,11 +2178,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "立即刷新": {
     "en": "Refresh now",
-    "zh-TW": "立即刷新"
+    "zh-TW": "立即重新整理"
   },
   "立即刷新今日流量": {
     "en": "Refresh today's traffic now",
-    "zh-TW": "立即刷新今日流量"
+    "zh-TW": "立即重新整理今日流量"
   },
   "站点名称": {
     "en": "Site name",
@@ -2274,7 +2262,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "缓存网络": {
     "en": "Cached network",
-    "zh-TW": "緩存網絡"
+    "zh-TW": "快取網路"
   },
   "编辑节点": {
     "en": "Edit node",
@@ -2282,15 +2270,15 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "网络": {
     "en": "Network",
-    "zh-TW": "網絡"
+    "zh-TW": "網路"
   },
   "网络延迟 {0}": {
     "en": "Network latency {0}",
-    "zh-TW": "網絡延遲 {0}"
+    "zh-TW": "網路延遲 {0}"
   },
   "自动展示该节点关联的任务；忽略全局槽位和旧单线路绑定，暂无任务时显示空状态。": {
     "en": "Show this node's associated tasks automatically, ignoring global slots and old single-route bindings. No tasks produces an empty state.",
-    "zh-TW": "自動展示該節點關聯的任務；忽略全局槽位和舊單線路綁定，暫無任務時顯示空狀態。"
+    "zh-TW": "自動展示該節點關聯的工作；忽略全域槽位和舊單線路綁定，暫無工作時顯示空狀態。"
   },
   "自动（该节点全部线路）": {
     "en": "Automatic (all associated routes)",
@@ -2298,19 +2286,19 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "自定义 / 自动优先于全局。跟随全局保留旧显示：全局多线路有槽位时使用槽位；多线路空槽位时自动；单线路模式仍使用旧绑定。设置仅控制展示，任务执行与节点关联请在探针后台调整。": {
     "en": "Custom and automatic modes override global settings. Inherited mode keeps the existing global behavior: filled slots select routes, empty multi-route slots select automatically, and single-route mode uses old bindings. Task execution and association remain in the dashboard.",
-    "zh-TW": "自定義 / 自動優先於全局。跟隨全局保留舊顯示：全局多線路有槽位時使用槽位；多線路空槽位時自動；單線路模式仍使用舊綁定。設置僅控制展示，任務執行與節點關聯請在探針後台調整。"
+    "zh-TW": "自訂與自動模式優先於全域設定。跟隨全域會沿用原本的顯示方式：多線路模式有欄位時依欄位顯示，清空後則自動選線；單線路模式仍使用原有綁定。此處僅設定顯示方式，檢測工作的執行與節點關聯請至探針後台調整。"
   },
   "自定义分级词": {
     "en": "Custom rating labels",
-    "zh-TW": "自定義分級詞"
+    "zh-TW": "自訂分級詞"
   },
   "自定义模式请至少选择一条线路；需要自动展示时请选择“自动”。": {
     "en": "Select at least one custom route, or choose Automatic.",
-    "zh-TW": "自定義模式請至少選擇一條線路；需要自動展示時請選擇“自動”。"
+    "zh-TW": "自訂模式請至少選擇一條線路；需要自動展示時請選擇“自動”。"
   },
   "自定义（指定线路与顺序）": {
     "en": "Custom (tasks and order)",
-    "zh-TW": "自定義（指定線路與順序）"
+    "zh-TW": "自訂（指定線路與順序）"
   },
   "节点": {
     "en": "Node",
@@ -2318,15 +2306,15 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "节点列表加载失败，系统正在自动重试。": {
     "en": "Could not load nodes. Retrying automatically.",
-    "zh-TW": "節點列表加載失敗，系統正在自動重試。"
+    "zh-TW": "節點列表載入失敗，系統正在自動重試。"
   },
   "节点当前离线{0}，以下展示最近一次上报的缓存数据。": {
     "en": "Node offline{0}; showing its last reported data.",
-    "zh-TW": "節點當前離線{0}，以下展示最近一次上報的緩存數據。"
+    "zh-TW": "節點目前離線{0}，以下展示最近一次上報的快取資料。"
   },
   "节点数据暂时无法加载": {
     "en": "Node data temporarily unavailable",
-    "zh-TW": "節點數據暫時無法加載"
+    "zh-TW": "節點資料暫時無法載入"
   },
   "节点明细": {
     "en": "Node details",
@@ -2362,7 +2350,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "视图": {
     "en": "View",
-    "zh-TW": "視圖"
+    "zh-TW": "檢視"
   },
   "计算中": {
     "en": "Calculating",
@@ -2374,11 +2362,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "设置分组": {
     "en": "Set group",
-    "zh-TW": "設置分組"
+    "zh-TW": "設定分類"
   },
   "设置首页右侧「集群状态」核心卡片的展示模式。": {
     "en": "Choose the display mode for the cluster status card on the homepage.",
-    "zh-TW": "設置首頁右側「集群狀態」核心卡片的展示模式。"
+    "zh-TW": "選擇首頁右側「叢集狀態」資訊卡的顯示方式。"
   },
   "访客公开与可见性权限": {
     "en": "Visitor visibility and access",
@@ -2390,11 +2378,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "诊断信息（反馈时请一并截图或复制）": {
     "en": "Diagnostics (include when reporting an issue)",
-    "zh-TW": "診斷信息（反饋時請一並截圖或複製）"
+    "zh-TW": "診斷資訊（反饋時請一並截圖或複製）"
   },
   "该探针已被站长设为私有访问，登录后即可查看节点实时状态。": {
     "en": "The owner has made this site private. Sign in to view live server status.",
-    "zh-TW": "該探針已被站長設為私有訪問，登錄後即可查看節點實時狀態。"
+    "zh-TW": "該探針已被站長設為私有訪問，登錄後即可查看節點即時狀態。"
   },
   "该节点已忽略或汇率缺失，无法折算剩余价值": {
     "en": "This node is excluded or lacks an exchange rate; remaining value cannot be converted",
@@ -2402,7 +2390,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "该节点当前剩余价值（按账单周期折算，不含溢价）": {
     "en": "Current remaining value from the billing cycle, excluding premiums",
-    "zh-TW": "該節點當前剩餘價值（按賬單週期折算，不含溢價）"
+    "zh-TW": "該節點目前剩餘價值（按帳單週期折算，不含溢價）"
   },
   "详情": {
     "en": "Details",
@@ -2414,11 +2402,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "语言设置": {
     "en": "Language settings",
-    "zh-TW": "語言設置"
+    "zh-TW": "語言設定"
   },
   "请检查网络或历史记录配置后重试。": {
     "en": "Check network connectivity or historical recording settings and try again.",
-    "zh-TW": "請檢查網絡或歷史記錄配置後重試。"
+    "zh-TW": "請檢查網路或歷史記錄設定後重試。"
   },
   "请稍后重试。": {
     "en": "Please try again later.",
@@ -2426,11 +2414,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "请输入 http(s) 链接，保存后将回退默认接口": {
     "en": "Enter an HTTP(S) URL; invalid values fall back to the default API",
-    "zh-TW": "請輸入 http(s) 鏈接，保存後將回退默認接口"
+    "zh-TW": "請輸入 http(s) 連結，儲存後將回退預設介面"
   },
   "请输入用户预设名称：": {
     "en": "Enter a preset name:",
-    "zh-TW": "請輸入用戶預設名稱："
+    "zh-TW": "請輸入使用者預設名稱："
   },
   "请选择至少一条线路，或切换为自动。": {
     "en": "Choose at least one route, or switch to Automatic.",
@@ -2450,7 +2438,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "负载历史加载失败": {
     "en": "Could not load load history",
-    "zh-TW": "負載歷史加載失敗"
+    "zh-TW": "負載歷史載入失敗"
   },
   "负载图表": {
     "en": "Load charts",
@@ -2462,7 +2450,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "费用明细加载中": {
     "en": "Loading cost details",
-    "zh-TW": "費用明細加載中"
+    "zh-TW": "費用明細載入中"
   },
   "资产": {
     "en": "Assets",
@@ -2470,7 +2458,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "资产与财务设置": {
     "en": "Assets and finance settings",
-    "zh-TW": "資產與財務設置"
+    "zh-TW": "資產與財務設定"
   },
   "资产总值": {
     "en": "Asset value",
@@ -2506,11 +2494,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "跟随全局": {
     "en": "Inherit global",
-    "zh-TW": "跟隨全局"
+    "zh-TW": "跟隨全域"
   },
   "跟随全局的卡片依序展示。清空并保存后，按各节点实际关联任务自动展示，忽略旧单线路绑定。": {
     "en": "Cards inheriting global settings use this order. Clear and save to show each node's associated tasks automatically, ignoring old single-route bindings.",
-    "zh-TW": "跟隨全局的卡片依序展示。清空並保存後，按各節點實際關聯任務自動展示，忽略舊單線路綁定。"
+    "zh-TW": "跟隨全域的卡片依序展示。清空並儲存後，按各節點實際關聯工作自動展示，忽略舊單線路綁定。"
   },
   "跟随系统": {
     "en": "System",
@@ -2534,7 +2522,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "迁移旧绑定为自定义": {
     "en": "Migrate old binding to Custom",
-    "zh-TW": "遷移舊綁定為自定義"
+    "zh-TW": "遷移舊綁定為自訂"
   },
   "过滤": {
     "en": "Filter",
@@ -2566,15 +2554,15 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "进程": {
     "en": "Processes",
-    "zh-TW": "進程"
+    "zh-TW": "處理程序"
   },
   "连接": {
     "en": "Connections",
-    "zh-TW": "連接"
+    "zh-TW": "連線"
   },
   "连接数": {
     "en": "Connection count",
-    "zh-TW": "連接數"
+    "zh-TW": "連線數"
   },
   "迷你卡片": {
     "en": "Mini cards",
@@ -2582,23 +2570,23 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "迷你视图": {
     "en": "Mini view",
-    "zh-TW": "迷你視圖"
+    "zh-TW": "迷你檢視"
   },
   "适用于宽度大于 720px 的浏览器窗口。": {
     "en": "For browser windows wider than 720px.",
-    "zh-TW": "適用於寬度大於 720px 的瀏覽器窗口。"
+    "zh-TW": "適用於寬度超過 720px 的瀏覽器視窗。"
   },
   "适用于宽度小于等于 720px 的手机或窄屏窗口。": {
     "en": "For phones or windows up to 720px wide.",
-    "zh-TW": "適用於寬度小於等於 720px 的手機或窄屏窗口。"
+    "zh-TW": "適用於寬度不超過 720px 的手機或窄視窗。"
   },
   "逐服务器": {
     "en": "Per server",
-    "zh-TW": "逐服務器"
+    "zh-TW": "逐伺服器"
   },
   "逐服务器线路设置": {
     "en": "Per-server route settings",
-    "zh-TW": "逐服務器線路設置"
+    "zh-TW": "個別伺服器線路設定"
   },
   "速率热力": {
     "en": "Network speed",
@@ -2610,7 +2598,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "配色自定义": {
     "en": "Custom colors",
-    "zh-TW": "配色自定義"
+    "zh-TW": "配色自訂"
   },
   "配色风格": {
     "en": "Color palette",
@@ -2622,7 +2610,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "重新加载": {
     "en": "Reload",
-    "zh-TW": "重新加載"
+    "zh-TW": "重新載入"
   },
   "重置": {
     "en": "Reset",
@@ -2646,11 +2634,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "降序": {
     "en": "Descending",
-    "zh-TW": "降序"
+    "zh-TW": "遞減"
   },
   "降序 (DESC)": {
     "en": "Descending (DESC)",
-    "zh-TW": "降序 (DESC)"
+    "zh-TW": "遞減 (DESC)"
   },
   "隐藏价格与资产": {
     "en": "Hide prices and assets",
@@ -2670,15 +2658,15 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "集群": {
     "en": "Cluster",
-    "zh-TW": "集群"
+    "zh-TW": "叢集"
   },
   "集群状态": {
     "en": "Cluster status",
-    "zh-TW": "集群狀態"
+    "zh-TW": "叢集狀態"
   },
   "集群状态展示模式": {
     "en": "Cluster display mode",
-    "zh-TW": "集群狀態展示模式"
+    "zh-TW": "叢集狀態展示模式"
   },
   "需手动续费": {
     "en": "Manual renewal needed",
@@ -2710,7 +2698,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "预设已更新，请点击右上角保存": {
     "en": "Presets updated; save using the button at top right",
-    "zh-TW": "預設已更新，請點擊右上角保存"
+    "zh-TW": "預設已更新，請點選右上角儲存"
   },
   "首页": {
     "en": "Home",
@@ -2718,19 +2706,19 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "首页 Ping 刷新失败，显示上次数据": {
     "en": "Homepage Ping refresh failed; showing previous data",
-    "zh-TW": "首頁 Ping 刷新失敗，顯示上次數據"
+    "zh-TW": "首頁 Ping 重新整理失敗，顯示上次資料"
   },
   "首页 Ping 加载中": {
     "en": "Loading homepage Ping",
-    "zh-TW": "首頁 Ping 加載中"
+    "zh-TW": "首頁 Ping 載入中"
   },
   "首页 Ping 加载失败": {
     "en": "Could not load homepage Ping",
-    "zh-TW": "首頁 Ping 加載失敗"
+    "zh-TW": "首頁 Ping 載入失敗"
   },
   "首页 Ping 正在刷新，显示上次数据": {
     "en": "Homepage Ping refreshing; showing previous data",
-    "zh-TW": "首頁 Ping 正在刷新，顯示上次數據"
+    "zh-TW": "首頁 Ping 正在重新整理，顯示上次資料"
   },
   "首页总览": {
     "en": "Homepage overview",
@@ -2762,35 +2750,35 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "默认": {
     "en": "Default",
-    "zh-TW": "默認"
+    "zh-TW": "預設"
   },
   "默认关闭。仅在上方开启了「显示今日流量页入口按钮」时对访客生效。关闭时未登录访客隐藏图表按钮，保持卡片无图标统一纯净；开启后访客亦可在卡片右上角点击进入流量统计页。": {
     "en": "Off by default. When the traffic shortcut is enabled above, this setting also makes it visible to visitors.",
-    "zh-TW": "默認關閉。僅在上方開啓了「顯示今日流量頁入口按鈕」時對訪客生效。關閉時未登錄訪客隱藏圖表按鈕，保持卡片無圖標統一純淨；開啓後訪客亦可在卡片右上角點擊進入流量統計頁。"
+    "zh-TW": "預設關閉。僅在上方開啓了「顯示今日流量頁入口按鈕」時對訪客生效。關閉時未登錄訪客隱藏圖表按鈕，保持卡片無圖標統一純淨；開啓後訪客亦可在卡片右上角點選進入流量統計頁。"
   },
   "默认关闭。独立控制财务数据是否对访客脱敏：开启后访客可查看节点价格标签与资产总额（若上方开启了入口按钮则一并解锁访客跳转）；关闭时对访客隐藏价格标签，资产总值显示为保密。无论上方入口按钮是否开启，均可独立配置此项。": {
     "en": "Off by default. Independently controls visitor access to prices and assets. Enabling it also unlocks enabled asset shortcuts for visitors; disabling it keeps financial values private.",
-    "zh-TW": "默認關閉。獨立控制財務數據是否對訪客脫敏：開啓後訪客可查看節點價格標籤與資產總額（若上方開啓了入口按鈕則一並解鎖訪客跳轉）；關閉時對訪客隱藏價格標籤，資產總值顯示為保密。無論上方入口按鈕是否開啓，均可獨立配置此項。"
+    "zh-TW": "預設關閉。獨立控制財務資料是否對訪客脫敏：開啓後訪客可查看節點價格標籤與資產總額（若上方開啓了入口按鈕則一並解鎖訪客跳轉）；關閉時對訪客隱藏價格標籤，資產總值顯示為保密。無論上方入口按鈕是否開啓，均可獨立設定此項。"
   },
   "默认卡片视图": {
     "en": "Default card view",
-    "zh-TW": "默認卡片視圖"
+    "zh-TW": "預設卡片檢視"
   },
   "默认外观": {
     "en": "Default appearance",
-    "zh-TW": "默認外觀"
+    "zh-TW": "預設外觀"
   },
   "默认排序字段": {
     "en": "Default sort field",
-    "zh-TW": "默認排序字段"
+    "zh-TW": "預設排序字段"
   },
   "默认排序方向": {
     "en": "Default sort direction",
-    "zh-TW": "默認排序方向"
+    "zh-TW": "預設排序方向"
   },
   "默认语言": {
     "en": "Default language",
-    "zh-TW": "默認語言"
+    "zh-TW": "預設語言"
   },
   "（已删除或不可用）": {
     "en": "(deleted or unavailable)",
@@ -2818,7 +2806,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "一键联动设定流量、延迟与丢包光柱的成套视觉方案。": {
     "en": "Apply coordinated colors to traffic, latency and packet loss bars.",
-    "zh-TW": "一鍵聯動設定流量、延遲與丟包光柱的成套視覺方案。"
+    "zh-TW": "一鍵聯動設定流量、延遲與封包遺失光柱的成套視覺方案。"
   },
   "世界线跳变 (Divergence Flux)": {
     "en": "Divergence Flux",
@@ -2826,15 +2814,15 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "丢包上限": {
     "en": "Loss ceiling",
-    "zh-TW": "丟包上限"
+    "zh-TW": "封包遺失上限"
   },
   "丢包光柱": {
     "en": "Packet loss bars",
-    "zh-TW": "丟包光柱"
+    "zh-TW": "封包遺失光柱"
   },
   "丢包光柱实时效果 (示例梯度 0% ~ 25%)": {
     "en": "Packet loss preview (0%–25%)",
-    "zh-TW": "丟包光柱實時效果 (示例梯度 0% ~ 25%)"
+    "zh-TW": "封包遺失光柱即時效果 (示例梯度 0% ~ 25%)"
   },
   "严格警报红守护": {
     "en": "Red alert endpoint",
@@ -2842,11 +2830,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "严重丢包": {
     "en": "Severe loss",
-    "zh-TW": "嚴重丟包"
+    "zh-TW": "嚴重封包遺失"
   },
   "严重丢包甚至失联脱网": {
     "en": "Severe packet loss or connection failure",
-    "zh-TW": "嚴重丟包甚至失聯脫網"
+    "zh-TW": "嚴重封包遺失甚至失聯脫網"
   },
   "严重延迟，极度拥堵或告警": {
     "en": "Severe latency or congestion",
@@ -2858,7 +2846,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "中度丢包": {
     "en": "Moderate loss",
-    "zh-TW": "中度丟包"
+    "zh-TW": "中度封包遺失"
   },
   "中等": {
     "en": "Moderate",
@@ -2886,7 +2874,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "偶发微量丢包，基本可用": {
     "en": "Occasional minor loss; generally usable",
-    "zh-TW": "偶發微量丟包，基本可用"
+    "zh-TW": "偶發微量封包遺失，基本可用"
   },
   "充裕健康期": {
     "en": "Healthy quota",
@@ -2922,7 +2910,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "同步失败，点击重试": {
     "en": "Sync failed; click to retry",
-    "zh-TW": "同步失敗，點擊重試"
+    "zh-TW": "同步失敗，點選重試"
   },
   "命运石之门": {
     "en": "Steins;Gate",
@@ -2934,11 +2922,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "定制方格矩阵与指标卡片的高光配色风格。": {
     "en": "Customize matrix and card highlight colors.",
-    "zh-TW": "定制方格矩陣與指標卡片的高光配色風格。"
+    "zh-TW": "自訂方格矩陣與指標卡片的高光配色風格。"
   },
   "定制流量、延迟与丢包光柱的过渡色与判断门槛。": {
     "en": "Customize colors and thresholds for traffic, latency and packet loss bars.",
-    "zh-TW": "定制流量、延遲與丟包光柱的過渡色與判斷門檻。"
+    "zh-TW": "自訂流量、延遲與封包遺失光柱的過渡色與判斷門檻。"
   },
   "已同步": {
     "en": "Synced",
@@ -2954,11 +2942,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "延迟光柱实时效果 (示例梯度 15ms ~ 320ms)": {
     "en": "Latency preview (15–320 ms)",
-    "zh-TW": "延遲光柱實時效果 (示例梯度 15ms ~ 320ms)"
+    "zh-TW": "延遲光柱即時效果 (示例梯度 15ms ~ 320ms)"
   },
   "延迟阈值须为递增的正整数；丢包阈值须递增且介于 0% 与 100% 之间。": {
     "en": "Latency thresholds must be increasing positive integers. Loss thresholds must increase between 0% and 100%.",
-    "zh-TW": "延遲閾值須為遞增的正整數；丟包閾值須遞增且介於 0% 與 100% 之間。"
+    "zh-TW": "延遲門檻須為遞增的正整數；封包遺失率門檻須遞增，並介於 0% 與 100% 之間。"
   },
   "开屏动画": {
     "en": "Intro animation",
@@ -2970,19 +2958,19 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "恢复为默认的 3%/10% 门槛及预设色": {
     "en": "Restore 3%/10% thresholds and default colors",
-    "zh-TW": "恢復為默認的 3%/10% 門檻及預設色"
+    "zh-TW": "恢復為預設的 3%/10% 門檻及預設色"
   },
   "恢复为默认的 60/100/160/200ms 及预设色": {
     "en": "Restore 60/100/160/200 ms thresholds and default colors",
-    "zh-TW": "恢復為默認的 60/100/160/200ms 及預設色"
+    "zh-TW": "恢復為預設的 60/100/160/200ms 及預設色"
   },
   "恢复为默认的监控绿色谱": {
     "en": "Restore the default green spectrum",
-    "zh-TW": "恢復為默認的監控綠色譜"
+    "zh-TW": "恢復為預設的監控綠色譜"
   },
   "恢复该项默认色": {
     "en": "Restore default color",
-    "zh-TW": "恢復該項默認色"
+    "zh-TW": "恢復該項預設色"
   },
   "所见即所得 · 0% 充裕至 100% 耗尽连续色谱": {
     "en": "Live preview · Available quota to exhaustion",
@@ -3002,7 +2990,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "无丢包 (0%)": {
     "en": "No loss (0%)",
-    "zh-TW": "無丟包 (0%)"
+    "zh-TW": "無封包遺失 (0%)"
   },
   "末端特性": {
     "en": "Endpoint behavior",
@@ -3038,7 +3026,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "流量光柱实时效果 (18 段)": {
     "en": "Traffic preview (18 segments)",
-    "zh-TW": "流量光柱實時效果 (18 段)"
+    "zh-TW": "流量光柱即時效果 (18 段)"
   },
   "激光横扫 (Laser Scan)": {
     "en": "Laser Scan",
@@ -3046,7 +3034,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "点击调整颜色": {
     "en": "Adjust color",
-    "zh-TW": "點擊調整顏色"
+    "zh-TW": "點選調整顏色"
   },
   "点阵图案已更新，正在同步": {
     "en": "Matrix pattern updated; syncing",
@@ -3062,7 +3050,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "用户预设已更新，正在同步": {
     "en": "User presets updated; syncing",
-    "zh-TW": "用戶預設已更新，正在同步"
+    "zh-TW": "使用者預設已更新，正在同步"
   },
   "真空管惰性氖气放电赤橙火花高频跳动，自左向右逐位锁定定格": {
     "en": "Warm neon discharge flickers and locks each digit from left to right.",
@@ -3070,7 +3058,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "矩阵定制": {
     "en": "Matrix customization",
-    "zh-TW": "矩陣定制"
+    "zh-TW": "矩陣自訂"
   },
   "神经故障 (Cyber Glitch)": {
     "en": "Cyber Glitch",
@@ -3090,7 +3078,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "网络通畅，零样本丢失": {
     "en": "Healthy network; no sample loss",
-    "zh-TW": "網絡通暢，零樣本丟失"
+    "zh-TW": "網路通暢，零樣本丟失"
   },
   "耗尽警报红": {
     "en": "Exhaustion alert red",
@@ -3098,7 +3086,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "自动保存": {
     "en": "Auto-save",
-    "zh-TW": "自動保存"
+    "zh-TW": "自動儲存"
   },
   "良好": {
     "en": "Good",
@@ -3106,11 +3094,11 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "视图、指标、排序、延迟与光柱": {
     "en": "Views, metrics, sorting, latency and bars",
-    "zh-TW": "視圖、指標、排序、延遲與光柱"
+    "zh-TW": "檢視、指標、排序、延遲與光柱"
   },
   "设定不同丢包率区间的判断门槛与对应颜色。": {
     "en": "Set packet loss thresholds and their colors.",
-    "zh-TW": "設定不同丟包率區間的判斷門檻與對應顏色。"
+    "zh-TW": "設定不同封包遺失率區間的判斷門檻與對應顏色。"
   },
   "设定各毫秒区间的判断门槛与对应光柱颜色。": {
     "en": "Set latency thresholds and their colors.",
@@ -3118,7 +3106,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "请完成当前设置": {
     "en": "Complete the current settings",
-    "zh-TW": "請完成當前設置"
+    "zh-TW": "請完成目前設定"
   },
   "财务汇率与买入溢价": {
     "en": "Exchange rates and purchase premium",
@@ -3126,15 +3114,15 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "轻微丢包": {
     "en": "Minor loss",
-    "zh-TW": "輕微丟包"
+    "zh-TW": "輕微封包遺失"
   },
   "较明显持续丢包，需注意": {
     "en": "Persistent packet loss; needs attention",
-    "zh-TW": "較明顯持續丟包，需注意"
+    "zh-TW": "較明顯持續封包遺失，需注意"
   },
   "进入首页时播放光效开屏动画，随后载入数据。": {
     "en": "Play the intro animation when opening the homepage, then display live data.",
-    "zh-TW": "進入首頁時播放光效開屏動畫，隨後載入數據。"
+    "zh-TW": "進入首頁時播放光效開屏動畫，隨後載入資料。"
   },
   "选取{0}": {
     "en": "Select {0}",
@@ -3154,7 +3142,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "重置丢包": {
     "en": "Reset loss",
-    "zh-TW": "重置丟包"
+    "zh-TW": "重置封包遺失"
   },
   "重置延迟": {
     "en": "Reset latency",
@@ -3186,7 +3174,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "高延迟警示，网络较吃紧": {
     "en": "High latency; network under pressure",
-    "zh-TW": "高延遲警示，網絡較吃緊"
+    "zh-TW": "高延遲警示，網路較吃緊"
   },
   "高耗预警期": {
     "en": "High usage warning",
@@ -3198,7 +3186,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   },
   "经典运维 (翡翠绿 · 琥珀黄 · 警示橙 · 熔岩红)": {
     "en": "Classic (Emerald · Amber · Warning orange · Lava red)",
-    "zh-TW": "經典運維 (翡翠綠 · 琥珀黃 · 警示橙 · 熔岩紅)"
+    "zh-TW": "經典維運 (翡翠綠 · 琥珀黃 · 警示橙 · 熔岩紅)"
   },
   "深邃冰火 (冰川蓝 · 暮光紫 · 烈焰橙 · 绝境红)": {
     "en": "Ice and fire (Glacier blue · Twilight purple · Flame orange · Alert red)",
@@ -3211,5 +3199,13 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   "外观、总览、权限与评级": {
     "en": "Appearance, overview, permissions and ratings",
     "zh-TW": "外觀、總覽、權限與評級"
+  },
+  "{0} 天后提醒": {
+    "en": "Snooze {0}d",
+    "zh-TW": "{0} 天後提醒"
+  },
+  "下个计费周期恢复提醒": {
+    "en": "Resume reminders next billing cycle",
+    "zh-TW": "下個計費週期再提醒"
   }
 };

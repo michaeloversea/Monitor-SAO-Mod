@@ -758,6 +758,15 @@
 }
 
 @media (max-width: 720px) {
+  .assets-section-head.has-sort-tools {
+    flex-wrap: wrap;
+  }
+
+  .assets-section-head.has-sort-tools .assets-count {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
   .assets-table-wrap {
     display: none;
   }
@@ -768,6 +777,22 @@
 
   .assets-mobile-tools {
     display: flex;
+    flex: 0 0 100%;
+    min-width: 0;
+    margin-left: 0;
+  }
+
+  .assets-mobile-tools .cost-summary-sort-tabs {
+    flex: 1;
+    width: auto;
+  }
+
+  .assets-mobile-tools .cost-summary-sort-tab {
+    padding-inline: 6px;
+  }
+
+  .assets-mobile-tools .cost-summary-action {
+    flex-shrink: 0;
   }
 
   .cost-summary-ball {

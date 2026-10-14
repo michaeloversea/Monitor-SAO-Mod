@@ -285,6 +285,18 @@ export function formatBillingCycle(value: string | number | null | undefined, lo
 /** 格式化紧凑小卡片等高密度场景的周期后缀（如 $71/3年、$5.8/月 或 $99/18月） */
 export function formatCompactBillingCycleText(value: string | number | null | undefined) {
   const cycle = normalizeBillingCycle(value);
+  // 英文只在高密度卡片中缩写，完整资产账单仍使用 month/quarter/year。
+  if (getLanguage() === "en") {
+    switch (cycle.kind) {
+      case "lifetime": return "once";
+      case "month": return cycle.months && cycle.months > 1 ? `${cycle.months}m` : "m";
+      case "quarter": return "q";
+      case "halfYear": return "6m";
+      case "year": return cycle.years && cycle.years > 1 ? `${cycle.years}y` : "y";
+      case "days": return `${cycle.days}d`;
+    }
+  }
+
   switch (cycle.kind) {
     case "lifetime":
       return t("一次");

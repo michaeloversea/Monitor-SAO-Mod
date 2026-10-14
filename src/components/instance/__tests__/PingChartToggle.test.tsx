@@ -130,7 +130,7 @@ describe("丢包色带独立显隐", () => {
     await act(async () => toggle.click());
     expect(svg.dataset.activeCell).toBeUndefined();
     expect(container.querySelector<HTMLElement>(".instance-ping-cursor-extension")!.hidden).toBe(true);
-    expect(container.querySelector(".instance-chart-tooltip")?.textContent).not.toContain("丢包");
+    expect(container.querySelector(".instance-chart-tooltip")?.textContent ?? "").not.toContain("丢包");
     expect(fixture.options).toBe(optionsBefore);
     expect(fixture.dataRef).toBe(dataBefore);
     expect(plot.scales.x).toEqual(xBefore);

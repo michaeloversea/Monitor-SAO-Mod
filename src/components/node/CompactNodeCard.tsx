@@ -193,7 +193,7 @@ function CompactInfoRow({
         {icon}
         {label && <span>{label}</span>}
       </span>
-      <strong className="compact-node-info-row-value tabular">
+      <strong className="compact-node-info-row-value tabular" title={unit ? `${value} ${unit}` : value}>
         {value}
         {unit && <small>{unit}</small>}
       </strong>
@@ -483,6 +483,7 @@ function CompactNodeInfoStrip({
   return (
     <div
       className="compact-node-info-strip"
+      data-columns={infoTileCount}
       style={{ "--compact-info-columns": infoTileCount } as CSSProperties}
     >
       <CompactInfoTile

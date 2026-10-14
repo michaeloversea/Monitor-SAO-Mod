@@ -7,6 +7,8 @@
      浏览器在首次渲染后记住每张卡片的真实高度,因此紧凑卡片(高度随计费/流量小块变化)滚动回来时
      不会跳动。该值只是首帧估算,并非沿用大卡片的 438px。 */
   contain-intrinsic-size: auto 284px;
+  container-type: inline-size;
+  container-name: compact-node;
   display: flex;
   min-height: 0;
   flex-direction: column;
@@ -663,5 +665,51 @@
 
   .compact-node-bottom {
     gap: 7px;
+  }
+}
+
+/* 保持一行四格；窄卡片只缩短间距和字号，给读数留出宽度。 */
+@container compact-node (max-width: 340px) {
+  .compact-node-info-strip[data-columns="4"] {
+    gap: 0;
+  }
+
+  .compact-node-info-strip[data-columns="4"] > .compact-node-info-tile {
+    padding: 6px 3px;
+  }
+
+  .compact-node-info-strip[data-columns="4"] .compact-node-info-row {
+    gap: 1px;
+    font-size: clamp(9px, 3.6cqi, 10.5px);
+  }
+
+  .compact-node-info-strip[data-columns="4"] .compact-node-info-row-value {
+    font-size: clamp(9px, 3.6cqi, 10.5px);
+    letter-spacing: -0.02em;
+  }
+
+  .compact-node-info-strip[data-columns="4"] .compact-node-info-row-label {
+    gap: 2px;
+  }
+
+  .compact-node-info-strip[data-columns="4"] .compact-node-info-row-label svg {
+    width: 9px;
+    height: 9px;
+  }
+
+  .compact-node-info-strip[data-columns="4"] .compact-node-info-row-value small {
+    margin-left: 1px;
+    font-size: clamp(8px, 3.1cqi, 9px);
+  }
+}
+
+/* 极窄卡片将少量宽度让给价格；TCP/UDP 已有文字，无需重复的网络图标。 */
+@container compact-node (max-width: 260px) {
+  .compact-node-info-strip[data-columns="4"] {
+    grid-template-columns: 1fr 0.96fr 1.2fr 0.84fr;
+  }
+
+  .compact-node-info-strip[data-columns="4"] > .compact-node-info-tile:last-child .compact-node-info-row-label svg {
+    display: none;
   }
 }

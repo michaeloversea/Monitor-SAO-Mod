@@ -587,13 +587,6 @@
   line-height: 1.2;
 }
 
-.mao-progress-subtitle {
-  font-size: 11.5px;
-  color: var(--text-tertiary);
-  margin: 0;
-  line-height: 1.3;
-}
-
 .mao-status-pill {
   display: inline-flex;
   align-items: center;
@@ -2099,13 +2092,6 @@
   margin: 0;
 }
 
-.mao-section-sub {
-  font-size: 13px;
-  color: var(--text-tertiary);
-  margin: 0;
-  line-height: 1.4;
-}
-
 .overview-card {
   --metric-accent: var(--text-tertiary);
   position: relative;
@@ -2488,6 +2474,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 7px;
   border-top: 1px solid rgba(0, 0, 0, 0.06);
   background: rgba(0, 0, 0, 0.02);
@@ -2524,6 +2511,9 @@
 
 .renewal-reminder-btn-group {
   display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+  flex: 1 1 auto;
   align-items: stretch;
   border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 9px;
@@ -2544,12 +2534,15 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0 11px;
+  padding: 6px 8px;
   min-height: 30px;
+  min-width: 0;
+  flex: 1 1 0;
   font-size: 11.5px;
   font-weight: 600;
-  line-height: 1;
-  white-space: nowrap;
+  line-height: 1.3;
+  white-space: normal;
+  overflow-wrap: anywhere;
   border: none;
   border-radius: 0;
   background: transparent;
@@ -2595,7 +2588,9 @@
 }
 
 @media (max-width: 520px) {
-  .renewal-reminder-panel {
+  .renewal-reminder-panel,
+  .renewal-reminder-panel.is-align-left,
+  .renewal-reminder-panel.is-align-right {
     position: fixed;
     top: auto;
     right: 12px;
@@ -2604,6 +2599,31 @@
     width: auto;
     max-height: min(72vh, 620px);
     border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .renewal-reminder-head,
+  .renewal-reminder-actions {
+    flex-shrink: 0;
+  }
+
+  .renewal-reminder-list {
+    min-height: 0;
+  }
+
+  .renewal-reminder-row {
+    align-items: flex-start;
+  }
+
+  .renewal-reminder-row-main {
+    flex: 1;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .renewal-reminder-row-main span {
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 
   .renewal-reminder-actions {
@@ -3399,6 +3419,7 @@
   gap: 6px;
   min-height: 28px;
   padding: 0 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 999px;
   background: #ffffff;
@@ -3445,7 +3466,12 @@
 }
 
 .home-region-chip-code {
-  letter-spacing: 0.02em;
+  /* 两位地区代码使用等宽字形；固定栏宽让换行后的旗帜和角标对齐。 */
+  display: inline-block;
+  width: 2ch;
+  flex: 0 0 2ch;
+  text-align: center;
+  letter-spacing: 0;
 }
 
 /* 数量角标:圆角小胶囊 */
@@ -3454,6 +3480,7 @@
   align-items: center;
   justify-content: center;
   min-width: 17px;
+  width: calc(var(--region-count-digits, 1) * 1ch + 10px);
   height: 17px;
   padding: 0 5px;
   border-radius: 999px;
@@ -3461,6 +3488,7 @@
   color: var(--text-tertiary);
   font-size: 10px;
   font-weight: 700;
+  font-family: inherit;
   font-variant-numeric: tabular-nums;
   transition: all 160ms ease;
 }
@@ -3682,9 +3710,7 @@
     gap: 12px;
   }
 
-  .mao-hero-subtitle,
-  .mao-section-sub,
-  .mao-progress-subtitle {
+  .mao-hero-subtitle {
     font-size: 12px;
     white-space: nowrap;
     overflow: hidden;
