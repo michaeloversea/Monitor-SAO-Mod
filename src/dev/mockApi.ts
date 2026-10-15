@@ -233,6 +233,15 @@ function getMockNodes(): NodeInfo[] {
 }
 
 const nodes: NodeInfo[] = getMockNodes();
+// 多分组验收：?mock=1&nodes=12&groupScenario=1，仅使用匿名示例数据。
+if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("groupScenario") === "1") {
+  const groups = [
+    "Production", "Compute Cluster", "Object Storage", "Regional Gateway",
+    "Disaster Recovery", "Staging & Integration", "Database Replicas", "Edge Cache",
+    "Application Workers", "Build Runners", "Observability", "Development Sandbox",
+  ];
+  nodes.forEach((node, index) => { nodes[index] = { ...node, group: groups[index % groups.length] }; });
+}
 const pingScenario = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("pingScenario") === "1";
 if (pingScenario && nodes[1]) nodes[1] = { ...nodes[1], name: "Example Server" };
 

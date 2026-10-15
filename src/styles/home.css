@@ -3521,7 +3521,7 @@
   padding-top: 0px;
 }
 
-/* 首页控件条复用卡片网格列定义：分组标签落在第一列，排序控件钉在最后一列。 */
+/* 首页控件栏：手机保留横向滚动，桌面分组使用整行宽度并按需换行。 */
 .home-controls-bar {
   align-items: center;
 }
@@ -3597,6 +3597,33 @@
 
 .home-sort-item[data-active="true"] svg {
   color: var(--accent-500);
+}
+
+@media (min-width: 769px) {
+  .home-controls-bar {
+    display: flex;
+    align-items: flex-start;
+  }
+
+  .home-controls-bar .home-group-tabs {
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+
+  .home-group-tabs button {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    padding-block: 6px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .home-controls-bar .home-sort {
+    flex: 0 0 auto;
+    align-self: flex-start;
+  }
 }
 
 /* 移动端让分组与排序并排；分组可横向滚动，排序保持在右侧。 */
