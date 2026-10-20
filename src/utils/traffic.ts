@@ -1,5 +1,7 @@
-// 与后端 computeUsedByType 保持一致，空或未知类型按 max 处理。
+import type { PeriodTraffic } from "@/types/theme";
+
 export interface TrafficDisplay {
+  available: boolean;
   fraction: number;
   color: string;
   remainingLabel: string;
@@ -7,69 +9,57 @@ export interface TrafficDisplay {
   typeLabel: string;
 }
 
-function nonNegative(value: number): number {
-  return Number.isFinite(value) && value > 0 ? value : 0;
+function validCounter(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0;
 }
 
-/**
- * 按节点的 `traffic_limit_type` 从累计上/下行总量算出已用流量。默认(空/未知)为 "max",与后端一致。
- */
+/** Monitor Traffic::month_used：up/down/max，其余（含未知模式）按 sum。 */
 export function computeTrafficUsed(
   type: string | null | undefined,
   up: number,
   down: number,
 ): number {
-  const safeUp = nonNegative(up);
-  const safeDown = nonNegative(down);
-  switch ((type ?? "").trim().toLowerCase()) {
-    case "up":
-      return safeUp;
-    case "down":
-      return safeDown;
-    case "sum":
-      return safeUp + safeDown;
-    case "min":
-      return Math.min(safeUp, safeDown);
-    case "max":
-    default:
-      return Math.max(safeUp, safeDown);
+  switch (type) {
+    case "up": return up;
+    case "down": return down;
+    case "max": return Math.max(up, down);
+    default: return up + down;
   }
 }
 
-interface TrafficUsage {
-  used: number;
+export interface TrafficUsage {
+  available: boolean;
+  used: number | null;
   limit: number;
   unlimited: boolean;
-  remaining: number;
+  remaining: number | null;
   fraction: number;
 }
 
-// 首页卡片与实例详情共用同一归约口径。
+// 参数只接收周期字段，累计 trafficUp/trafficDown 不参与额度计算。
 export function resolveTrafficUsage(
   type: string | null | undefined,
-  up: number,
-  down: number,
+  period: PeriodTraffic,
   limit: number,
 ): TrafficUsage {
-  const used = computeTrafficUsed(type, up, down);
+  let used: number | null = null;
+  if (validCounter(period.month_used)) {
+    used = period.month_used;
+  } else if (validCounter(period.month_tx) && validCounter(period.month_rx)) {
+    const computed = computeTrafficUsed(type, period.month_tx, period.month_rx);
+    if (validCounter(computed)) used = computed;
+  }
   const unlimited = !(limit > 0);
-  const remaining = unlimited ? 0 : Math.max(0, limit - used);
-  const fraction = unlimited ? 0 : Math.max(0, Math.min(1, used / limit));
-  return { used, limit, unlimited, remaining, fraction };
+  const remaining = used === null ? null : unlimited ? 0 : Math.max(0, limit - used);
+  const fraction = used === null || unlimited ? 0 : Math.max(0, Math.min(1, used / limit));
+  return { available: used !== null, used, limit, unlimited, remaining, fraction };
 }
 
 export function trafficTypeLabel(type: string | null | undefined): string {
-  switch ((type ?? "").trim().toLowerCase()) {
-    case "up":
-      return "仅上行";
-    case "down":
-      return "仅下行";
-    case "sum":
-      return "上行+下行";
-    case "min":
-      return "上下取小";
-    case "max":
-    default:
-      return "上下取大";
+  switch (type) {
+    case "up": return "仅上行";
+    case "down": return "仅下行";
+    case "max": return "上下取大";
+    default: return "上行+下行";
   }
 }

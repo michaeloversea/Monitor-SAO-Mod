@@ -1,75 +1,63 @@
 import { describe, expect, it } from "vitest";
 import { computeTrafficUsed, resolveTrafficUsage, trafficTypeLabel } from "@/utils/traffic";
+import { periodTrafficNode } from "@/test/fixtures/traffic";
 
-describe("computeTrafficUsed", () => {
-  it("reduces up/down per type", () => {
-    expect(computeTrafficUsed("sum", 30, 70)).toBe(100);
-    expect(computeTrafficUsed("up", 30, 70)).toBe(30);
-    expect(computeTrafficUsed("down", 30, 70)).toBe(70);
-    expect(computeTrafficUsed("max", 30, 70)).toBe(70);
-    expect(computeTrafficUsed("min", 30, 70)).toBe(30);
-  });
+const period = { month_tx: 30, month_rx: 70 };
 
-  it("defaults to max for empty/unknown (backend gorm default)", () => {
-    expect(computeTrafficUsed("", 30, 70)).toBe(70);
-    expect(computeTrafficUsed(undefined, 80, 20)).toBe(80);
-    expect(computeTrafficUsed(null, 80, 20)).toBe(80);
-    expect(computeTrafficUsed("weird", 80, 20)).toBe(80);
-  });
-
-  it("is case- and whitespace-insensitive", () => {
-    expect(computeTrafficUsed(" SUM ", 30, 70)).toBe(100);
-    expect(computeTrafficUsed("Up", 30, 70)).toBe(30);
-  });
-
-  it("guards NaN/negative inputs to 0", () => {
-    expect(computeTrafficUsed("sum", Number.NaN, 70)).toBe(70);
-    expect(computeTrafficUsed("sum", -5, 70)).toBe(70);
-    expect(computeTrafficUsed("min", -5, 70)).toBe(0);
+describe("Monitor billing semantics", () => {
+  it.each([
+    ["sum", 100, "上行+下行"], ["up", 30, "仅上行"],
+    ["down", 70, "仅下行"], ["max", 70, "上下取大"],
+    ["min", 100, "上行+下行"], ["unknown", 100, "上行+下行"],
+    ["", 100, "上行+下行"], [undefined, 100, "上行+下行"],
+    [null, 100, "上行+下行"], [" UP ", 100, "上行+下行"],
+  ])("matches Hub mode %s (unknown modes use sum)", (mode, used, label) => {
+    expect(computeTrafficUsed(mode, 30, 70)).toBe(used);
+    expect(resolveTrafficUsage(mode, period, 200).used).toBe(used);
+    expect(trafficTypeLabel(mode)).toBe(label);
   });
 });
 
 describe("resolveTrafficUsage", () => {
-  it("derives used/remaining/fraction from a limit", () => {
-    const usage = resolveTrafficUsage("sum", 30, 70, 200);
-    expect(usage.used).toBe(100);
-    expect(usage.limit).toBe(200);
-    expect(usage.unlimited).toBe(false);
-    expect(usage.remaining).toBe(100);
-    expect(usage.fraction).toBe(0.5);
+  it("uses the reported period usage, never lifetime totals", () => {
+    const usage = resolveTrafficUsage("sum", periodTrafficNode, periodTrafficNode.traffic_limit);
+    expect(usage.available).toBe(true);
+    expect(usage.used! / 1024 ** 3).toBeCloseTo(18.55, 2);
+    expect(usage.remaining! / 1024 ** 3).toBeCloseTo(981.45, 2);
+    expect(usage.fraction * 100).toBeCloseTo(1.855, 3);
+    // Authoritative Hub usage can differ from a local reduction.
+    expect(resolveTrafficUsage("sum", { ...period, month_used: 12 }, 200).used).toBe(12);
   });
 
-  it("reduces by type before measuring against the limit", () => {
-    expect(resolveTrafficUsage("max", 30, 70, 200).used).toBe(70);
-    expect(resolveTrafficUsage("up", 30, 70, 200).used).toBe(30);
+  it("accepts zero usage even with nonzero direction counters", () => {
+    expect(resolveTrafficUsage("sum", { ...period, month_used: 0 }, 200)).toMatchObject({
+      available: true, used: 0, remaining: 200, fraction: 0,
+    });
+    expect(resolveTrafficUsage("sum", { month_tx: 0, month_rx: 0 }, 200).used).toBe(0);
   });
 
-  it("treats limit <= 0 as unlimited", () => {
-    const usage = resolveTrafficUsage("sum", 30, 70, 0);
-    expect(usage.unlimited).toBe(true);
-    expect(usage.remaining).toBe(0);
-    expect(usage.fraction).toBe(0);
+  it.each([undefined, null, -1, NaN, Infinity, "0"])("only falls back to valid period counters for month_used=%s", (value) => {
+    const input = { ...period, month_used: value } as unknown as Parameters<typeof resolveTrafficUsage>[1];
+    expect(resolveTrafficUsage("sum", input, 200).used).toBe(100);
   });
 
-  it("clamps fraction and remaining when over the limit", () => {
-    const usage = resolveTrafficUsage("sum", 150, 100, 200);
-    expect(usage.used).toBe(250);
-    expect(usage.fraction).toBe(1);
-    expect(usage.remaining).toBe(0);
-  });
-});
-
-describe("trafficTypeLabel", () => {
-  it("labels each known type", () => {
-    expect(trafficTypeLabel("up")).toBe("仅上行");
-    expect(trafficTypeLabel("down")).toBe("仅下行");
-    expect(trafficTypeLabel("sum")).toBe("上行+下行");
-    expect(trafficTypeLabel("min")).toBe("上下取小");
-    expect(trafficTypeLabel("max")).toBe("上下取大");
+  it.each([{}, { month_tx: 30 }, { month_rx: 70 }, { month_tx: -1, month_rx: 70 },
+    { month_tx: NaN, month_rx: 70 }, { month_tx: 30, month_rx: Infinity },
+    { month_used: -1 }, { trafficUp: 999, trafficDown: 999 },
+  ])("reports unavailable when period data is missing/invalid: %j", (input) => {
+    expect(resolveTrafficUsage("sum", input, 200)).toMatchObject({
+      available: false, used: null, remaining: null, fraction: 0,
+    });
   });
 
-  it("falls back to max label for empty/unknown", () => {
-    expect(trafficTypeLabel("")).toBe("上下取大");
-    expect(trafficTypeLabel(undefined)).toBe("上下取大");
+  it("preserves real usage and clamps over-quota presentation", () => {
+    expect(resolveTrafficUsage("sum", { month_used: 250 }, 200)).toMatchObject({
+      used: 250, remaining: 0, fraction: 1,
+    });
+  });
+
+  it("handles unlimited plans without inventing usage", () => {
+    expect(resolveTrafficUsage("sum", period, 0)).toMatchObject({ unlimited: true, used: 100, fraction: 0 });
+    expect(resolveTrafficUsage("sum", {}, 0)).toMatchObject({ unlimited: true, available: false, used: null });
   });
 });

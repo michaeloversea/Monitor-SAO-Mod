@@ -323,7 +323,7 @@ function NodeTrafficSection({
     <div className="card-metric-section server-traffic-section">
       <TrafficStat
         direction={t("上行")}
-        totalLabel={t("出站")}
+        totalLabel={t("累计出站")}
         rate={upRate}
         total={formatBytes(node.trafficUp)}
         samples={trafficTrend.up}
@@ -335,7 +335,7 @@ function NodeTrafficSection({
       />
       <TrafficStat
         direction={t("下行")}
-        totalLabel={t("入站")}
+        totalLabel={t("累计入站")}
         rate={downRate}
         total={formatBytes(node.trafficDown)}
         samples={trafficTrend.down}
@@ -848,7 +848,7 @@ function GlobeArrow({
   color: string;
 }) {
   const t = useTranslate();
-  const isInbound = direction === t("入站");
+  const isInbound = direction === t("累计入站");
   return (
     <span
       className="relative inline-flex items-center justify-center"

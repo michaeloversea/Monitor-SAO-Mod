@@ -2217,7 +2217,7 @@ function draftToThemeSettings(targetDraft: ThemeDraft): ThemeSettings {
                 <ToggleRow
                   field="compactShowTrafficTotal"
                   title={t("小卡片显示累计流量")}
-                  desc={t("在紧凑视图中展示月度或累计出入站流量。")}
+                  desc={t("在紧凑视图中展示累计出入站流量。")}
                   checked={draft.compactShowTrafficTotal}
                   onPatch={patch}
                 />

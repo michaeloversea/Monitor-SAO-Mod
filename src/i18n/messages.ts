@@ -1,5 +1,11 @@
 // 主题界面文案。节点名称、任务名与用户输入不属于翻译键。
 export const messages: Record<string, { en: string; "zh-TW": string }> = {
+  "暂无数据": { "en": "No data", "zh-TW": "暫無資料" },
+  "本周期暂无数据": { "en": "No billing period data", "zh-TW": "本週期暫無資料" },
+  "本周期流量": { "en": "Billing period traffic", "zh-TW": "本週期流量" },
+  "周期开始日": { "en": "Period start", "zh-TW": "週期開始日" },
+  "累计出站": { "en": "Total outbound", "zh-TW": "累計出站" },
+  "累计入站": { "en": "Total inbound", "zh-TW": "累計入站" },
   "{0}，": {
     "en": "{0},",
     "zh-TW": "{0}，"
@@ -916,9 +922,9 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
     "en": "Keep the billing cycle in compact cards.",
     "zh-TW": "在精簡檢視中顯示計費週期。"
   },
-  "在紧凑视图中展示月度或累计出入站流量。": {
-    "en": "Show monthly or total traffic in compact cards.",
-    "zh-TW": "在精簡檢視中顯示每月或累計的上傳與下載流量。"
+  "在紧凑视图中展示累计出入站流量。": {
+    "en": "Show lifetime traffic in compact cards.",
+    "zh-TW": "在精簡檢視中顯示累計的上傳與下載流量。"
   },
   "在紧凑视图中展示系统运行时间。": {
     "en": "Show uptime in compact cards.",

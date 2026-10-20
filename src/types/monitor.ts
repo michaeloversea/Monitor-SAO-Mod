@@ -1,6 +1,6 @@
-import type { NodeInfo, NodeMetrics } from "@/types/theme";
+import type { NodeInfo, NodeMetrics, PeriodTraffic } from "@/types/theme";
 
-export interface MonitorMetrics {
+export interface MonitorMetrics extends PeriodTraffic {
   uptime: number;
   cpu: number;
   load: [number, number, number];
@@ -14,14 +14,12 @@ export interface MonitorMetrics {
   net_tx: number;
   total_rx: number;
   total_tx: number;
-  month_rx?: number;
-  month_tx?: number;
   tcp: number;
   udp: number;
   procs: number;
 }
 
-export interface MonitorNode {
+export interface MonitorNode extends PeriodTraffic {
   id: number;
   name: string;
   group?: string;
@@ -50,9 +48,6 @@ export interface MonitorNode {
   traffic_reset_day?: number;
   total_rx?: number;
   total_tx?: number;
-  month_rx?: number;
-  month_tx?: number;
-  month_start?: string;
   day_rx?: number;
   day_tx?: number;
   hostname?: string;
@@ -61,6 +56,21 @@ export interface MonitorNode {
   public_remark?: string;
   expires_in?: number | null;
   last_seen_ago?: number | null;
+}
+
+// Hub 顶层账本优先于 agent 指标；不将缺失/无效周期数值补成 0。
+function monitorPeriodTraffic(node: MonitorNode): PeriodTraffic {
+  const valid = (value: unknown): value is number =>
+    typeof value === "number" && Number.isFinite(value) && value >= 0;
+  const counter = (key: "month_rx" | "month_tx" | "month_used") =>
+    valid(node[key]) ? node[key] : valid(node.metrics?.[key]) ? node.metrics?.[key] : undefined;
+  const start = node.month_start ?? node.metrics?.month_start;
+  return {
+    month_rx: counter("month_rx"),
+    month_tx: counter("month_tx"),
+    month_used: counter("month_used"),
+    month_start: typeof start === "string" && start.trim() ? start : undefined,
+  };
 }
 
 export interface MonitorMe {
@@ -142,6 +152,8 @@ export function safeMonitorNodes(raw: unknown): MonitorNode[] {
       country: safeCountry,
       group: safeGroup,
     };
+    const period = monitorPeriodTraffic(node);
+    Object.assign(node, period);
 
     const m = node.metrics as Record<string, unknown> | null | undefined;
     if (!m || typeof m !== "object") {
@@ -204,8 +216,7 @@ export function safeMonitorNodes(raw: unknown): MonitorNode[] {
       tcp: toSafeNum(m.tcp),
       udp: toSafeNum(m.udp),
       procs: toSafeNum(m.procs),
-      month_rx: typeof m.month_rx === "number" ? m.month_rx : node.month_rx,
-      month_tx: typeof m.month_tx === "number" ? m.month_tx : node.month_tx,
+      ...period,
     };
 
     return {
@@ -271,6 +282,7 @@ export function convertMonitorNodeToInfo(node: MonitorNode): NodeInfo {
  */
 export function convertMonitorNodeToMetrics(node: MonitorNode): NodeMetrics {
   const m = node.metrics;
+  const period = monitorPeriodTraffic(node);
   const isOnline =
     node.online === true ||
     (node.online as unknown) === 1 ||
@@ -279,6 +291,7 @@ export function convertMonitorNodeToMetrics(node: MonitorNode): NodeMetrics {
 
   if (!m || !isOnline) {
     return {
+      ...period,
       online: isOnline ? true : false,
       cpuPct: 0,
       ramUsed: 0,
@@ -311,6 +324,7 @@ export function convertMonitorNodeToMetrics(node: MonitorNode): NodeMetrics {
   const trafficDown = m.total_rx ?? node.total_rx ?? 0;
 
   return {
+    ...period,
     online: true,
     cpuPct: Number(m.cpu.toFixed(1)),
     ramUsed: m.mem_used,

@@ -274,7 +274,7 @@ const NodeRow = memo(function NodeRow({ uuid }: { uuid: string }) {
   );
   const listPingStatus = formatListPingStatus(ping.lastValue, listPingState, pingLoadingSilently);
   const detailLabels = nodeDetailLinkLabels(node.name, osName);
-  const usedPct = `${Math.round(clamp01(traffic.fraction) * 100)}%`;
+  const usedPct = traffic.available ? `${(clamp01(traffic.fraction) * 100).toFixed(2)}%` : t("暂无数据");
   const rowLabel = [
     node.name,
     t("系统 {0}", [formatOsLabel(osName, node.os)]),
@@ -377,7 +377,7 @@ const NodeRow = memo(function NodeRow({ uuid }: { uuid: string }) {
         className="node-list-cell col-traffic"
         title={t("剩余 {0} · {1}", [traffic.remainingLabel, traffic.detail])}
       >
-        <div className="node-list-traffic-rows">
+        <div className="node-list-traffic-rows" title={t("累计流量")}>
           <StackLine icon={<ArrowUp size={11} strokeWidth={2.1} />} value={formatBytes(node.trafficUp)} />
           <StackLine icon={<ArrowDown size={11} strokeWidth={2.1} />} value={formatBytes(node.trafficDown)} />
         </div>

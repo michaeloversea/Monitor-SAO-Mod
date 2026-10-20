@@ -1,4 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { periodTrafficNode } from "@/test/fixtures/traffic";
+import { resolveTrafficUsage } from "@/utils/traffic";
 
 function frame(cpu: number) {
   return { nodes: [{ id: 1, name: "Example node", online: true, metrics: { cpu } }] };
@@ -52,6 +54,43 @@ describe("WebSocket fallback lifecycle", () => {
     release = undefined;
     vi.useRealTimers();
     vi.unstubAllGlobals();
+  });
+
+  it("keeps period accounting through preload, rollover push, offline polling and a page reload", async () => {
+    fakeWindow.__EARLY_DATA__ = { nodes: Promise.resolve({ nodes: [periodTrafficNode] }) };
+    let store = await import("@/services/wsStore");
+    release = store.retainStore();
+    await vi.advanceTimersByTimeAsync(0);
+    const usage = () => resolveTrafficUsage("sum", store.getNodeMetricsSnapshot("1")!, periodTrafficNode.traffic_limit);
+    expect(usage().used).toBe(19917947772);
+
+    const resetNode = { ...periodTrafficNode, month_used: 0, month_tx: 0, month_rx: 0,
+      month_start: "2026-11-13", metrics: { month_used: 19917947772 } };
+    FakeSocket.instances[0].send({ nodes: [resetNode] });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(usage()).toMatchObject({ used: 0, remaining: periodTrafficNode.traffic_limit, fraction: 0 });
+    expect(store.getNodeMetricsSnapshot("1")?.trafficUp).toBe(periodTrafficNode.total_tx);
+
+    const offlineNode = { ...resetNode, online: false, metrics: null };
+    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ nodes: [offlineNode] }) });
+    FakeSocket.instances[0].close();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(store.getNodeMetricsSnapshot("1")?.online).toBe(false);
+    expect(usage().used).toBe(0);
+
+    // Reload the module as a fresh page: no previous in-memory period snapshot.
+    release(); release = undefined;
+    vi.resetModules();
+    store = await import("@/services/wsStore");
+    release = store.retainStore();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(usage().used).toBe(0);
+    expect(store.getNodeMetricsSnapshot("1")?.month_start).toBe("2026-11-13");
+
+    // A total-only frame must clear period availability, never reuse totals or a stale cycle.
+    FakeSocket.instances.at(-1)!.send({ nodes: [{ id: 1, online: true, metrics: { total_tx: 999999, total_rx: 888888 } }] });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(usage()).toMatchObject({ available: false, used: null });
   });
 
   it("consumes the preload once, polls fresh frames during failed handshakes, and retries", async () => {

@@ -207,26 +207,25 @@ export function useNodeCardModel(
 
     const { loadBaseline } = metaModel;
 
-    // 流量配额：按节点的 traffic_limit_type（与后端一致）把累计上/下行算成"已用"，
-    // 在这里一次性算出剩余和使用占比，让两种卡片布局共用这套计算。
+    // 所有卡片共用 Hub 当前周期账本；累计上下行保留独立语义。
     const trafficUsage = resolveTrafficUsage(
       meta.traffic_limit_type,
-      metrics.trafficUp,
-      metrics.trafficDown,
+      metrics,
       meta.traffic_limit,
     );
-    const trafficUsedLabel = formatBytes(trafficUsage.used);
+    const trafficUsedLabel = formatBytes(trafficUsage.used, 2);
     // 不限量时渲染成 ∞，让剩余值和"已用/上限"那行与限量情况保持一致
     //（"剩余 ∞" + "2.73 GB / ∞"）。
     const trafficLimitLabel = trafficUsage.unlimited ? "∞" : formatBytes(trafficUsage.limit);
-    const trafficColor = trafficUsage.unlimited
+    const trafficColor = !trafficUsage.available ? "var(--text-tertiary)" : trafficUsage.unlimited
       ? "var(--status-success)"
       : trafficUsageColor(trafficUsage.fraction);
     const traffic: TrafficDisplay = {
+      available: trafficUsage.available,
       fraction: trafficUsage.fraction,
       color: trafficColor,
-      remainingLabel: trafficUsage.unlimited ? "∞" : formatBytes(trafficUsage.remaining),
-      detail: `${trafficUsedLabel} / ${trafficLimitLabel}`,
+      remainingLabel: !trafficUsage.available ? t("暂无数据") : trafficUsage.unlimited ? "∞" : formatBytes(trafficUsage.remaining, 2),
+      detail: trafficUsage.available ? `${trafficUsedLabel} / ${trafficLimitLabel}` : t("本周期暂无数据"),
       typeLabel: trafficTypeLabel(meta.traffic_limit_type),
     };
 
@@ -255,5 +254,6 @@ export function useNodeCardModel(
     ping,
     pingBuckets,
     trafficTrend,
+    t,
   ]);
 }

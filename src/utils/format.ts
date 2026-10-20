@@ -42,7 +42,7 @@ export function joinDisplayParts(parts: Array<string | null | undefined>) {
     .join(" · ");
 }
 
-export function formatBytes(n: number | undefined | null): string {
+export function formatBytes(n: number | undefined | null, decimals?: number): string {
   if (!n || n < 0 || !Number.isFinite(n)) return "0 B";
   let idx = 0;
   let v = n;
@@ -51,7 +51,7 @@ export function formatBytes(n: number | undefined | null): string {
     idx += 1;
   }
   if (idx === 0) return `${Math.round(v)} ${UNITS[idx]}`;
-  const dec = v >= 100 ? 0 : v >= 10 ? 1 : 2;
+  const dec = decimals ?? (v >= 100 ? 0 : v >= 10 ? 1 : 2);
   return `${v.toFixed(dec)} ${UNITS[idx]}`;
 }
 

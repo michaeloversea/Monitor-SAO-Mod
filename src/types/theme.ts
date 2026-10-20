@@ -86,7 +86,14 @@ export interface NodeRealtime {
 }
 
 /** 展示用模型:扁平化的节点信息 + 实时指标 + 在线标志。 */
-export interface NodeMetrics {
+export interface PeriodTraffic {
+  month_tx?: number;
+  month_rx?: number;
+  month_used?: number;
+  month_start?: string;
+}
+
+export interface NodeMetrics extends PeriodTraffic {
   online: boolean | null;
   cpuPct: number;
   ramUsed: number;
@@ -99,8 +106,8 @@ export interface NodeMetrics {
   diskPct: number;
   netUp: number;
   netDown: number;
-  trafficUp: number;
-  trafficDown: number;
+  trafficUp: number; // 累计 total_tx，不用于周期额度。
+  trafficDown: number; // 累计 total_rx，不用于周期额度。
   uptime: number;
   load1: number;
   load5: number;

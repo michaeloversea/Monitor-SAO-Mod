@@ -2,7 +2,7 @@
   "name": "SAO · JKSR Modded",
   "short": "sao",
   "description": "极简立体仪表盘主题 · 适配 Monitor 探针 (v1.4.0+)",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "author": "JKSR / WAOR",
   "url": "https://github.com/michaeloversea/Monitor-SAO-Mod",
   "config": [
@@ -368,7 +368,7 @@
       "key": "compactShowTrafficTotal",
       "type": "boolean",
       "label": "小卡片显示累计流量",
-      "help": "在紧凑视图中展示月度或累计出入站流量",
+      "help": "在紧凑视图中展示累计出入站流量",
       "default": true
     },
     {
