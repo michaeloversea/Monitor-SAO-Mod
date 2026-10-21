@@ -48,6 +48,7 @@ export function useNodeCardModel(
     enableHomepageMultiPing,
     homepageMultiPingTaskIds,
     homepageNodePingSettings,
+    homepageLatencyDisplay,
     pingLatencyThresholds, pingLatencyColors, pingLossThresholds, pingLossColors,
   } = useThemeSettings();
   const { isPriceVisible } = usePriceVisibility();
@@ -105,6 +106,9 @@ export function useNodeCardModel(
   const bucketNow = useMinuteClock(multiPingActive);
   const homepagePingLines = useMemo<HomepagePingDisplayLine[]>(() => {
     if (!multiPingActive) {
+      if (includeMultiPing && homepageLatencyDisplay === "curve" && shouldRenderPingBars) {
+        return [{ ...ping, taskId: 0, taskName: t("延迟"), buckets: pingBuckets }];
+      }
       return [];
     }
     const sourceLines = multiPingConfigured
@@ -135,6 +139,12 @@ export function useNodeCardModel(
     configuredTaskIds,
     multiPingActive,
     multiPingConfigured,
+    includeMultiPing,
+    homepageLatencyDisplay,
+    shouldRenderPingBars,
+    ping,
+    pingBuckets,
+    t,
     pingBucketCount,
     realPingLines,
     uuid,

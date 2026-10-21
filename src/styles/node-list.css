@@ -350,3 +350,11 @@
 
 .node-list-cell.col-net .multi-ping-status { width: 100%; }
 .node-list-cell.col-net .multi-ping-columns { grid-template-columns: minmax(0, 1fr) 34px; gap: 6px; }
+
+/* The narrow network column uses two lines per route in curve mode. */
+.node-list-cell.col-net .multi-ping-curves {
+  grid-template-columns: minmax(0, 1fr) max-content;
+  column-gap: 4px;
+  row-gap: 0;
+}
+.node-list-cell.col-net .multi-ping-curve { height: 20px; }

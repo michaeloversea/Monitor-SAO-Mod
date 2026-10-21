@@ -2,14 +2,16 @@ import { useMetricColorsVersion } from "@/hooks/useMetricColors";
 import { usePreferences } from "@/hooks/usePreferences";
 import { useThemeSettings } from "@/hooks/useThemeSettings";
 import { useTranslate } from "@/i18n";
-import type { HomepagePingDisplayLine } from "@/types/theme";
+import type { HomepagePingDisplayLine, PingOverviewBucket } from "@/types/theme";
 import { resolveCustomLatencyColor, resolveCustomLossColor } from "@/utils/metricTone";
 import { clsx } from "clsx";
-import { memo, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { HealthBucketTooltip } from "./HealthBucketTooltip";
 import { LatencyBars } from "./LatencyBars";
+import { LatencyCurve, type LatencyCurveInspection } from "./LatencyCurve";
 import { QualityBars } from "./QualityBars";
-import { formatHealthBucketTooltip } from "./pingBucketText";
+import { formatHealthBucketTooltip, formatLatencyBucketSummary, formatPingBucketWindow } from "./pingBucketText";
+import { curveInspectionIndex } from "./curveInspection";
 
 type MultiPingStatusDensity = "large" | "compact";
 type MultiPingMetric = "latency" | "loss";
@@ -158,6 +160,76 @@ const MultiPingMetricColumn = memo(function MultiPingMetricColumn({
   );
 });
 
+const MultiPingCurveRow = memo(function MultiPingCurveRow({ line, inspection }: { line: HomepagePingDisplayLine; inspection: LatencyCurveInspection }) {
+  const t = useTranslate();
+  const settings = useThemeSettings();
+  const latencyColor = resolveCustomLatencyColor(line.lastValue, settings.pingLatencyThresholds, settings.pingLatencyColors);
+  const lossColor = resolveCustomLossColor(line.loss, settings.pingLossThresholds, settings.pingLossColors);
+  const empty = line.loadState === "pending" ? "..." : line.loadState === "error" ? "!" : "—";
+  return (
+    <div className="multi-ping-curve-row" data-load-state={line.loadState ?? "ready"}
+      title={line.loadState === "error" ? (line.lastValue != null || line.loss != null ? t("首页 Ping 刷新失败，显示上次数据") : t("加载失败")) : line.loadState === "pending" ? t("加载中") : undefined}>
+      <span className="multi-ping-name" title={line.taskName}>
+        <i className="multi-ping-curve-dot" style={{ background: latencyColor }} aria-hidden />{line.taskName}
+      </span>
+      <strong className="multi-ping-value tabular" style={{ color: line.lastValue == null ? "var(--text-tertiary)" : latencyColor }}>
+        {line.lastValue == null ? empty : Math.round(line.lastValue)}{line.lastValue != null && <small>ms</small>}
+      </strong>
+      <LatencyCurve buckets={line.buckets} color={latencyColor} label={line.taskName} inspection={inspection} />
+      <span className="multi-ping-curve-loss">
+        <span>{t("丢包")}</span>
+        <strong className="multi-ping-value tabular" style={{ color: line.loss == null ? "var(--text-tertiary)" : lossColor }}>{line.loss == null ? empty : `${line.loss.toFixed(1)}%`}</strong>
+      </span>
+    </div>
+  );
+});
+
+function MultiPingCurves({ lines }: { lines: HomepagePingDisplayLine[] }) {
+  const t = useTranslate();
+  const settings = useThemeSettings();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [selection, setSelection] = useState<{ taskId: number; index: number } | null>(null);
+  const select = useCallback((taskId: number, index: number | null) => {
+    setSelection((previous) => index == null ? null : previous?.taskId === taskId && previous.index === index ? previous : { taskId, index });
+  }, []);
+  useEffect(() => {
+    if (!selection) return;
+    const dismiss = (event: PointerEvent) => {
+      if (!containerRef.current?.contains(event.target as Node)) setSelection(null);
+    };
+    document.addEventListener("pointerdown", dismiss, true);
+    return () => document.removeEventListener("pointerdown", dismiss, true);
+  }, [selection]);
+  const source = selection ? lines.find((line) => line.taskId === selection.taskId) : null;
+  const sourceBucket = selection ? source?.buckets[selection.index] : null;
+  const fraction = source && sourceBucket && selection ? (selection.index + 0.5) / source.buckets.length : null;
+  const time = sourceBucket?.startAt != null && sourceBucket.endAt != null ? (sourceBucket.startAt + sourceBucket.endAt) / 2 : null;
+  const inspected = lines.map((line) => {
+    const index = fraction == null ? null : curveInspectionIndex(line.buckets, time, fraction);
+    return { line, index, bucket: index == null ? null : line.buckets[index] };
+  });
+  const lossValue = (bucket: PingOverviewBucket | null) => bucket && bucket.total > 0 && bucket.loss != null ? `${bucket.loss.toFixed(1)}%` : t("无样本");
+  return (
+    <div ref={containerRef} className="multi-ping-curves"
+      onPointerLeave={(event) => { if (event.pointerType !== "touch") setSelection(null); }}
+      onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setSelection(null); }}>
+      {inspected.map(({ line, index }) => <MultiPingCurveRow key={line.taskId} line={line}
+        inspection={{ index, fraction, onIndexChange: (next) => select(line.taskId, next) }} />)}
+      {fraction != null && <div className="multi-ping-curves-tooltip" role="status" aria-label={t("同一时段各线路延迟与丢包")}>
+        <div className="multi-ping-curves-tooltip-time">{formatPingBucketWindow(sourceBucket ?? null) ?? t("同一时段各线路延迟与丢包")}</div>
+        <div className="multi-ping-curves-tooltip-grid">
+          <span /><span className="multi-ping-curves-tooltip-heading">{t("延迟")}</span><span className="multi-ping-curves-tooltip-heading">{t("丢包")}</span>
+          {inspected.map(({ line, bucket }) => <div className="multi-ping-curves-tooltip-row" key={line.taskId}>
+            <span className="multi-ping-curves-tooltip-name"><i aria-hidden style={{ background: resolveCustomLatencyColor(bucket?.value, settings.pingLatencyThresholds, settings.pingLatencyColors) }} />{line.taskName}</span>
+            <strong className="tabular">{bucket ? formatLatencyBucketSummary(bucket) : t("无样本")}</strong>
+            <strong className="tabular">{lossValue(bucket)}</strong>
+          </div>)}
+        </div>
+      </div>}
+    </div>
+  );
+}
+
 export const MultiPingStatus = memo(function MultiPingStatus({
   lines,
   density,
@@ -170,6 +242,7 @@ export const MultiPingStatus = memo(function MultiPingStatus({
   const t = useTranslate();
   const { resolvedAppearance } = usePreferences();
   const colorsVersion = useMetricColorsVersion();
+  const { homepageLatencyDisplay } = useThemeSettings();
   const redrawKey = `${resolvedAppearance}:${colorsVersion}`;
 
   return (
@@ -178,7 +251,9 @@ export const MultiPingStatus = memo(function MultiPingStatus({
       role="group"
       aria-label={t("多线路延迟与丢包")}
     >
-      <div className="multi-ping-columns">
+      {homepageLatencyDisplay === "curve" ? (
+        <MultiPingCurves lines={lines} />
+      ) : <div className="multi-ping-columns">
         <MultiPingMetricColumn
           lines={lines}
           metric="latency"
@@ -191,7 +266,7 @@ export const MultiPingStatus = memo(function MultiPingStatus({
           density={density}
           redrawKey={redrawKey}
         />
-      </div>
+      </div>}
     </div>
   );
 });

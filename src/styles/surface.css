@@ -2170,3 +2170,9 @@
 .node-ping-task-tag { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 4px 9px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--surface-elev); color: var(--text-secondary); font-size: 12px; line-height: 1.4; overflow-wrap: anywhere; }
 .node-ping-task-tag-dot { width: 6px; height: 6px; flex: 0 0 6px; border-radius: 50%; background: var(--accent-500); }
 .setting-select > .theme-manage-input { padding-right: 38px; }
+
+.instance-ping-axis-key { display: flex; flex-wrap: wrap; gap: 8px 18px; color: var(--text-tertiary); font-size: 11px; }
+.instance-ping-axis-key > span { display: inline-flex; align-items: center; gap: 6px; }
+.instance-ping-axis-key i { display: inline-block; width: 16px; background: var(--accent-500); }
+.instance-ping-axis-key .is-line { height: 2px; border-radius: 2px; }
+.instance-ping-axis-key .is-bar { width: 12px; height: 11px; background: linear-gradient(to right, var(--status-warning) 0% 33%, var(--speed-high) 33% 66%, var(--status-error) 66% 100%); opacity: .8; border-radius: 1px; }

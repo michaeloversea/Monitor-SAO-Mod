@@ -180,6 +180,7 @@ export interface ResolvedThemeSettings {
   enableAdminButton: boolean;
   homepagePingBindings: HomepagePingTaskBindings;
   enableHomepageMultiPing: boolean;
+  homepageLatencyDisplay: "bars" | "curve";
   homepageMultiPingTaskIds: number[];
   homepageNodePingSettings: HomepageNodePingSettings;
   fakePingForUnbound: boolean;
@@ -247,6 +248,7 @@ export const THEME_CONFIG_KEYS = [
   "showHomeOverview",
   "overviewFollowGroup",
   "enableHomepageMultiPing",
+  "homepageLatencyDisplay",
   "homepageMultiPingTaskIds",
   "homepagePingBindings",
   "homepageNodePingSettings",
@@ -288,6 +290,7 @@ export const DEFAULT_THEME_SETTINGS: ResolvedThemeSettings = {
   enableAdminButton: true,
   homepagePingBindings: {},
   enableHomepageMultiPing: false,
+  homepageLatencyDisplay: "bars",
   homepageMultiPingTaskIds: [],
   homepageNodePingSettings: {},
   fakePingForUnbound: false,
@@ -585,6 +588,7 @@ export function normalizeThemeSettings(
     homepagePingBindings: normalizeHomepagePingTaskBindings(settings?.homepagePingBindings),
     // 开关开启且槽位为空时自动展示该节点全部关联线路。
     enableHomepageMultiPing: settings?.enableHomepageMultiPing === true,
+    homepageLatencyDisplay: settings?.homepageLatencyDisplay === "curve" ? "curve" : "bars",
     homepageMultiPingTaskIds,
     homepageNodePingSettings: normalizeHomepageNodePingSettings(settings?.homepageNodePingSettings),
     // 默认关闭(需手动开启):给访客展示的是模拟数据,必须由站长显式决定。

@@ -1,7 +1,4 @@
 // @vitest-environment jsdom
-// @vitest-environment jsdom
-// @vitest-environment jsdom
-// @vitest-environment jsdom
 import { setLanguage } from "@/i18n";
 import type { PingRecordsResponse } from "@/types/theme";
 import { act } from "react";
@@ -24,6 +21,7 @@ const fixture = vi.hoisted(() => ({
   plot: undefined as unknown,
 }));
 vi.mock("@/hooks/useRecords", () => ({ usePingRecords: () => ({ data: fixture.data, isError: false, isFetching: false, isLoading: false, refetch: vi.fn() }) }));
+vi.mock("@/hooks/useThemeSettings", () => ({ useThemeSettings: () => ({ pingLossThresholds: { low: 3, medium: 10 } }) }));
 vi.mock("@/hooks/usePreferences", () => ({ usePreferences: () => ({ resolvedAppearance: "light" }) }));
 vi.mock("../chartShared", async (importOriginal) => {
   const original = await importOriginal<typeof import("../chartShared")>();
@@ -40,13 +38,14 @@ vi.mock("uplot-react", async () => {
       Object.defineProperty(element, "clientWidth", { configurable: true, value: 1130 });
       Object.defineProperty(element, "clientHeight", { configurable: true, value: 344 });
       element.getBoundingClientRect = () => ({ left: 56, top: 210, width: 1130, height: 344, right: 1186, bottom: 554, x: 56, y: 210, toJSON: () => ({}) });
-      const plot = { root: element, bbox: { left: 56, width: 1130 }, over: element, cursor: { left: -10, top: -10, idx: null as number | null }, scales: { x: { min: 1_780_000_000, max: 1_780_000_120 }, y: { min: 0, max: 100 } },
+      const plot = { root: element, bbox: { left: 56, width: 1130 }, over: element, cursor: { left: -10, top: -10, idx: null as number | null }, scales: { x: { min: 1_780_000_000, max: 1_780_000_120 }, y: { min: 0, max: 100 }, loss: { min: 0, max: 20 } },
         valToPos: (time: number) => (time - plot.scales.x.min) / (plot.scales.x.max - plot.scales.x.min) * 1130,
         setCursor: (position: { left: number; top: number }) => {
           plot.cursor = { ...position, idx: position.left < 0 ? null : position.left < 565 ? 0 : 1 };
           options.hooks.setCursor?.forEach((hook) => hook(plot));
         },
-        setScale: (_axis: string, range: { min: number; max: number }) => { plot.scales.y = range; },
+        setScale: (axis: string, range: { min: number; max: number }) => { if (axis === "y") plot.scales.y = range; else if (axis === "loss") plot.scales.loss = range; },
+        redraw: vi.fn(),
         series: [{ show: true }, { show: true }], batch: (fn: () => void) => fn(),
         setSeries: (index: number, state: { show: boolean }) => { plot.series[index].show = state.show; fixture.seriesUpdates.push([index, state.show]); },
       };
@@ -82,6 +81,11 @@ describe("丢包色带独立显隐", () => {
     expect(container.querySelector('[data-testid="delay-curve"]')).toBe(curve);
     await act(async () => toggle.click());
     expect(band.hidden).toBe(false);
+    const barsToggle = [...container.querySelectorAll("button")].find((button) => button.textContent?.includes("丢包柱状图"))!;
+    await act(async () => barsToggle.click());
+    expect(barsToggle.getAttribute("aria-pressed")).toBe("false");
+    await act(async () => barsToggle.click());
+    expect(barsToggle.getAttribute("aria-pressed")).toBe("true");
     const legend = [...container.querySelectorAll("button")].find((button) => button.textContent?.startsWith("CT"))!;
     await act(async () => legend.click());
     expect(fixture.seriesUpdates.at(-1)).toEqual([1, false]);
@@ -128,8 +132,13 @@ describe("丢包色带独立显隐", () => {
     await act(async () => { svg.dispatchEvent(new MouseEvent("pointermove", { bubbles: true, clientX: 900, clientY: 103 })); });
     const toggle = [...container.querySelectorAll("button")].find((button) => button.textContent?.includes("丢包色带"))!;
     await act(async () => toggle.click());
+    await act(async () => { await new Promise((resolve) => setTimeout(resolve, 25)); });
     expect(svg.dataset.activeCell).toBeUndefined();
     expect(container.querySelector<HTMLElement>(".instance-ping-cursor-extension")!.hidden).toBe(true);
+    // Hiding bands keeps the loss tooltip while bars remain visible.
+    expect(container.querySelector(".instance-chart-tooltip")?.textContent).toContain("10.0% 丢包");
+    const barsToggle = [...container.querySelectorAll("button")].find((button) => button.textContent?.includes("丢包柱状图"))!;
+    await act(async () => barsToggle.click());
     expect(container.querySelector(".instance-chart-tooltip")?.textContent ?? "").not.toContain("丢包");
     expect(fixture.options).toBe(optionsBefore);
     expect(fixture.dataRef).toBe(dataBefore);

@@ -3,8 +3,8 @@ import { usePublicConfig } from "@/hooks/usePublicConfig";
 
 export const SITENAME_STORAGE_KEY = "sao:sitename";
 export const DESCRIPTION_STORAGE_KEY = "sao:description";
-export const FALLBACK_TITLE = "SAO Monitor Theme";
-export const FALLBACK_DESCRIPTION = "SAO Monitor Theme · 极简立体仪表盘主题";
+export const FALLBACK_TITLE = "Monitor";
+export const FALLBACK_DESCRIPTION = "Monitor · 极简立体仪表盘主题";
 
 export function updateMeta(selector: string, attr: "content", value: string) {
   if (typeof document === "undefined") return;

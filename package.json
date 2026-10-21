@@ -1,9 +1,9 @@
 {
   "name": "monitor-theme-sao",
   "private": true,
-  "version": "1.2.5",
+  "version": "1.2.6",
   "type": "module",
-  "description": "SAO Theme for Monitor - 极简立体仪表盘主题",
+  "description": "JKSR Theme for Monitor - 极简立体仪表盘主题",
   "author": "WAOR",
   "scripts": {
     "dev": "vite",

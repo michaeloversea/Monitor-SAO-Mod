@@ -1,8 +1,8 @@
 {
-  "name": "SAO · JKSR Modded",
+  "name": "JKSR Modded",
   "short": "sao",
   "description": "极简立体仪表盘主题 · 适配 Monitor 探针 (v1.4.0+)",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "author": "JKSR / WAOR",
   "url": "https://github.com/michaeloversea/Monitor-SAO-Mod",
   "config": [
@@ -52,6 +52,23 @@
       ]
     },
     {
+      "key": "homepageLatencyDisplay",
+      "type": "select",
+      "label": "首页延迟显示模式",
+      "default": "bars",
+      "help": "切换首页延迟的显示样式，沿用当前阈值与配色。",
+      "options": [
+        {
+          "value": "bars",
+          "label": "方块"
+        },
+        {
+          "value": "curve",
+          "label": "曲线"
+        }
+      ]
+    },
+    {
       "key": "clusterOverviewMode",
       "type": "select",
       "label": "首页集群状态展示模式",
@@ -94,7 +111,7 @@
     {
       "key": "matrixBootAnimation",
       "type": "boolean",
-      "label": "方格矩阵 SAO 主题开场动画",
+      "label": "方格矩阵开场动画",
       "help": "进入首页时方格矩阵是否播放光束横扫与开场点阵动画",
       "default": true
     },

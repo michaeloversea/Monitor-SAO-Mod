@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "SAO Monitor",
-  "short_name": "SAO",
-  "description": "SAO Monitor Theme · 极简立体仪表盘主题",
+  "name": "Monitor",
+  "short_name": "Monitor",
+  "description": "Monitor · 极简立体仪表盘主题",
   "lang": "zh-CN",
   "start_url": "/",
   "scope": "/",

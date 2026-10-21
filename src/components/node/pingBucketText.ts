@@ -2,7 +2,7 @@ import { t } from "@/i18n";
 import type { PingOverviewBucket } from "@/types/theme";
 import { trimFixed } from "@/utils/format";
 
-function formatPingBucketWindow(bucket: PingOverviewBucket | null) {
+export function formatPingBucketWindow(bucket: PingOverviewBucket | null) {
   if (!bucket || bucket.startAt == null || bucket.endAt == null) {
     return null;
   }
@@ -20,7 +20,7 @@ function formatPingBucketWindow(bucket: PingOverviewBucket | null) {
   return `${startText} - ${endText}`;
 }
 
-function formatLatencyBucketSummary(bucket: PingOverviewBucket | null) {
+export function formatLatencyBucketSummary(bucket: PingOverviewBucket | null) {
   if (!bucket) return "—";
   if (bucket.value != null) return `${trimFixed(bucket.value, 1)} ms`;
   return bucket.total > 0 ? t("失败") : t("无样本");

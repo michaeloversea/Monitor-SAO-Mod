@@ -632,6 +632,7 @@ export function installDevMockApi() {
     homepagePingBindings: { "2": nodes.map((node) => node.uuid) },
     enableHomepageMultiPing:
       pingScenario || new URLSearchParams(window.location.search).get("multiPing") === "1",
+    homepageLatencyDisplay: new URLSearchParams(window.location.search).get("latencyDisplay") === "curve" ? "curve" : "bars",
     homepageMultiPingTaskIds: [1, 2, 3],
     ...(pingScenario ? { homepageNodePingSettings: { [nodes[1].uuid]: { mode: "custom", taskIds: [5, 4] } } } : {}),
   };
@@ -690,7 +691,7 @@ export function installDevMockApi() {
               username: "mock-admin",
               uuid: "mock-admin-uuid",
               github: false,
-              site_name: "Monitor SAO",
+              site_name: "Monitor",
               public_page: true,
               history_days: 90,
             }
@@ -700,7 +701,7 @@ export function installDevMockApi() {
               username: "",
               uuid: "",
               github: false,
-              site_name: "Monitor SAO",
+              site_name: "Monitor",
               public_page: true,
               history_days: 90,
             },

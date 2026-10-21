@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import type { PingRecord } from "@/types/theme";
 import { resolvePingSampleCounts } from "@/utils/pingMetrics";
 
@@ -42,7 +43,7 @@ export function lossBandBucketAtTime(buckets: LossBandBucket[], time: number): L
 }
 
 export function formatLossBandValue(loss: number | null): string {
-  return loss == null ? "未采样" : `${loss.toFixed(1)}% 丢包`;
+  return loss == null ? t("未采样") : t("{0}% 丢包", [loss.toFixed(1)]);
 }
 
 export interface PingLossSample { start: number; end: number; loss: number | null }

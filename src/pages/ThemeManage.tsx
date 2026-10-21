@@ -172,7 +172,7 @@ const BOOT_EFFECT_OPTIONS: BootEffectOption[] = [
     id: "laser-scan",
     label: "激光横扫 (Laser Scan)",
     badge: "RADAR",
-    desc: "经典雷达激光束自左向右横向扫描显影，纯正 SAO 机能风格",
+    desc: "经典雷达激光束自左向右横向扫描显影",
     badgeClass: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border-emerald-500/30",
   },
   {
@@ -444,6 +444,7 @@ function pickManagedThemeSettings(settings: ResolvedThemeSettings) {
     matrixUserPresets: settings.matrixUserPresets,
     homepagePingBindings: settings.homepagePingBindings,
     enableHomepageMultiPing: settings.enableHomepageMultiPing,
+    homepageLatencyDisplay: settings.homepageLatencyDisplay,
     homepageMultiPingTaskIds: settings.homepageMultiPingTaskIds,
     homepageNodePingSettings: settings.homepageNodePingSettings,
     fakePingForUnbound: settings.fakePingForUnbound,
@@ -1641,7 +1642,7 @@ function draftToThemeSettings(targetDraft: ThemeDraft): ThemeSettings {
           <ArrowLeft size={14} />
           <span>{t("返回首页")}</span>
         </Link>
-        <h1 className="theme-topbar-title">{t("SAO 主题设置")}</h1>
+        <h1 className="theme-topbar-title">{t("主题设置")}</h1>
         <div className="theme-manage-toolbar-actions">
           <button
             type="button"
@@ -1746,6 +1747,18 @@ function draftToThemeSettings(targetDraft: ThemeDraft): ThemeSettings {
                   {LANGUAGE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{t(option.label)}</option>)}
                 </SettingSelect>
                 <p className="setting-hint">{t("未选择语言的访客使用此设置；首页语言按钮可覆盖站点默认。")}</p>
+              </InstancePanel>
+
+<InstancePanel kicker={t("延迟")} title={t("首页延迟显示模式")}>
+                <div className="instance-segmented is-prominent is-even" role="group" aria-label={t("首页延迟显示模式")}>
+                  {([{ value: "bars", label: "方块" }, { value: "curve", label: "曲线" }] as const).map(({ value, label }) => (
+                    <button key={value} type="button"
+                      data-active={draft.homepageLatencyDisplay === value ? "true" : "false"}
+                      aria-pressed={draft.homepageLatencyDisplay === value}
+                      onClick={() => patch("homepageLatencyDisplay", value)}>{t(label)}</button>
+                  ))}
+                </div>
+                <p className="setting-hint">{t("切换首页延迟的方块或曲线显示，沿用当前阈值与配色。悬停或点按曲线可查看时段延迟与丢包率。")}</p>
               </InstancePanel>
 
 <InstancePanel
@@ -1955,7 +1968,7 @@ function draftToThemeSettings(targetDraft: ThemeDraft): ThemeSettings {
                     </div>
                   </div>
 
-                  {/* 2. SAO 主题开场动画 */}
+                  {/* 2. 矩阵开场动画 */}
                   <div className="mt-4 pt-3.5 border-t border-(--hairline)">
                     <label className="flex items-center justify-between gap-3 cursor-pointer">
                       <div className="min-w-0">

@@ -1,7 +1,8 @@
 import { usePreferences } from "@/hooks/usePreferences";
 import { usePingRecords } from "@/hooks/useRecords";
+import { useThemeSettings } from "@/hooks/useThemeSettings";
 import { t as translate, useTranslate } from "@/i18n";
-import type { PingRecord, PingTaskStats } from "@/types/theme";
+import type { PingLossThresholds, PingRecord, PingTaskStats } from "@/types/theme";
 import { historyChartRangeSeconds, historyCoverageLabel } from "@/utils/historyRange";
 import { latencyHeatColor, lossHeatColor } from "@/utils/metricTone";
 import { resolvePingChartInterval, resolvePingSampleCounts } from "@/utils/pingMetrics";
@@ -42,6 +43,8 @@ import {
   pingLossAtTime,
 } from "./lossBandData";
 import { resolvePingYRange } from "./pingChartScale";
+import { highDpiChartPlugin } from "./chartResolution";
+import { drawPingLossBars, pingLossAxisMax } from "./pingLossBars";
 
 interface WeightedLatency {
   value: number;
@@ -125,6 +128,7 @@ export function PingChart({
   active?: boolean;
 }) {
   const t = useTranslate();
+  const { pingLossThresholds } = useThemeSettings();
   const {
     data,
     isError,
@@ -141,6 +145,13 @@ export function PingChart({
   const plotRef = useRef<uPlot | null>(null);
   const [connectNulls, setConnectNulls] = useState(false);
   const [cutPeak, setCutPeak] = useState(false);
+  const [showLossBars, setShowLossBars] = useState(() => {
+    try { return localStorage.getItem("monitor-sao:show-loss-bars") !== "false"; } catch { return true; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem("monitor-sao:show-loss-bars", String(showLossBars)); } catch { /* Storage may be unavailable. */ }
+  }, [showLossBars]);
+  const lossBarsRef = useRef<{ visible: boolean; rows: PingLossBandRow[]; thresholds: PingLossThresholds }>({ visible: showLossBars, rows: [], thresholds: pingLossThresholds });
   const [showLossBands, setShowLossBands] = useState(() => {
     try { return localStorage.getItem("monitor-sao:show-loss-bands") !== "false"; } catch { return true; }
   });
@@ -230,6 +241,14 @@ export function PingChart({
         resolvePingChartInterval(data?.intervalSeconds, task.interval), Math.max(60, Math.round(plotGeometry.width / 4))) }));
   }, [data, plotGeometry, visibleTasks, taskLabels, taskColors]);
   useLayoutEffect(() => {
+    lossBarsRef.current = { visible: showLossBars, rows: lossRows, thresholds: pingLossThresholds };
+    const plot = plotRef.current;
+    if (!plot) return;
+    const max = pingLossAxisMax(lossRows);
+    if (plot.scales.loss && plot.scales.loss.max !== max) plot.setScale("loss", { min: 0, max });
+    plot.redraw?.(false);
+  }, [lossRows, showLossBars, pingLossThresholds]);
+  useLayoutEffect(() => {
     hiddenTasksRef.current = hiddenTasks;
     visibleTasksRef.current = visibleTasks;
     showLossBandsRef.current = showLossBands;
@@ -258,9 +277,9 @@ export function PingChart({
       rows: [{ label: row.label, value: formatLossBandValue(bucket.loss), color: row.color }] });
   }, [hours]);
   const displayedTooltip = useMemo(() => ({ ...tooltip, rows: tooltip.rows.map((row) => ({ ...row,
-    detail: showLossBands && row.taskId != null && tooltip.timestamp != null
+    detail: (showLossBands || showLossBars) && row.taskId != null && tooltip.timestamp != null
       ? formatLossBandValue(pingLossAtTime(lossSamples.get(row.taskId) ?? [], tooltip.timestamp)) : undefined,
-  })) }), [tooltip, showLossBands, lossSamples]);
+  })) }), [tooltip, showLossBands, showLossBars, lossSamples]);
   const onPlotCreate = useCallback((plot: uPlot) => {
     plotRef.current = plot;
     plot.batch(() => {
@@ -432,6 +451,7 @@ export function PingChart({
           })),
     });
     return {
+      plugins: [highDpiChartPlugin],
       padding: [10, 14, 12, 2],
       cursor: { drag: { x: true, y: false } },
       legend: { show: false },
@@ -440,6 +460,7 @@ export function PingChart({
           ? { time: true, auto: false, range: () => requestedXRange }
           : { time: true },
         y: { auto: false, range: yRange },
+        loss: { auto: false, range: () => [0, pingLossAxisMax(lossBarsRef.current.rows)] },
       },
       axes: [
         {
@@ -456,6 +477,15 @@ export function PingChart({
           size: 54,
           values: (_self, splits) => splits.map((value) => (value === 0 ? "" : `${Math.round(value)} ms`)),
         },
+        {
+          scale: "loss",
+          side: 1,
+          stroke: text,
+          grid: { show: false },
+          ticks: { stroke: grid },
+          size: 48,
+          values: (_self, splits) => splits.map((value) => `${Number(value.toFixed(2))}%`),
+        },
       ],
       series: [
         { label: "time" },
@@ -463,12 +493,16 @@ export function PingChart({
           label: taskLabels.get(task.id) ?? `Ping #${task.id}`,
           stroke: taskColors.get(task.id) ?? colorForSeries(index, tasks.length),
           width: 1.7,
+          pxAlign: 0,
           spanGaps: connectNulls,
           show: true,
           points: { show: false },
         })),
       ],
       hooks: {
+        drawAxes: [(plot) => {
+          if (lossBarsRef.current.visible) drawPingLossBars(plot, lossBarsRef.current.rows, lossBarsRef.current.thresholds);
+        }],
         ready: [syncPlotGeometry],
         setSize: [syncPlotGeometry],
         setScale: [syncPlotGeometry],
@@ -601,6 +635,8 @@ export function PingChart({
   return (
     <InstancePanel title={t("Ping 图表")} description={coverageLabel ?? undefined}>
       <div className="instance-ping-toolbar">
+        <SwitchToggle label={t("丢包柱状图")} active={showLossBars} onToggle={() => setShowLossBars((value) => !value)}
+          title={t("左轴：延迟 ms · 右轴：丢包 %；柱状图按丢包程度显示黄、橙、红，按原始采样统计，不受削峰平滑影响。")} />
         <SwitchToggle label={t("丢包色带")} active={showLossBands} onToggle={() => setShowLossBands((value) => !value)}
           title={t("按各线路原始返回桶显示丢包率：绿 0%、黄绿 <5%、黄 <20%、橙 <50%、红 <100%、深红 100%；灰色表示未采样。色带与时间轴对齐，不受削峰平滑或断点连线影响。")} />
         <SwitchToggle
@@ -629,6 +665,11 @@ export function PingChart({
           <RefreshCw size={14} aria-hidden />
           {isFetching ? t("刷新中") : isError ? t("刷新失败，重试") : t("刷新")}
         </button>
+      </div>
+
+      <div className="instance-ping-axis-key">
+        <span><i className="is-line" aria-hidden />{t("延迟曲线 · 左轴 ms")}</span>
+        {showLossBars && <span title={t("丢包分级：黄 ≤{0}% · 橙 ≤{1}% · 红 >{1}%", [pingLossThresholds.low, pingLossThresholds.medium])}><i className="is-bar" aria-hidden />{t("丢包柱状图 · 右轴 %")}</span>}
       </div>
 
       <div className="instance-ping-tasks">

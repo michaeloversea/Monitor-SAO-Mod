@@ -17,17 +17,19 @@ export interface PatternPreset {
 }
 
 export const PATTERN_PRESETS: Record<string, PatternPreset> = {
-  sao: {
-    id: "sao",
-    name: "SAO",
+  jksr: {
+    id: "jksr",
+    name: "JKSR",
+    // 每个字母宽 4 格，间隔 1 格，共 20 列 × 5 行。
     indices: [
-      // S
-      2, 3, 4, 5, 22, 42, 43, 44, 45, 65, 82, 83, 84, 85,
-      // A
-      8, 9, 10, 27, 31, 47, 48, 49, 50, 51, 67, 71, 87, 91,
-      // O
-      14, 15, 16, 33, 37, 53, 57, 73, 77, 94, 95, 96,
-    ],
+      "####.#..#.####.###..",
+      "...#.#.#..#....#..#.",
+      "...#.##...####.###..",
+      "#..#.#.#.....#.#.#..",
+      ".##..#..#.####.#..#.",
+    ].flatMap((row, y) =>
+      [...row].flatMap((cell, x) => cell === "#" ? [y * GRID_COLUMNS + x] : []),
+    ),
   },
   eva: {
     id: "eva",
@@ -142,7 +144,7 @@ export const PATTERN_PRESETS: Record<string, PatternPreset> = {
   },
 };
 
-export const DEFAULT_PATTERN = PATTERN_PRESETS.sao.indices;
+export const DEFAULT_PATTERN = PATTERN_PRESETS.jksr.indices;
 export const DEFAULT_PATTERN_SET = new Set<number>(DEFAULT_PATTERN);
 
 import type { UserMatrixPreset } from "@/types/theme";
@@ -198,7 +200,7 @@ export function saveUserMatrixPresets(presets: UserMatrixPreset[]): void {
 
 /**
  * 根据传入的自定义图案数组解析出最终生效的点阵像素索引 Set
- * - 当传入 null 或 undefined 时，回退到默认 SAO 点阵；
+ * - 当传入 null 或 undefined 时，回退到默认 JKSR 点阵；
  * - 当传入数组（包括空数组 []，代表清空画布）时，严格尊重用户所选像素集合。
  */
 export function getPatternPixelSet(custom?: number[] | null): Set<number> {

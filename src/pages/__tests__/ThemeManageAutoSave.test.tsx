@@ -47,6 +47,11 @@ describe("ThemeManage auto-save integration", () => {
     });
     expect(fixture.invalidate).toHaveBeenCalledWith({ queryKey: ["public"] });
   });
+  it("saves the homepage latency mode without losing existing settings", async () => {
+    await click("首页"); await click("曲线"); await tick();
+    expect(fixture.save).toHaveBeenCalledTimes(1);
+    expect(fixture.save.mock.calls[0][1]).toMatchObject({ homepageLatencyDisplay: "curve", futureSetting: "keep" });
+  });
   it("changing tabs does not discard pending edits", async () => {
     await click(STATUS_BAR_PRESETS[1].name); await click("首页"); await tick();
     expect(fixture.save).toHaveBeenCalledTimes(1);

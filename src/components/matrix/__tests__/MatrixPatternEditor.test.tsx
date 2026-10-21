@@ -15,7 +15,8 @@ describe("MatrixPatternEditor Component & Pattern Utilities", () => {
     );
 
     // 检查预设按钮
-    expect(html).toContain("SAO");
+    expect(html).toContain("JKSR");
+    expect(html).not.toContain("SAO");
     expect(html).toContain("EVA");
     expect(html).toContain("PING");
     expect(html).toContain("OPS");
@@ -31,7 +32,7 @@ describe("MatrixPatternEditor Component & Pattern Utilities", () => {
     expect(html).not.toContain("重置");
 
     expect(html).toContain("mao-pattern-canvas");
-    expect(html).toContain("已点亮 40 / 100 格");
+    expect(html).toContain(`已点亮 ${DEFAULT_PATTERN_SET.size} / 100 格`);
   });
 
   it("renders empty canvas when value is an empty array", () => {

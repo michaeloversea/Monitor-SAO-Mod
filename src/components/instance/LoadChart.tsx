@@ -30,6 +30,7 @@ import {
 import type uPlot from "uplot";
 import UplotReact from "uplot-react";
 import { ChartTooltip, SwitchToggle } from "./ChartParts";
+import { highDpiChartPlugin } from "./chartResolution";
 import { InstanceChartLoading, InstancePanel } from "./InstancePanel";
 import { downsampleAligned, fillMissingMetricPoints, interpolateMetricGaps } from "./chartData";
 import {
@@ -347,6 +348,7 @@ const ChartCard = memo(function ChartCard({
     });
     return {
       ...baseOptions,
+      plugins: [highDpiChartPlugin],
       hooks: {
         ...baseOptions.hooks,
         init: [...(baseOptions.hooks?.init ?? []), tooltip.onInit],

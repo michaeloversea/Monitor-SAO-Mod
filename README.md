@@ -1,6 +1,6 @@
-# Monitor-SAO · JKSR Modded
+# Monitor
 
-本 Mod 基于 [WAOR/Monitor-SAO](https://github.com/WAOR/Monitor-SAO)，**仅支持极简探针（Monitor）**。当前版本 `v1.2.5`，主题短名保持 `sao`，升级沿用已有站点设置。
+本 Mod 基于 [WAOR/Monitor-SAO](https://github.com/WAOR/Monitor-SAO)，**仅支持极简探针（Monitor）**。当前版本 `v1.2.6`，主题短名保持 `sao`，升级沿用已有站点设置。
 
 [更新记录](docs/Changelogs.md)
 
@@ -51,7 +51,9 @@ npm test
 npm run package
 ```
 
-根目录输出 `theme.tar.gz` 和带版本号的 TAR 包。`npm run package:zip` 可额外生成 ZIP；后台安装使用 TAR 包。开发预览运行 `npm run dev`，访问 `/?mock=1&pingScenario=1` 可使用匿名示例数据。
+根目录输出 `theme.tar.gz` 和带版本号的 TAR 包。`npm run package:zip` 可额外生成 ZIP；后台安装使用 TAR 包。开发预览运行 `npm run dev`，访问 `/?mock=1&pingScenario=1` 可使用匿名示例数据。增加 `&latencyDisplay=curve` 可预览曲线卡片。
+
+主题设置 → 首页 →「首页延迟显示模式」可选择方块（默认）或曲线，单线路与多线路均沿用当前阈值和配色，并支持悬停、点按及方向键查看历史延迟与丢包率。服务器详情的 Ping 图表新增丢包柱状图：左轴为延迟 ms，右轴为丢包 %，可独立开关并保存访客偏好；柱状图使用原始加权采样，不受延迟曲线削峰平滑影响。
 
 遵循[极简探针主题开发规范](https://monitor-document.pages.dev/dev/theme)。修改静态资源时更换版本目录或文件名，避免 CDN 缓存同 URL 的旧内容。公开文档与示例只使用匿名数据。
 

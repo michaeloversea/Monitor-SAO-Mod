@@ -70,7 +70,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          name: "SAO Theme ${{ github.ref_name }}"
+          name: "JKSR Modded ${{ github.ref_name }}"
           files: |
             theme.tar.gz
             *-theme-*.tar.gz
