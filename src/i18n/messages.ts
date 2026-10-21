@@ -3,16 +3,16 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
   "同一时段各线路延迟与丢包": { "en": "Latency and packet loss for all routes at this time", "zh-TW": "同一時段各線路延遲與丟包" },
   "丢包分级：黄 ≤{0}% · 橙 ≤{1}% · 红 >{1}%": { "en": "Loss levels: yellow ≤{0}% · orange ≤{1}% · red >{1}%", "zh-TW": "丟包分級：黃 ≤{0}% · 橙 ≤{1}% · 紅 >{1}%" },
   "未采样": { "en": "Not sampled", "zh-TW": "未取樣" },
-  "{0}% 丢包": { "en": "{0}% loss", "zh-TW": "{0}% 丟包" },
+  "{0}% 丢包": { "en": "PLR {0}%", "zh-TW": "PLR {0}%" },
   "首页延迟显示模式": {"en": "Homepage latency display", "zh-TW": "首頁延遲顯示模式"},
   "方块": {"en": "Blocks", "zh-TW": "方塊"},
   "曲线": {"en": "Curve", "zh-TW": "曲線"},
   "切换首页延迟的方块或曲线显示，沿用当前阈值与配色。悬停或点按曲线可查看时段延迟与丢包率。": {"en": "Choose blocks or curves for homepage route latency, using your current thresholds and colors. Hover or tap a curve to inspect latency and packet loss for that period.", "zh-TW": "切換首頁延遲的方塊或曲線顯示，沿用目前閾值與配色。懸停或點按曲線可查看時段延遲與丟包率。"},
   "{0} 延迟曲线，使用左右方向键查看样本": {"en": "{0} latency curve. Use the left and right arrow keys to inspect samples.", "zh-TW": "{0} 延遲曲線，使用左右方向鍵查看樣本"},
-  "丢包柱状图": {"en": "Packet loss bars", "zh-TW": "丟包長條圖"},
+  "丢包柱状图": {"en": "PLR bars", "zh-TW": "PLR 長條圖"},
   "左轴：延迟 ms · 右轴：丢包 %；柱状图按丢包程度显示黄、橙、红，按原始采样统计，不受削峰平滑影响。": {"en": "Left axis: latency in ms. Right axis: packet loss in %. Bars use yellow, orange and red for loss severity and original samples, independent of curve smoothing.", "zh-TW": "左軸：延遲 ms · 右軸：丟包 %；長條圖按丟包程度顯示黃、橙、紅，按原始取樣統計，不受削峰平滑影響。"},
   "延迟曲线 · 左轴 ms": {"en": "Latency curves · left axis ms", "zh-TW": "延遲曲線 · 左軸 ms"},
-  "丢包柱状图 · 右轴 %": {"en": "Packet loss bars · right axis %", "zh-TW": "丟包長條圖 · 右軸 %"},
+  "丢包柱状图 · 右轴 %": {"en": "PLR bars · right axis %", "zh-TW": "PLR 長條圖 · 右軸 %"},
 
   "暂无数据": { "en": "No data", "zh-TW": "暫無資料" },
   "本周期暂无数据": { "en": "No billing period data", "zh-TW": "本週期暫無資料" },
@@ -105,8 +105,8 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
     "zh-TW": "{0} {1} 下移"
   },
   "{0} · 延迟 {1} · 丢包 {2}{3}": {
-    "en": "{0} · latency {1} · loss {2}{3}",
-    "zh-TW": "{0} · 延遲 {1} · 封包遺失 {2}{3}"
+    "en": "{0} · latency {1} · PLR {2}{3}",
+    "zh-TW": "{0} · 延遲 {1} · PLR {2}{3}"
   },
   "{0} · 查看详情": {
     "en": "{0} · View details",
@@ -329,20 +329,16 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
     "zh-TW": "與監控服務通信失敗或介面未響應，請檢查網路連線後重試。"
   },
   "丢包": {
-    "en": "Packet loss",
-    "zh-TW": "封包遺失"
+    "en": "PLR",
+    "zh-TW": "PLR"
   },
   "丢包率": {
-    "en": "Loss rate",
-    "zh-TW": "封包遺失率"
+    "en": "PLR",
+    "zh-TW": "PLR"
   },
   "丢包色带": {
-    "en": "Loss bands",
-    "zh-TW": "封包遺失色帶"
-  },
-  "丢包色带：绿 0% · 黄绿 <5% · 黄 <20% · 橙 <50% · 红 <100% · 深红 100% · 灰色未采样（历史聚合可能平均短时峰值）": {
-    "en": "Loss bands: green 0% · yellow-green <5% · yellow <20% · orange <50% · red <100% · dark red 100% · gray unsampled (historical aggregation can average brief peaks)",
-    "zh-TW": "封包遺失色帶：綠 0% · 黃綠 <5% · 黃 <20% · 橙 <50% · 紅 <100% · 深紅 100% · 灰色未取樣（歷史聚合可能平均短時峰值）"
+    "en": "PLR bands",
+    "zh-TW": "PLR 色帶"
   },
   "两年": {
     "en": "2 years",
@@ -1317,8 +1313,8 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
     "zh-TW": "開啓後，進入首頁時方格矩陣將播放光束橫掃顯現專屬點陣文字並呼吸三下後切入即時叢集資料；關閉後直接呈現真實節點。"
   },
   "当前 {0} | 均值 {1} | 丢包 {2}%": {
-    "en": "Current {0} | Average {1} | Loss {2}%",
-    "zh-TW": "目前 {0} | 均值 {1} | 封包遺失 {2}%"
+    "en": "Current {0} | Average {1} | PLR {2}%",
+    "zh-TW": "目前 {0} | 均值 {1} | PLR {2}%"
   },
   "当前为空：自动展示每台服务器关联的检测任务。可以直接保存。": {
     "en": "Empty: automatically show tasks associated with each server. You can save this state.",
@@ -2825,7 +2821,7 @@ export const messages: Record<string, { en: string; "zh-TW": string }> = {
     "zh-TW": "封包遺失上限"
   },
   "丢包光柱": {
-    "en": "Packet loss bars",
+    "en": "PLR bars",
     "zh-TW": "封包遺失光柱"
   },
   "丢包光柱实时效果 (示例梯度 0% ~ 25%)": {

@@ -60,7 +60,6 @@ export const PingLossBands = memo(function PingLossBands({ visible, rows, geomet
   };
   return <div ref={rootRef} className="instance-ping-loss-bands" hidden={!visible || !geometry || !rows.length} aria-label={t("各线路丢包色带")}
     onPointerLeave={() => { rootRef.current?.querySelectorAll("svg").forEach(clearCell); onLeave(); }}>
-    <p className="setting-hint mb-2">{t("丢包色带：绿 0% · 黄绿 <5% · 黄 <20% · 橙 <50% · 红 <100% · 深红 100% · 灰色未采样（历史聚合可能平均短时峰值）")}</p>
     {rows.map((row) => <div key={row.taskId} className="instance-ping-loss-band-row" style={{ marginLeft: geometry?.left, width: geometry?.width }}>
       <span className="instance-ping-loss-band-label" title={row.label}>{row.label}</span>
       <svg viewBox={`0 0 ${row.buckets.length} 6`} preserveAspectRatio="none" role="img" tabIndex={0}

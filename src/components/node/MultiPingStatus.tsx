@@ -217,14 +217,12 @@ function MultiPingCurves({ lines }: { lines: HomepagePingDisplayLine[] }) {
         inspection={{ index, fraction, onIndexChange: (next) => select(line.taskId, next) }} />)}
       {fraction != null && <div className="multi-ping-curves-tooltip" role="status" aria-label={t("同一时段各线路延迟与丢包")}>
         <div className="multi-ping-curves-tooltip-time">{formatPingBucketWindow(sourceBucket ?? null) ?? t("同一时段各线路延迟与丢包")}</div>
-        <div className="multi-ping-curves-tooltip-grid">
-          <span /><span className="multi-ping-curves-tooltip-heading">{t("延迟")}</span><span className="multi-ping-curves-tooltip-heading">{t("丢包")}</span>
-          {inspected.map(({ line, bucket }) => <div className="multi-ping-curves-tooltip-row" key={line.taskId}>
-            <span className="multi-ping-curves-tooltip-name"><i aria-hidden style={{ background: resolveCustomLatencyColor(bucket?.value, settings.pingLatencyThresholds, settings.pingLatencyColors) }} />{line.taskName}</span>
-            <strong className="tabular">{bucket ? formatLatencyBucketSummary(bucket) : t("无样本")}</strong>
-            <strong className="tabular">{lossValue(bucket)}</strong>
-          </div>)}
-        </div>
+        <ul className="multi-ping-curves-tooltip-list">
+          {inspected.map(({ line, bucket }) => <li className="multi-ping-curves-tooltip-row" key={line.taskId}>
+            <span className="multi-ping-curves-tooltip-name"><i aria-hidden style={{ background: resolveCustomLatencyColor(bucket?.value, settings.pingLatencyThresholds, settings.pingLatencyColors) }} />{line.taskName}</span>{" "}
+            <strong className="tabular">{bucket ? formatLatencyBucketSummary(bucket) : t("无样本")} ({lossValue(bucket)})</strong>
+          </li>)}
+        </ul>
       </div>}
     </div>
   );

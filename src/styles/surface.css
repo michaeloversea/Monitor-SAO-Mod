@@ -1607,17 +1607,32 @@
   font-weight: 700;
 }
 
-/* 把覆盖/采样/断点连线/实时并入标题行右侧，省掉单独一行工具栏 */
+/* 标题与工具栏按内容宽度排布；同一行放不下时，工具栏整组换行并保持左对齐。 */
 .instance-chart-headmeta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 8px;
 }
 
 .instance-chart-panel .instance-panel-header {
+  flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-start;
+  gap: 10px 16px;
+}
+
+.instance-chart-panel .instance-panel-headings {
+  flex: none;
+}
+
+.instance-chart-panel .instance-panel-aside {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
 }
 
 .instance-chart-grid {
@@ -1775,15 +1790,15 @@
 .instance-ping-toolbar {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 8px;
-  margin-bottom: 12px;
 }
 
 .instance-ping-tasks {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  margin: 0 14px 8px;
 }
 
 .instance-ping-task {
@@ -1866,12 +1881,6 @@
     gap: 6px 12px;
   }
 
-  .instance-chart-panel .instance-panel-header {
-    flex-direction: column;
-    align-items: flex-start;
-    padding-right: 88px;
-  }
-
   .instance-chart-grid {
     grid-template-columns: 1fr;
   }
@@ -1891,12 +1900,6 @@
 
   .instance-info-groups {
     grid-template-columns: 1fr;
-  }
-
-  .instance-ping-toolbar {
-    justify-content: flex-start;
-    overflow-x: auto;
-    padding-bottom: 2px;
   }
 
   .instance-chart-meta {
@@ -2171,7 +2174,7 @@
 .node-ping-task-tag-dot { width: 6px; height: 6px; flex: 0 0 6px; border-radius: 50%; background: var(--accent-500); }
 .setting-select > .theme-manage-input { padding-right: 38px; }
 
-.instance-ping-axis-key { display: flex; flex-wrap: wrap; gap: 8px 18px; color: var(--text-tertiary); font-size: 11px; }
+.instance-ping-axis-key { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0 14px 10px; color: var(--text-tertiary); font-size: 11px; }
 .instance-ping-axis-key > span { display: inline-flex; align-items: center; gap: 6px; }
 .instance-ping-axis-key i { display: inline-block; width: 16px; background: var(--accent-500); }
 .instance-ping-axis-key .is-line { height: 2px; border-radius: 2px; }

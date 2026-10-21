@@ -1,5 +1,10 @@
 import type uPlot from "uplot";
 
+/** Both linear Y axes use the same six horizontal positions, including the bounds. */
+export function alignedPingAxisSplits(min: number, max: number): number[] {
+  return Array.from({ length: 6 }, (_, index) => min + (max - min) * index / 5);
+}
+
 /** 按当前可见线路计算纵轴；横轴缩放与图表实例保持不变。 */
 export function resolvePingYRange(chart: uPlot.AlignedData, taskIds: readonly number[], hidden: ReadonlySet<number>): [number, number] {
   let min = Infinity;

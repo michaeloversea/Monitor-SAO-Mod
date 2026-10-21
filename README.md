@@ -1,6 +1,6 @@
 # Monitor
 
-本 Mod 基于 [WAOR/Monitor-SAO](https://github.com/WAOR/Monitor-SAO)，**仅支持极简探针（Monitor）**。当前版本 `v1.2.6`，主题短名保持 `sao`，升级沿用已有站点设置。
+本 Mod 基于 [WAOR/Monitor-SAO](https://github.com/WAOR/Monitor-SAO)，**仅支持极简探针（Monitor）**。当前版本 `v1.2.7`，主题短名保持 `sao`，升级沿用已有站点设置。
 
 [更新记录](docs/Changelogs.md)
 

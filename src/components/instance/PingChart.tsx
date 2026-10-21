@@ -42,7 +42,7 @@ import {
   indexPingLossSamples,
   pingLossAtTime,
 } from "./lossBandData";
-import { resolvePingYRange } from "./pingChartScale";
+import { alignedPingAxisSplits, resolvePingYRange } from "./pingChartScale";
 import { highDpiChartPlugin } from "./chartResolution";
 import { drawPingLossBars, pingLossAxisMax } from "./pingLossBars";
 
@@ -276,10 +276,14 @@ export function PingChart({
       time: `${formatTooltipTime(bucket.start, hours)} — ${formatTooltipTime(bucket.end, hours)}`,
       rows: [{ label: row.label, value: formatLossBandValue(bucket.loss), color: row.color }] });
   }, [hours]);
-  const displayedTooltip = useMemo(() => ({ ...tooltip, rows: tooltip.rows.map((row) => ({ ...row,
-    detail: (showLossBands || showLossBars) && row.taskId != null && tooltip.timestamp != null
-      ? formatLossBandValue(pingLossAtTime(lossSamples.get(row.taskId) ?? [], tooltip.timestamp)) : undefined,
-  })) }), [tooltip, showLossBands, showLossBars, lossSamples]);
+  const displayedTooltip = useMemo(() => ({ ...tooltip, rows: tooltip.rows.map((row) => {
+    let detail: string | undefined;
+    if ((showLossBands || showLossBars) && row.taskId != null && tooltip.timestamp != null) {
+      const loss = pingLossAtTime(lossSamples.get(row.taskId) ?? [], tooltip.timestamp);
+      detail = loss == null ? t("未采样") : `${loss.toFixed(1)}%`;
+    }
+    return { ...row, detail };
+  }) }), [tooltip, showLossBands, showLossBars, lossSamples, t]);
   const onPlotCreate = useCallback((plot: uPlot) => {
     plotRef.current = plot;
     plot.batch(() => {
@@ -466,23 +470,27 @@ export function PingChart({
         {
           stroke: text,
           grid: { stroke: grid, width: 1 },
-          ticks: { stroke: grid },
+          ticks: { stroke: grid, width: 1 },
           size: 36,
           values: createTimeAxisFormatter(hours),
         },
         {
           stroke: text,
           grid: { stroke: grid, width: 1 },
-          ticks: { stroke: grid },
+          ticks: { show: false },
+          border: { show: false },
+          splits: (_plot, _axis, min, max) => alignedPingAxisSplits(min, max),
           size: 54,
-          values: (_self, splits) => splits.map((value) => (value === 0 ? "" : `${Math.round(value)} ms`)),
+          values: (_self, splits) => splits.map((value) => `${Math.round(value)} ms`),
         },
         {
           scale: "loss",
           side: 1,
           stroke: text,
           grid: { show: false },
-          ticks: { stroke: grid },
+          ticks: { show: false },
+          border: { show: false },
+          splits: (_plot, _axis, min, max) => alignedPingAxisSplits(min, max),
           size: 48,
           values: (_self, splits) => splits.map((value) => `${Number(value.toFixed(2))}%`),
         },
@@ -633,40 +641,45 @@ export function PingChart({
   }
 
   return (
-    <InstancePanel title={t("Ping 图表")} description={coverageLabel ?? undefined}>
-      <div className="instance-ping-toolbar">
-        <SwitchToggle label={t("丢包柱状图")} active={showLossBars} onToggle={() => setShowLossBars((value) => !value)}
-          title={t("左轴：延迟 ms · 右轴：丢包 %；柱状图按丢包程度显示黄、橙、红，按原始采样统计，不受削峰平滑影响。")} />
-        <SwitchToggle label={t("丢包色带")} active={showLossBands} onToggle={() => setShowLossBands((value) => !value)}
-          title={t("按各线路原始返回桶显示丢包率：绿 0%、黄绿 <5%、黄 <20%、橙 <50%、红 <100%、深红 100%；灰色表示未采样。色带与时间轴对齐，不受削峰平滑或断点连线影响。")} />
-        <SwitchToggle
-          label={t("削峰平滑")}
-          active={cutPeak}
-          onToggle={() => setCutPeak((value) => !value)}
-          title={t("对尖峰值做轻度平滑，仅影响图线显示")}
-        />
-        <SwitchToggle
-          label={t("断点连线")}
-          active={connectNulls}
-          onToggle={() => setConnectNulls((value) => !value)}
-          title={t("关闭：如实显示中断/丢包断点；开启：跨过所有空缺连成完整曲线（更好看，但看不出掉线）。注：偶尔漏一两次采样的小空缺始终自动桥接，不受此开关影响。")}
-        />
-        <button type="button" className="instance-toggle-button" onClick={toggleAll}>
-          {hiddenTasks.size === 0 ? <EyeOff size={14} aria-hidden /> : <Eye size={14} aria-hidden />}
-          {hiddenTasks.size === 0 ? t("隐藏全部") : t("显示全部")}
-        </button>
-        <button
-          type="button"
-          className="instance-toggle-button"
-          onClick={refetchAll}
-          disabled={isFetching}
-          aria-busy={isFetching}
-        >
-          <RefreshCw size={14} aria-hidden />
-          {isFetching ? t("刷新中") : isError ? t("刷新失败，重试") : t("刷新")}
-        </button>
-      </div>
-
+    <InstancePanel
+      title={t("Ping 图表")}
+      description={coverageLabel ?? undefined}
+      className="instance-chart-panel"
+      aside={
+        <div className="instance-ping-toolbar">
+          <SwitchToggle label={t("丢包柱状图")} active={showLossBars} onToggle={() => setShowLossBars((value) => !value)}
+            title={t("左轴：延迟 ms · 右轴：丢包 %；柱状图按丢包程度显示黄、橙、红，按原始采样统计，不受削峰平滑影响。")} />
+          <SwitchToggle label={t("丢包色带")} active={showLossBands} onToggle={() => setShowLossBands((value) => !value)}
+            title={t("按各线路原始返回桶显示丢包率：绿 0%、黄绿 <5%、黄 <20%、橙 <50%、红 <100%、深红 100%；灰色表示未采样。色带与时间轴对齐，不受削峰平滑或断点连线影响。")} />
+          <SwitchToggle
+            label={t("削峰平滑")}
+            active={cutPeak}
+            onToggle={() => setCutPeak((value) => !value)}
+            title={t("对尖峰值做轻度平滑，仅影响图线显示")}
+          />
+          <SwitchToggle
+            label={t("断点连线")}
+            active={connectNulls}
+            onToggle={() => setConnectNulls((value) => !value)}
+            title={t("关闭：如实显示中断/丢包断点；开启：跨过所有空缺连成完整曲线（更好看，但看不出掉线）。注：偶尔漏一两次采样的小空缺始终自动桥接，不受此开关影响。")}
+          />
+          <button type="button" className="instance-toggle-button" onClick={toggleAll}>
+            {hiddenTasks.size === 0 ? <EyeOff size={14} aria-hidden /> : <Eye size={14} aria-hidden />}
+            {hiddenTasks.size === 0 ? t("隐藏全部") : t("显示全部")}
+          </button>
+          <button
+            type="button"
+            className="instance-toggle-button"
+            onClick={refetchAll}
+            disabled={isFetching}
+            aria-busy={isFetching}
+          >
+            <RefreshCw size={14} aria-hidden />
+            {isFetching ? t("刷新中") : isError ? t("刷新失败，重试") : t("刷新")}
+          </button>
+        </div>
+      }
+    >
       <div className="instance-ping-axis-key">
         <span><i className="is-line" aria-hidden />{t("延迟曲线 · 左轴 ms")}</span>
         {showLossBars && <span title={t("丢包分级：黄 ≤{0}% · 橙 ≤{1}% · 红 >{1}%", [pingLossThresholds.low, pingLossThresholds.medium])}><i className="is-bar" aria-hidden />{t("丢包柱状图 · 右轴 %")}</span>}

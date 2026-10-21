@@ -99,7 +99,7 @@ describe("丢包色带独立显隐", () => {
     expect(fixture.dataRef).toBe(dataBefore);
     expect([fixture.creations, fixture.destructions, fixture.optionUpdates, fixture.dataUpdates]).toEqual(counts);
     await act(async () => setLanguage("en"));
-    expect(container.textContent).toContain("Loss bands");
+    expect(container.textContent).toContain("PLR bands");
     expect(fixture.options).toBe(optionsBefore);
     expect(fixture.dataRef).toBe(dataBefore);
     expect([fixture.creations, fixture.destructions, fixture.optionUpdates, fixture.dataUpdates]).toEqual(counts);
@@ -117,7 +117,14 @@ describe("丢包色带独立显隐", () => {
     const optionsBefore = fixture.options;
     const dataBefore = fixture.dataRef;
     await act(async () => { plot.setCursor({ left: 850, top: 100 }); await new Promise((resolve) => setTimeout(resolve, 25)); });
-    expect(container.querySelector(".instance-chart-tooltip")?.textContent).toContain("50.0 ms (10.0% 丢包)");
+    expect(container.querySelector(".instance-chart-tooltip")?.textContent).toContain("50.0 ms (10.0%)");
+    await act(async () => setLanguage("en"));
+    await act(async () => { plot.setCursor({ left: 850, top: 100 }); await new Promise((resolve) => setTimeout(resolve, 25)); });
+    expect(container.querySelector(".instance-chart-tooltip")?.textContent).toContain("50.0 ms (10.0%)");
+    await act(async () => setLanguage("zh-TW"));
+    await act(async () => { plot.setCursor({ left: 850, top: 100 }); await new Promise((resolve) => setTimeout(resolve, 25)); });
+    expect(container.querySelector(".instance-chart-tooltip")?.textContent).toContain("50.0 ms (10.0%)");
+    await act(async () => setLanguage(null));
     expect(container.querySelector<HTMLElement>(".instance-ping-cursor-extension")!.hidden).toBe(false);
     const svg = container.querySelector<SVGSVGElement>(".instance-ping-loss-band-row svg")!;
     svg.getBoundingClientRect = () => ({ left: 56, top: 100, width: 1130, height: 6, right: 1186, bottom: 106, x: 56, y: 100, toJSON: () => ({}) });
@@ -136,10 +143,10 @@ describe("丢包色带独立显隐", () => {
     expect(svg.dataset.activeCell).toBeUndefined();
     expect(container.querySelector<HTMLElement>(".instance-ping-cursor-extension")!.hidden).toBe(true);
     // Hiding bands keeps the loss tooltip while bars remain visible.
-    expect(container.querySelector(".instance-chart-tooltip")?.textContent).toContain("10.0% 丢包");
+    expect(container.querySelector(".instance-chart-tooltip")?.textContent).toContain("(10.0%)");
     const barsToggle = [...container.querySelectorAll("button")].find((button) => button.textContent?.includes("丢包柱状图"))!;
     await act(async () => barsToggle.click());
-    expect(container.querySelector(".instance-chart-tooltip")?.textContent ?? "").not.toContain("丢包");
+    expect(container.querySelector(".instance-chart-tooltip")?.textContent ?? "").not.toContain("(10.0%)");
     expect(fixture.options).toBe(optionsBefore);
     expect(fixture.dataRef).toBe(dataBefore);
     expect(plot.scales.x).toEqual(xBefore);

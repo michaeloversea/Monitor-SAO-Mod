@@ -42,11 +42,13 @@ it("supports keyboard inspection with localized latency/loss tooltips", async ()
     await act(async () => root.render(<LatencyCurve buckets={buckets} color="#123456" label="Route" />));
     const svg = container.querySelector("svg")!;
     await act(async () => svg.focus());
-    expect(container.querySelector('[role="status"]')?.textContent).toContain("40 ms · Packet loss 10.0%");
+    expect(container.querySelector('[role="status"]')?.textContent).toContain("40 ms · PLR 10.0%");
     await act(async () => svg.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true })));
     expect(container.querySelector('[role="status"]')?.textContent).toContain("No samples");
     await act(async () => setLanguage("zh-TW"));
     expect(svg.getAttribute("aria-label")).toContain("延遲曲線");
+    await act(async () => svg.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true })));
+    expect(container.querySelector('[role="status"]')?.textContent).toContain("40 ms · PLR 10.0%");
     await act(async () => svg.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })));
     expect(container.querySelector('[role="status"]')).toBeNull();
   } finally { await act(async () => root.unmount()); container.remove(); }

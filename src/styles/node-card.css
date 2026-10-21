@@ -680,19 +680,20 @@
   display: grid;
   grid-template-columns: fit-content(28%) max-content minmax(50px, 1fr) max-content;
   align-items: center;
-  column-gap: 8px;
+  column-gap: 4px;
   row-gap: 6px;
   min-width: 0;
 }
 .multi-ping-curve-row { display: contents; }
 .multi-ping-curve-row .multi-ping-name { display: block; }
+.multi-ping-curve-row > .multi-ping-value { text-align: right; }
 .multi-ping-curve-dot { display: inline-block; width: 5px; height: 5px; margin-right: 5px; vertical-align: 1px; border-radius: 50%; }
 .multi-ping-curve { display: block; position: relative; min-width: 0; width: 100%; height: 28px; }
 .multi-ping-curve svg { display: block; width: 100%; height: 100%; overflow: visible; border-radius: 3px; }
 .multi-ping-curve svg:focus { outline: none; }
 .multi-ping-curve-loss { display: flex; align-items: baseline; gap: 4px; white-space: nowrap; }
 .multi-ping-curve-loss > span { color: var(--text-tertiary); font-size: 9px; }
-.multi-ping-status.is-compact .multi-ping-curves { column-gap: 6px; }
+.multi-ping-status.is-compact .multi-ping-curves { column-gap: 4px; }
 .multi-ping-status.is-compact .multi-ping-curve { height: 24px; }
 .node-list-cell.col-net .multi-ping-curve-loss > span { display: none; }
 
@@ -702,9 +703,8 @@
   right: 0;
   z-index: 15;
   width: max-content;
-  min-width: min(240px, calc(100vw - 60px));
   max-width: min(360px, calc(100vw - 60px));
-  padding: 8px 10px;
+  padding: 6px 8px;
   border-radius: 7px;
   background: color-mix(in srgb, var(--text-primary) 92%, black 8%);
   color: var(--surface);
@@ -714,9 +714,8 @@
   line-height: 1.4;
 }
 .multi-ping-curves-tooltip-time { padding-bottom: 4px; font-weight: 650; }
-.multi-ping-curves-tooltip-grid { display: grid; grid-template-columns: minmax(0, 1fr) max-content max-content; gap: 4px 12px; align-items: baseline; }
-.multi-ping-curves-tooltip-row { display: contents; }
-.multi-ping-curves-tooltip-heading { opacity: .7; }
-.multi-ping-curves-tooltip-grid > span:not(:first-child), .multi-ping-curves-tooltip-row > strong { text-align: right; white-space: nowrap; }
-.multi-ping-curves-tooltip-name { min-width: 0; overflow-wrap: anywhere; }
-.multi-ping-curves-tooltip-name i { display: inline-block; width: 5px; height: 5px; margin-right: 5px; border-radius: 50%; vertical-align: 1px; }
+.multi-ping-curves-tooltip-list { display: flex; flex-direction: column; gap: 3px; margin: 0; padding: 0; list-style: none; }
+.multi-ping-curves-tooltip-row { display: flex; align-items: baseline; gap: 6px; }
+.multi-ping-curves-tooltip-row > strong { flex: none; font-weight: 650; white-space: nowrap; }
+.multi-ping-curves-tooltip-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.multi-ping-curves-tooltip-name i { display: inline-block; width: 6px; height: 2px; margin-right: 5px; border-radius: 1px; vertical-align: 3px; }

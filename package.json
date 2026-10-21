@@ -1,7 +1,7 @@
 {
   "name": "monitor-theme-sao",
   "private": true,
-  "version": "1.2.6",
+  "version": "1.2.7",
   "type": "module",
   "description": "JKSR Theme for Monitor - 极简立体仪表盘主题",
   "author": "WAOR",
@@ -9,7 +9,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "package": "npm run build && node scripts/package-tar.mjs",
+    "package": "npm run build && node scripts/make-preview.mjs && node scripts/package-tar.mjs",
     "package:zip": "npm run build && node scripts/make-preview.mjs && node scripts/package-zip.mjs",
     "lint": "eslint .",
     "typecheck": "tsc -b",

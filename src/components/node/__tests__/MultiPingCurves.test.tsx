@@ -42,9 +42,10 @@ it("hovers all routes at the same time with one tooltip and only affects this ca
   await act(async () => chart().dispatchEvent(pointer("pointermove", 80)));
   const tooltip = container.querySelector('[role="status"]')!;
   expect(container.querySelectorAll('[role="status"]')).toHaveLength(1);
-  expect(tooltip.textContent).toContain("Route 1"); expect(tooltip.textContent).toContain("20 ms");
-  expect(tooltip.textContent).toContain("Route 2"); expect(tooltip.textContent).toContain("Failed"); expect(tooltip.textContent).toContain("100.0%");
-  expect(tooltip.textContent).toContain("Route 3"); expect(tooltip.textContent).toContain("80 ms"); expect(tooltip.textContent).toContain("2.0%");
+  expect([...tooltip.querySelectorAll("li")].map((row) => row.textContent)).toEqual([
+    "Route 1 20 ms (0.0%)", "Route 2 Failed (100.0%)", "Route 3 80 ms (2.0%)",
+  ]);
+  expect(tooltip.textContent).not.toContain("PLR");
   expect(tooltip.textContent).not.toContain("999");
   const cursors = container.querySelectorAll(".multi-ping-curve-cursor");
   expect(cursors).toHaveLength(3);
