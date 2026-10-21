@@ -12,8 +12,7 @@
   transition:
     border-color 180ms ease,
     background 180ms ease,
-    box-shadow 180ms ease,
-    transform 180ms cubic-bezier(0.32, 0.72, 0, 1);
+    box-shadow 180ms ease;
 }
 
 :root[data-appearance="dark"] .server-card,
@@ -36,19 +35,30 @@
 
 .server-card:hover,
 .compact-node-card:hover,
-.mini-node-card:hover {
-  border-color: rgba(0, 0, 0, 0.14);
-  background: #ffffff;
-  box-shadow: 0 10px 24px -6px rgba(0, 0, 0, 0.08);
-  transform: translateY(-2px);
+.mini-node-card:hover,
+.server-card:focus-within,
+.compact-node-card:focus-within,
+.mini-node-card:focus-within {
+  border-color: color-mix(in srgb, var(--accent-500) 22%, var(--border));
+  background:
+    radial-gradient(ellipse at top left, color-mix(in srgb, var(--accent-500) 6%, transparent), transparent 65%),
+    radial-gradient(ellipse at bottom right, color-mix(in srgb, var(--progress-memory) 5%, transparent), transparent 65%),
+    #ffffff;
+  box-shadow: 0 1px 6px color-mix(in srgb, var(--accent-500) 8%, transparent);
 }
 
 :root[data-appearance="dark"] .server-card:hover,
 :root[data-appearance="dark"] .compact-node-card:hover,
-:root[data-appearance="dark"] .mini-node-card:hover {
-  background: #27272a;
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.6);
+:root[data-appearance="dark"] .mini-node-card:hover,
+:root[data-appearance="dark"] .server-card:focus-within,
+:root[data-appearance="dark"] .compact-node-card:focus-within,
+:root[data-appearance="dark"] .mini-node-card:focus-within {
+  background:
+    radial-gradient(ellipse at top left, color-mix(in srgb, var(--accent-500) 9%, transparent), transparent 65%),
+    radial-gradient(ellipse at bottom right, color-mix(in srgb, var(--progress-memory) 8%, transparent), transparent 65%),
+    #1c1c1f;
+  border-color: color-mix(in srgb, var(--accent-500) 30%, var(--border));
+  box-shadow: 0 1px 8px color-mix(in srgb, var(--accent-500) 12%, transparent);
 }
 
 .server-card.is-offline,

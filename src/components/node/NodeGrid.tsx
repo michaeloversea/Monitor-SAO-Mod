@@ -419,7 +419,7 @@ function HomeOverviewCards({
                 onClick={loggedIn ? handleStartEdit : undefined}
                 title={loggedIn ? t("点击快速修改管理员昵称") : undefined}
               >
-                <DiaTextReveal text={username || "Guest"} />
+                <DiaTextReveal text={username || t("访客")} />
                 {loggedIn && (
                   <Pencil
                     size={13}
@@ -1228,7 +1228,7 @@ export function NodeGrid() {
           bandwidthRatingLabels={themeSettings.bandwidthRatingLabels}
           assetRatingLabels={themeSettings.assetRatingLabels}
           onWarmTraffic={warmTrafficPage}
-          username={loggedIn ? (themeSettings.adminNickname || me?.username || "Admin") : "Guest"}
+          username={loggedIn ? (themeSettings.adminNickname || me?.username || "Admin") : t("访客")}
           loggedIn={loggedIn}
           todayTrafficTotal={todayTrafficTotal}
           todayTrafficLoading={todayTrafficQuery.isPending}

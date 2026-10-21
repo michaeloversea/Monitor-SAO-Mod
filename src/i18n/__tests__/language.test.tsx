@@ -55,6 +55,23 @@ it("keeps interpolated user text literal, including strings that match translati
   expect(t("{0} 信息", ["首页 <script>"], "en")).toContain("首页 <script>");
 });
 
+it("localizes the visitor greeting without changing user names", () => {
+  expect(t("访客", [], "zh-CN")).toBe("访客");
+  expect(t("访客", [], "zh-TW")).toBe("訪客");
+  expect(t("访客", [], "en")).toBe("Guest");
+  expect(t("{0} 信息", ["guest of Alice"], "en")).toContain("guest of Alice");
+});
+
+it("uses Title Case for headings while retaining minor words and acronyms", () => {
+  expect(t("集群状态", [], "en")).toBe("Cluster Status");
+  expect(t("活跃连接", [], "en")).toBe("Active Connections");
+  expect(t("服务器矩阵与实时监控", [], "en")).toBe("Server Matrix and Live Monitoring");
+  expect(t("卡片扩展入口与访客权限", [], "en")).toBe("Card Controls and Visitor Access");
+  expect(t("显示 TCP/UDP 连接数", [], "en")).toBe("Show TCP/UDP Connections");
+  expect(t("负载图表", [], "en")).toBe("Load Charts");
+  expect(t("经典布局", [], "en")).toBe("Classic Layout");
+});
+
 it("updates the menu across tabs and supports keyboard dismissal and returning to the default", async () => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   setLanguage(null);
@@ -65,7 +82,7 @@ it("updates the menu across tabs and supports keyboard dismissal and returning t
     await act(async () => container.querySelector<HTMLButtonElement>("button")!.click());
     expect(document.activeElement?.getAttribute("data-language")).toBe("zh-CN");
     await act(async () => container.querySelector<HTMLButtonElement>('[data-language="en"]')!.click());
-    expect(container.querySelector("button")?.getAttribute("aria-label")).toBe("Language settings");
+    expect(container.querySelector("button")?.getAttribute("aria-label")).toBe("Language Settings");
     expect(container.querySelector(".language-menu")).toBeNull();
     await act(async () => {
       localStorage.setItem("monitor-sao:language", "zh-TW");

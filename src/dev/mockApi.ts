@@ -1,5 +1,6 @@
 import type { NodeInfo } from "@/types/theme";
 import { getExpireDaysRemaining } from "@/utils/format";
+import { mockTrafficRate } from "./mockTraffic";
 
 const MIB = 1024 * 1024;
 const GIB = 1024 * MIB;
@@ -285,23 +286,10 @@ function getNodeStatusProfile(index: number, node: NodeInfo) {
     basePing = 50 + (index % 5) * 30;
   }
 
-  // 吞吐阶梯：在方格矩阵呈现不同梯级（>10MB/s 梯级3、>2MB/s 梯级2、>200KB/s 梯级1、空闲）
-  const speedTier = index % 4;
-  let upRate = 50_000;
-  let downRate = 120_000;
-  if (speedTier === 3) {
-    upRate = Math.round(clamp(wave(index, 9_000, 4_000_000, 12_000_000), 8_000_000, 35_000_000));
-    downRate = Math.round(clamp(wave(index + 2, 11_000, 6_000_000, 18_000_000), 10_000_000, 50_000_000));
-  } else if (speedTier === 2) {
-    upRate = Math.round(clamp(wave(index, 12_000, 1_000_000, 3_500_000), 2_100_000, 6_000_000));
-    downRate = Math.round(clamp(wave(index + 1, 14_000, 1_500_000, 4_800_000), 2_200_000, 8_000_000));
-  } else if (speedTier === 1) {
-    upRate = Math.round(clamp(wave(index, 15_000, 200_000, 450_000), 220_000, 800_000));
-    downRate = Math.round(clamp(wave(index + 3, 17_000, 300_000, 750_000), 250_000, 1_200_000));
-  } else {
-    upRate = Math.round(clamp(wave(index, 20_000, 40_000, 60_000), 5_000, 120_000));
-    downRate = Math.round(clamp(wave(index + 1, 22_000, 60_000, 90_000), 8_000, 160_000));
-  }
+  // 不同节点保留带宽量级，实时数据使用突发、空闲和不规则峰谷。
+  const now = Date.now();
+  const upRate = mockTrafficRate(index, "up", now);
+  const downRate = mockTrafficRate(index, "down", now);
 
   const totalUp = (800 + index * 120) * GIB;
   const totalDown = (1200 + index * 180) * GIB;

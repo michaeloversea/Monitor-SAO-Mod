@@ -95,6 +95,8 @@
 .compact-node-actions {
   flex: 0 0 auto;
   gap: 7px;
+  /* Align the 15px logo with the flag's inset while keeping 30px hit targets. */
+  margin-inline-end: -7.5px;
 }
 
 .compact-node-detail-link {
@@ -395,7 +397,7 @@
   border: 0;
   border-radius: 0;
   background: transparent;
-  padding: calc(7px - var(--ci-shrink) * 0.4px) calc(10px - var(--ci-shrink) * 2.2px);
+  padding: calc(7px - var(--ci-shrink) * 0.4px) calc(12px - var(--ci-shrink) * 2px);
   color: var(--text-secondary);
   text-align: left;
 }
@@ -651,7 +653,7 @@
 
   .compact-node-info-tile {
     min-height: 48px;
-    padding: 6px;
+    padding: 6px 8px;
   }
 
   .compact-node-info-row {
@@ -675,7 +677,7 @@
   }
 
   .compact-node-info-strip[data-columns="4"] > .compact-node-info-tile {
-    padding: 6px 3px;
+    padding: 6px 5px;
   }
 
   .compact-node-info-strip[data-columns="4"] .compact-node-info-row {

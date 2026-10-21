@@ -1,6 +1,7 @@
 import { useTranslate } from "@/i18n";
 import { formatByteRate, formatByteRateLabel } from "@/utils/format";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { buildTrafficCurve } from "./trafficCurve";
 
 interface SingleTrafficPoint {
   time: number;
@@ -70,9 +71,18 @@ function SingleTrafficCard({
   const t = useTranslate();
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const tooltipRef = useRef<HTMLDivElement | null>(null);
   const historyRef = useRef<SingleTrafficPoint[]>([]);
   const hoverIndexRef = useRef<number | null>(null);
   const [hoverInfo, setHoverInfo] = useState<HoverInfo | null>(null);
+  const [tooltipWidth, setTooltipWidth] = useState(0);
+
+  useLayoutEffect(() => {
+    if (hoverInfo && tooltipRef.current) {
+      // offsetWidth ignores the entrance animation's scale.
+      setTooltipWidth(tooltipRef.current.offsetWidth);
+    }
+  }, [hoverInfo, t]);
 
   hoverIndexRef.current = hoverInfo?.index ?? null;
 
@@ -80,15 +90,6 @@ function SingleTrafficCard({
   useEffect(() => {
     const now = Date.now();
     const history = historyRef.current;
-    if (history.length === 0) {
-      // 初始填充平滑历史点
-      for (let i = 11; i >= 1; i--) {
-        history.push({
-          time: now - i * 1500,
-          rate: Math.max(0, rate * (0.88 + Math.random() * 0.24)),
-        });
-      }
-    }
     history.push({ time: now, rate });
     if (history.length > MAX_HISTORY_POINTS) {
       history.shift();
@@ -110,7 +111,8 @@ function SingleTrafficCard({
       return;
     }
 
-    const dpr = window.devicePixelRatio || 1;
+    // Keep narrow charts sharp on 1× displays and in enlarged previews too.
+    const dpr = Math.max(2, window.devicePixelRatio || 1);
     const pixelWidth = Math.max(1, Math.round(width * dpr));
     const pixelHeight = Math.max(1, Math.round(height * dpr));
 
@@ -120,7 +122,7 @@ function SingleTrafficCard({
     }
 
     // 每次重置变换矩阵，保证 X 与 Y 等比缩放，彻底杜绝拉伸畸变与模糊
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.setTransform(pixelWidth / width, 0, 0, pixelHeight / height, 0, 0);
     ctx.clearRect(0, 0, width, height);
 
     const history = historyRef.current;
@@ -128,7 +130,7 @@ function SingleTrafficCard({
       history.length > 1
         ? history
         : [
-            { time: Date.now() - 2000, rate: 0 },
+            { time: Date.now() - 2000, rate },
             { time: Date.now(), rate },
           ];
 
@@ -139,7 +141,7 @@ function SingleTrafficCard({
     }
     const maxVal = getNiceRateCeiling(peakRate);
 
-    const paddingLeft = 50;
+    const paddingLeft = 56;
     const paddingBottom = 18;
     const paddingTop = 6;
     const paddingRight = 14;
@@ -151,8 +153,8 @@ function SingleTrafficCard({
     ctx.lineWidth = 1;
     ctx.setLineDash([3, 3]);
 
-    ctx.font = "9px Inter, system-ui, -apple-system, sans-serif";
-    ctx.fillStyle = "rgba(140, 140, 140, 0.75)";
+    ctx.font = "10px Inter, system-ui, -apple-system, sans-serif";
+    ctx.fillStyle = getComputedStyle(canvas).getPropertyValue("--text-muted").trim() || "#71717a";
     ctx.textAlign = "right";
     ctx.textBaseline = "middle";
 
@@ -194,59 +196,36 @@ function SingleTrafficCard({
     }
 
     if (points.length > 1) {
-      const isDark = typeof document !== "undefined" && document.documentElement.dataset.appearance === "dark";
       const hoverIdx = hoverIndexRef.current;
 
-      // 绘制悬浮垂直高亮轴
-      if (hoverIdx !== null && hoverIdx >= 0 && hoverIdx < points.length) {
-        const hoverX = paddingLeft + (hoverIdx / (points.length - 1)) * plotWidth;
-        const barWidth = 18;
+      const projected = points.map((point, index) => ({
+        x: paddingLeft + (index / (points.length - 1)) * plotWidth,
+        y: paddingTop + plotHeight - (point.rate / maxVal) * plotHeight,
+      }));
+      const segments = buildTrafficCurve(projected);
+      const traceCurve = () => {
+        ctx.moveTo(projected[0].x, projected[0].y);
+        segments.forEach(({ control1, control2, end }) => {
+          ctx.bezierCurveTo(control1.x, control1.y, control2.x, control2.y, end.x, end.y);
+        });
+      };
 
-        ctx.fillStyle = isDark ? "rgba(255, 255, 255, 0.06)" : haloRgba;
-        ctx.beginPath();
-        if (typeof ctx.roundRect === "function") {
-          ctx.roundRect(hoverX - barWidth / 2, paddingTop - 2, barWidth, plotHeight + 4, 5);
-        } else {
-          ctx.rect(hoverX - barWidth / 2, paddingTop - 2, barWidth, plotHeight + 4);
-        }
-        ctx.fill();
-
-        ctx.strokeStyle = isDark ? "rgba(255, 255, 255, 0.28)" : color;
-        ctx.lineWidth = 1;
-        ctx.setLineDash([2, 2]);
-        ctx.beginPath();
-        ctx.moveTo(hoverX, paddingTop);
-        ctx.lineTo(hoverX, paddingTop + plotHeight);
-        ctx.stroke();
-        ctx.setLineDash([]);
-      }
-
-      // 区域渐变填充
+      // 填充与描边使用同一曲线，采样点和峰值保持原样。
       const gradient = ctx.createLinearGradient(0, paddingTop, 0, paddingTop + plotHeight);
       gradient.addColorStop(0, gradientTop);
       gradient.addColorStop(1, gradientBottom);
 
       ctx.beginPath();
-      points.forEach((p, idx) => {
-        const x = paddingLeft + (idx / (points.length - 1)) * plotWidth;
-        const y = paddingTop + plotHeight - (p.rate / maxVal) * plotHeight;
-        if (idx === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      });
+      traceCurve();
       ctx.lineTo(paddingLeft + plotWidth, paddingTop + plotHeight);
       ctx.lineTo(paddingLeft, paddingTop + plotHeight);
       ctx.closePath();
       ctx.fillStyle = gradient;
       ctx.fill();
 
-      // 折线
+      // 圆滑连线
       ctx.beginPath();
-      points.forEach((p, idx) => {
-        const x = paddingLeft + (idx / (points.length - 1)) * plotWidth;
-        const y = paddingTop + plotHeight - (p.rate / maxVal) * plotHeight;
-        if (idx === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      });
+      traceCurve();
       ctx.strokeStyle = color;
       ctx.lineWidth = 1.8;
       ctx.stroke();
@@ -275,6 +254,11 @@ function SingleTrafficCard({
     }
   }, [color, gradientBottom, gradientTop, haloRgba, rate]);
 
+  const drawRef = useRef(draw);
+  useLayoutEffect(() => {
+    drawRef.current = draw;
+  }, [draw]);
+
   // 当依赖更新时立即重绘
   useEffect(() => {
     const animId = requestAnimationFrame(draw);
@@ -292,7 +276,7 @@ function SingleTrafficCard({
       if (resizeRafId !== null) cancelAnimationFrame(resizeRafId);
       resizeRafId = requestAnimationFrame(() => {
         resizeRafId = null;
-        draw();
+        drawRef.current();
       });
     };
 
@@ -311,14 +295,14 @@ function SingleTrafficCard({
       if (ro) ro.disconnect();
       window.removeEventListener("resize", handleResize);
     };
-  }, [draw]);
+  }, []);
 
   // 处理鼠标悬浮与触屏滑动
   const handlePointer = (e: React.PointerEvent<HTMLDivElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    const paddingLeft = 50;
+    const paddingLeft = 56;
     const paddingRight = 14;
     const plotWidth = rect.width - paddingLeft - paddingRight;
 
@@ -391,9 +375,10 @@ function SingleTrafficCard({
         <canvas ref={canvasRef} className="mao-realtime-chart-canvas" />
         {hoverInfo && (
           <div
+            ref={tooltipRef}
             className="mao-chart-tooltip"
             style={{
-              left: `clamp(60px, ${hoverInfo.x}px, calc(100% - 60px))`,
+              left: `clamp(4px, ${hoverInfo.x - tooltipWidth / 2}px, calc(100% - ${tooltipWidth + 4}px))`,
             }}
           >
             <div className="mao-chart-tooltip-header">

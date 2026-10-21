@@ -99,7 +99,7 @@ describe("丢包色带独立显隐", () => {
     expect(fixture.dataRef).toBe(dataBefore);
     expect([fixture.creations, fixture.destructions, fixture.optionUpdates, fixture.dataUpdates]).toEqual(counts);
     await act(async () => setLanguage("en"));
-    expect(container.textContent).toContain("PLR bands");
+    expect(container.textContent).toContain("PLR Bands");
     expect(fixture.options).toBe(optionsBefore);
     expect(fixture.dataRef).toBe(dataBefore);
     expect([fixture.creations, fixture.destructions, fixture.optionUpdates, fixture.dataUpdates]).toEqual(counts);
